@@ -1,0 +1,225 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 714" width="960" height="714" role="img" aria-labelledby="t d">
+<title id='t'>Tracked objects by mean altitude, 25 km bands</title>
+<desc id='d'>Small multiples for payloads, debris and rocket bodies from 200 to 2000 km. Numbers are in altitude_bands.csv.</desc>
+<style>
+  .surface { fill: #fcfcfb; }
+  .ink { fill: #0b0b0b; } .ink2 { fill: #52514e; } .muted { fill: #898781; }
+  .grid { stroke: #e1e0d9; } .axis { stroke: #c3c2b7; } .leader { stroke: #898781; }
+  .s0 { fill: #2a78d6; } .s1 { fill: #eb6834; } .s2 { fill: #1baf7a; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; }
+    .ink { fill: #f0efec; } .ink2 { fill: #c3c2b7; }
+    .grid { stroke: #2c2c2a; } .axis { stroke: #383835; }
+    .s0 { fill: #3987e5; } .s1 { fill: #d95926; } .s2 { fill: #199e70; }
+  }
+  text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .tick { font-size: 11px; font-variant-numeric: tabular-nums; }
+</style>
+<rect class="surface" width="960" height="714" rx="8"/>
+<text class="ink" x="64" y="32" font-size="17" font-weight="600">Where tracked objects orbit: count per 25 km band of mean altitude</text>
+<text class="ink2" x="64" y="54" font-size="12.5">19,249 objects from CelesTrak public GP data, snapshot 2026-10-31 14:49 UTC. Each panel has its own scale.</text>
+<text class="ink" x="64" y="88" font-size="13" font-weight="600">Payloads  <tspan class='ink2' font-weight='400'>(16,035)</tspan></text>
+<line class="axis" x1="64" x2="936" y1="246.0" y2="246.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="250.0" text-anchor="end">0</text>
+<line class="grid" x1="64" x2="936" y1="208.5" y2="208.5" stroke-width="1"/>
+<text class="muted tick" x="56" y="212.5" text-anchor="end">2,000</text>
+<line class="grid" x1="64" x2="936" y1="171.0" y2="171.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="175.0" text-anchor="end">4,000</text>
+<line class="grid" x1="64" x2="936" y1="133.5" y2="133.5" stroke-width="1"/>
+<text class="muted tick" x="56" y="137.5" text-anchor="end">6,000</text>
+<line class="grid" x1="64" x2="936" y1="96.0" y2="96.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="100.0" text-anchor="end">8,000</text>
+<path class="s0" d="M65.0,246.0V246.0Q65.0,245.9 65.1,245.9H75.0Q75.1,245.9 75.1,246.0V246.0Z"><title>Payload: 4 objects at 200-225 km</title></path>
+<path class="s0" d="M77.1,246.0V246.0Q77.1,245.8 77.3,245.8H87.0Q87.2,245.8 87.2,246.0V246.0Z"><title>Payload: 10 objects at 225-250 km</title></path>
+<path class="s0" d="M89.2,246.0V246.0Q89.2,245.1 90.1,245.1H98.4Q99.3,245.1 99.3,246.0V246.0Z"><title>Payload: 48 objects at 250-275 km</title></path>
+<path class="s0" d="M101.3,246.0V246.0Q101.3,245.3 102.0,245.3H110.8Q111.4,245.3 111.4,246.0V246.0Z"><title>Payload: 37 objects at 275-300 km</title></path>
+<path class="s0" d="M113.4,246.0V246.0Q113.4,244.6 114.9,244.6H122.1Q123.6,244.6 123.6,246.0V246.0Z"><title>Payload: 77 objects at 300-325 km</title></path>
+<path class="s0" d="M125.6,246.0V246.0Q125.6,243.9 127.7,243.9H133.6Q135.7,243.9 135.7,246.0V246.0Z"><title>Payload: 112 objects at 325-350 km</title></path>
+<path class="s0" d="M137.7,246.0V234.7Q137.7,231.7 140.7,231.7H144.8Q147.8,231.7 147.8,234.7V246.0Z"><title>Payload: 765 objects at 350-375 km</title></path>
+<path class="s0" d="M149.8,246.0V246.0Q149.8,243.5 152.3,243.5H157.4Q159.9,243.5 159.9,246.0V246.0Z"><title>Payload: 132 objects at 375-400 km</title></path>
+<path class="s0" d="M161.9,246.0V244.7Q161.9,241.7 164.9,241.7H169.0Q172.0,241.7 172.0,244.7V246.0Z"><title>Payload: 228 objects at 400-425 km</title></path>
+<path class="s0" d="M174.0,246.0V241.8Q174.0,238.8 177.0,238.8H181.1Q184.1,238.8 184.1,241.8V246.0Z"><title>Payload: 386 objects at 425-450 km</title></path>
+<path class="s0" d="M186.1,246.0V130.4Q186.1,127.4 189.1,127.4H193.2Q196.2,127.4 196.2,130.4V246.0Z"><title>Payload: 6,323 objects at 450-475 km</title></path>
+<path class="s0" d="M198.2,246.0V178.0Q198.2,175.0 201.2,175.0H205.3Q208.3,175.0 208.3,178.0V246.0Z"><title>Payload: 3,786 objects at 475-500 km</title></path>
+<path class="s0" d="M210.3,246.0V238.3Q210.3,235.3 213.3,235.3H217.4Q220.4,235.3 220.4,238.3V246.0Z"><title>Payload: 570 objects at 500-525 km</title></path>
+<path class="s0" d="M222.4,246.0V243.7Q222.4,240.7 225.4,240.7H229.6Q232.6,240.7 232.6,243.7V246.0Z"><title>Payload: 285 objects at 525-550 km</title></path>
+<path class="s0" d="M234.6,246.0V241.6Q234.6,238.6 237.6,238.6H241.7Q244.7,238.6 244.7,241.6V246.0Z"><title>Payload: 395 objects at 550-575 km</title></path>
+<path class="s0" d="M246.7,246.0V243.0Q246.7,240.0 249.7,240.0H253.8Q256.8,240.0 256.8,243.0V246.0Z"><title>Payload: 322 objects at 575-600 km</title></path>
+<path class="s0" d="M258.8,246.0V245.7Q258.8,242.7 261.8,242.7H265.9Q268.9,242.7 268.9,245.7V246.0Z"><title>Payload: 176 objects at 600-625 km</title></path>
+<path class="s0" d="M270.9,246.0V240.5Q270.9,237.5 273.9,237.5H278.0Q281.0,237.5 281.0,240.5V246.0Z"><title>Payload: 452 objects at 625-650 km</title></path>
+<path class="s0" d="M283.0,246.0V246.0Q283.0,245.1 283.9,245.1H292.2Q293.1,245.1 293.1,246.0V246.0Z"><title>Payload: 50 objects at 650-675 km</title></path>
+<path class="s0" d="M295.1,246.0V246.0Q295.1,244.4 296.7,244.4H303.7Q305.2,244.4 305.2,246.0V246.0Z"><title>Payload: 83 objects at 675-700 km</title></path>
+<path class="s0" d="M307.2,246.0V246.0Q307.2,245.6 307.7,245.6H316.9Q317.3,245.6 317.3,246.0V246.0Z"><title>Payload: 24 objects at 700-725 km</title></path>
+<path class="s0" d="M319.3,246.0V246.0Q319.3,245.6 319.7,245.6H329.0Q329.4,245.6 329.4,246.0V246.0Z"><title>Payload: 22 objects at 725-750 km</title></path>
+<path class="s0" d="M331.4,246.0V246.0Q331.4,245.5 332.0,245.5H341.0Q341.6,245.5 341.6,246.0V246.0Z"><title>Payload: 28 objects at 750-775 km</title></path>
+<path class="s0" d="M343.6,246.0V246.0Q343.6,243.8 345.8,243.8H351.4Q353.7,243.8 353.7,246.0V246.0Z"><title>Payload: 120 objects at 775-800 km</title></path>
+<path class="s0" d="M355.7,246.0V246.0Q355.7,245.1 356.6,245.1H364.9Q365.8,245.1 365.8,246.0V246.0Z"><title>Payload: 48 objects at 800-825 km</title></path>
+<path class="s0" d="M367.8,246.0V246.0Q367.8,245.5 368.3,245.5H377.3Q377.9,245.5 377.9,246.0V246.0Z"><title>Payload: 29 objects at 825-850 km</title></path>
+<path class="s0" d="M379.9,246.0V246.0Q379.9,245.6 380.3,245.6H389.6Q390.0,245.6 390.0,246.0V246.0Z"><title>Payload: 21 objects at 850-875 km</title></path>
+<path class="s0" d="M392.0,246.0V246.0Q392.0,245.4 392.6,245.4H401.5Q402.1,245.4 402.1,246.0V246.0Z"><title>Payload: 31 objects at 875-900 km</title></path>
+<path class="s0" d="M404.1,246.0V246.0Q404.1,245.3 404.8,245.3H413.6Q414.2,245.3 414.2,246.0V246.0Z"><title>Payload: 35 objects at 900-925 km</title></path>
+<path class="s0" d="M416.2,246.0V246.0Q416.2,244.3 417.9,244.3H424.7Q426.3,244.3 426.3,246.0V246.0Z"><title>Payload: 89 objects at 925-950 km</title></path>
+<path class="s0" d="M428.3,246.0V246.0Q428.3,244.8 429.5,244.8H437.2Q438.4,244.8 438.4,246.0V246.0Z"><title>Payload: 64 objects at 950-975 km</title></path>
+<path class="s0" d="M440.4,246.0V246.0Q440.4,245.5 440.9,245.5H450.1Q450.6,245.5 450.6,246.0V246.0Z"><title>Payload: 25 objects at 975-1000 km</title></path>
+<path class="s0" d="M452.6,246.0V246.0Q452.6,245.9 452.6,245.9H462.6Q462.7,245.9 462.7,246.0V246.0Z"><title>Payload: 5 objects at 1000-1025 km</title></path>
+<path class="s0" d="M464.7,246.0V246.0Q464.7,245.6 465.1,245.6H474.4Q474.8,245.6 474.8,246.0V246.0Z"><title>Payload: 22 objects at 1025-1050 km</title></path>
+<path class="s0" d="M476.8,246.0V245.0Q476.8,242.0 479.8,242.0H483.9Q486.9,242.0 486.9,245.0V246.0Z"><title>Payload: 214 objects at 1050-1075 km</title></path>
+<path class="s0" d="M488.9,246.0V246.0Q488.9,245.3 489.6,245.3H498.3Q499.0,245.3 499.0,246.0V246.0Z"><title>Payload: 36 objects at 1075-1100 km</title></path>
+<path class="s0" d="M501.0,246.0V246.0Q501.0,245.7 501.3,245.7H510.8Q511.1,245.7 511.1,246.0V246.0Z"><title>Payload: 15 objects at 1100-1125 km</title></path>
+<path class="s0" d="M513.1,246.0V246.0Q513.1,243.3 515.8,243.3H520.5Q523.2,243.3 523.2,246.0V246.0Z"><title>Payload: 146 objects at 1125-1150 km</title></path>
+<path class="s0" d="M525.2,246.0V246.0Q525.2,244.8 526.4,244.8H534.1Q535.3,244.8 535.3,246.0V246.0Z"><title>Payload: 65 objects at 1150-1175 km</title></path>
+<path class="s0" d="M537.3,246.0V243.0Q537.3,240.0 540.3,240.0H544.4Q547.4,240.0 547.4,243.0V246.0Z"><title>Payload: 318 objects at 1175-1200 km</title></path>
+<path class="s0" d="M549.4,246.0V242.7Q549.4,239.7 552.4,239.7H556.6Q559.6,239.7 559.6,242.7V246.0Z"><title>Payload: 335 objects at 1200-1225 km</title></path>
+<path class="s0" d="M561.6,246.0V246.0Q561.6,246.0 561.6,246.0H571.6Q571.7,246.0 571.7,246.0V246.0Z"><title>Payload: 2 objects at 1225-1250 km</title></path>
+<path class="s0" d="M597.9,246.0V246.0Q597.9,246.0 597.9,246.0H608.0Q608.0,246.0 608.0,246.0V246.0Z"><title>Payload: 1 objects at 1300-1325 km</title></path>
+<path class="s0" d="M610.0,246.0V246.0Q610.0,245.9 610.1,245.9H620.1Q620.1,245.9 620.1,246.0V246.0Z"><title>Payload: 3 objects at 1325-1350 km</title></path>
+<path class="s0" d="M646.3,246.0V246.0Q646.3,245.5 646.8,245.5H656.0Q656.4,245.5 656.4,246.0V246.0Z"><title>Payload: 26 objects at 1400-1425 km</title></path>
+<path class="s0" d="M658.4,246.0V246.0Q658.4,245.9 658.5,245.9H668.5Q668.6,245.9 668.6,246.0V246.0Z"><title>Payload: 4 objects at 1425-1450 km</title></path>
+<path class="s0" d="M682.7,246.0V246.0Q682.7,244.9 683.8,244.9H691.7Q692.8,244.9 692.8,246.0V246.0Z"><title>Payload: 59 objects at 1475-1500 km</title></path>
+<path class="s0" d="M694.8,246.0V246.0Q694.8,245.9 694.8,245.9H704.8Q704.9,245.9 704.9,246.0V246.0Z"><title>Payload: 3 objects at 1500-1525 km</title></path>
+<path class="s0" d="M706.9,246.0V246.0Q706.9,246.0 706.9,246.0H717.0Q717.0,246.0 717.0,246.0V246.0Z"><title>Payload: 1 objects at 1525-1550 km</title></path>
+<path class="s0" d="M731.1,246.0V246.0Q731.1,246.0 731.1,246.0H741.2Q741.2,246.0 741.2,246.0V246.0Z"><title>Payload: 1 objects at 1575-1600 km</title></path>
+<path class="s0" d="M791.7,246.0V246.0Q791.7,246.0 791.7,246.0H801.8Q801.8,246.0 801.8,246.0V246.0Z"><title>Payload: 1 objects at 1700-1725 km</title></path>
+<path class="s0" d="M852.2,246.0V246.0Q852.2,246.0 852.2,246.0H862.3Q862.3,246.0 862.3,246.0V246.0Z"><title>Payload: 1 objects at 1825-1850 km</title></path>
+<polyline class="leader" fill="none" stroke-width="1" points="191.2,124.4 203.2,108.0 445.6,108.0"/>
+<text class="ink2" x="451.6" y="112.0" font-size="12">Starlink shells, peak 450-475 km</text>
+<text class="ink" x="64" y="284" font-size="13" font-weight="600">Debris  <tspan class='ink2' font-weight='400'>(2,668)</tspan></text>
+<line class="axis" x1="64" x2="936" y1="442.0" y2="442.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="446.0" text-anchor="end">0</text>
+<line class="grid" x1="64" x2="936" y1="392.0" y2="392.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="396.0" text-anchor="end">100</text>
+<line class="grid" x1="64" x2="936" y1="342.0" y2="342.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="346.0" text-anchor="end">200</text>
+<line class="grid" x1="64" x2="936" y1="292.0" y2="292.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="296.0" text-anchor="end">300</text>
+<path class="s1" d="M125.6,442.0V442.0Q125.6,441.0 126.6,441.0H134.7Q135.7,441.0 135.7,442.0V442.0Z"><title>Debris: 2 objects at 325-350 km</title></path>
+<path class="s1" d="M137.7,442.0V442.0Q137.7,440.5 139.2,440.5H146.3Q147.8,440.5 147.8,442.0V442.0Z"><title>Debris: 3 objects at 350-375 km</title></path>
+<path class="s1" d="M161.9,442.0V442.0Q161.9,440.0 163.9,440.0H170.0Q172.0,440.0 172.0,442.0V442.0Z"><title>Debris: 4 objects at 400-425 km</title></path>
+<path class="s1" d="M174.0,442.0V442.0Q174.0,439.5 176.5,439.5H181.6Q184.1,439.5 184.1,442.0V442.0Z"><title>Debris: 5 objects at 425-450 km</title></path>
+<path class="s1" d="M186.1,442.0V440.5Q186.1,437.5 189.1,437.5H193.2Q196.2,437.5 196.2,440.5V442.0Z"><title>Debris: 9 objects at 450-475 km</title></path>
+<path class="s1" d="M198.2,442.0V440.0Q198.2,437.0 201.2,437.0H205.3Q208.3,437.0 208.3,440.0V442.0Z"><title>Debris: 10 objects at 475-500 km</title></path>
+<path class="s1" d="M210.3,442.0V436.0Q210.3,433.0 213.3,433.0H217.4Q220.4,433.0 220.4,436.0V442.0Z"><title>Debris: 18 objects at 500-525 km</title></path>
+<path class="s1" d="M222.4,442.0V437.0Q222.4,434.0 225.4,434.0H229.6Q232.6,434.0 232.6,437.0V442.0Z"><title>Debris: 16 objects at 525-550 km</title></path>
+<path class="s1" d="M234.6,442.0V431.5Q234.6,428.5 237.6,428.5H241.7Q244.7,428.5 244.7,431.5V442.0Z"><title>Debris: 27 objects at 550-575 km</title></path>
+<path class="s1" d="M246.7,442.0V428.0Q246.7,425.0 249.7,425.0H253.8Q256.8,425.0 256.8,428.0V442.0Z"><title>Debris: 34 objects at 575-600 km</title></path>
+<path class="s1" d="M258.8,442.0V408.5Q258.8,405.5 261.8,405.5H265.9Q268.9,405.5 268.9,408.5V442.0Z"><title>Debris: 73 objects at 600-625 km</title></path>
+<path class="s1" d="M270.9,442.0V405.5Q270.9,402.5 273.9,402.5H278.0Q281.0,402.5 281.0,405.5V442.0Z"><title>Debris: 79 objects at 625-650 km</title></path>
+<path class="s1" d="M283.0,442.0V398.5Q283.0,395.5 286.0,395.5H290.1Q293.1,395.5 293.1,398.5V442.0Z"><title>Debris: 93 objects at 650-675 km</title></path>
+<path class="s1" d="M295.1,442.0V373.0Q295.1,370.0 298.1,370.0H302.2Q305.2,370.0 305.2,373.0V442.0Z"><title>Debris: 144 objects at 675-700 km</title></path>
+<path class="s1" d="M307.2,442.0V366.5Q307.2,363.5 310.2,363.5H314.3Q317.3,363.5 317.3,366.5V442.0Z"><title>Debris: 157 objects at 700-725 km</title></path>
+<path class="s1" d="M319.3,442.0V352.0Q319.3,349.0 322.3,349.0H326.4Q329.4,349.0 329.4,352.0V442.0Z"><title>Debris: 186 objects at 725-750 km</title></path>
+<path class="s1" d="M331.4,442.0V328.5Q331.4,325.5 334.4,325.5H338.6Q341.6,325.5 341.6,328.5V442.0Z"><title>Debris: 233 objects at 750-775 km</title></path>
+<path class="s1" d="M343.6,442.0V347.0Q343.6,344.0 346.6,344.0H350.7Q353.7,344.0 353.7,347.0V442.0Z"><title>Debris: 196 objects at 775-800 km</title></path>
+<path class="s1" d="M355.7,442.0V316.5Q355.7,313.5 358.7,313.5H362.8Q365.8,313.5 365.8,316.5V442.0Z"><title>Debris: 257 objects at 800-825 km</title></path>
+<path class="s1" d="M367.8,442.0V311.5Q367.8,308.5 370.8,308.5H374.9Q377.9,308.5 377.9,311.5V442.0Z"><title>Debris: 267 objects at 825-850 km</title></path>
+<path class="s1" d="M379.9,442.0V330.0Q379.9,327.0 382.9,327.0H387.0Q390.0,327.0 390.0,330.0V442.0Z"><title>Debris: 230 objects at 850-875 km</title></path>
+<path class="s1" d="M392.0,442.0V358.0Q392.0,355.0 395.0,355.0H399.1Q402.1,355.0 402.1,358.0V442.0Z"><title>Debris: 174 objects at 875-900 km</title></path>
+<path class="s1" d="M404.1,442.0V404.0Q404.1,401.0 407.1,401.0H411.2Q414.2,401.0 414.2,404.0V442.0Z"><title>Debris: 82 objects at 900-925 km</title></path>
+<path class="s1" d="M416.2,442.0V408.5Q416.2,405.5 419.2,405.5H423.3Q426.3,405.5 426.3,408.5V442.0Z"><title>Debris: 73 objects at 925-950 km</title></path>
+<path class="s1" d="M428.3,442.0V419.5Q428.3,416.5 431.3,416.5H435.4Q438.4,416.5 438.4,419.5V442.0Z"><title>Debris: 51 objects at 950-975 km</title></path>
+<path class="s1" d="M440.4,442.0V419.0Q440.4,416.0 443.4,416.0H447.6Q450.6,416.0 450.6,419.0V442.0Z"><title>Debris: 52 objects at 975-1000 km</title></path>
+<path class="s1" d="M452.6,442.0V426.5Q452.6,423.5 455.6,423.5H459.7Q462.7,423.5 462.7,426.5V442.0Z"><title>Debris: 37 objects at 1000-1025 km</title></path>
+<path class="s1" d="M464.7,442.0V426.0Q464.7,423.0 467.7,423.0H471.8Q474.8,423.0 474.8,426.0V442.0Z"><title>Debris: 38 objects at 1025-1050 km</title></path>
+<path class="s1" d="M476.8,442.0V432.5Q476.8,429.5 479.8,429.5H483.9Q486.9,429.5 486.9,432.5V442.0Z"><title>Debris: 25 objects at 1050-1075 km</title></path>
+<path class="s1" d="M488.9,442.0V435.5Q488.9,432.5 491.9,432.5H496.0Q499.0,432.5 499.0,435.5V442.0Z"><title>Debris: 19 objects at 1075-1100 km</title></path>
+<path class="s1" d="M501.0,442.0V433.5Q501.0,430.5 504.0,430.5H508.1Q511.1,430.5 511.1,433.5V442.0Z"><title>Debris: 23 objects at 1100-1125 km</title></path>
+<path class="s1" d="M513.1,442.0V437.5Q513.1,434.5 516.1,434.5H520.2Q523.2,434.5 523.2,437.5V442.0Z"><title>Debris: 15 objects at 1125-1150 km</title></path>
+<path class="s1" d="M525.2,442.0V440.0Q525.2,437.0 528.2,437.0H532.3Q535.3,437.0 535.3,440.0V442.0Z"><title>Debris: 10 objects at 1150-1175 km</title></path>
+<path class="s1" d="M537.3,442.0V442.0Q537.3,440.5 538.8,440.5H545.9Q547.4,440.5 547.4,442.0V442.0Z"><title>Debris: 3 objects at 1175-1200 km</title></path>
+<path class="s1" d="M549.4,442.0V442.0Q549.4,440.5 550.9,440.5H558.1Q559.6,440.5 559.6,442.0V442.0Z"><title>Debris: 3 objects at 1200-1225 km</title></path>
+<path class="s1" d="M561.6,442.0V442.0Q561.6,441.0 562.6,441.0H570.7Q571.7,441.0 571.7,442.0V442.0Z"><title>Debris: 2 objects at 1225-1250 km</title></path>
+<path class="s1" d="M573.7,442.0V442.0Q573.7,441.0 574.7,441.0H582.8Q583.8,441.0 583.8,442.0V442.0Z"><title>Debris: 2 objects at 1250-1275 km</title></path>
+<path class="s1" d="M585.8,442.0V442.0Q585.8,441.0 586.8,441.0H594.9Q595.9,441.0 595.9,442.0V442.0Z"><title>Debris: 2 objects at 1275-1300 km</title></path>
+<path class="s1" d="M610.0,442.0V442.0Q610.0,441.0 611.0,441.0H619.1Q620.1,441.0 620.1,442.0V442.0Z"><title>Debris: 2 objects at 1325-1350 km</title></path>
+<path class="s1" d="M622.1,442.0V442.0Q622.1,441.5 622.6,441.5H631.7Q632.2,441.5 632.2,442.0V442.0Z"><title>Debris: 1 objects at 1350-1375 km</title></path>
+<path class="s1" d="M634.2,442.0V442.0Q634.2,441.5 634.7,441.5H643.8Q644.3,441.5 644.3,442.0V442.0Z"><title>Debris: 1 objects at 1375-1400 km</title></path>
+<path class="s1" d="M646.3,442.0V442.0Q646.3,441.5 646.8,441.5H655.9Q656.4,441.5 656.4,442.0V442.0Z"><title>Debris: 1 objects at 1400-1425 km</title></path>
+<path class="s1" d="M658.4,442.0V442.0Q658.4,441.5 658.9,441.5H668.1Q668.6,441.5 668.6,442.0V442.0Z"><title>Debris: 1 objects at 1425-1450 km</title></path>
+<path class="s1" d="M694.8,442.0V442.0Q694.8,441.5 695.3,441.5H704.4Q704.9,441.5 704.9,442.0V442.0Z"><title>Debris: 1 objects at 1500-1525 km</title></path>
+<path class="s1" d="M755.3,442.0V442.0Q755.3,441.5 755.8,441.5H764.9Q765.4,441.5 765.4,442.0V442.0Z"><title>Debris: 1 objects at 1625-1650 km</title></path>
+<path class="s1" d="M767.4,442.0V442.0Q767.4,441.5 767.9,441.5H777.1Q777.6,441.5 777.6,442.0V442.0Z"><title>Debris: 1 objects at 1650-1675 km</title></path>
+<path class="s1" d="M791.7,442.0V442.0Q791.7,440.5 793.2,440.5H800.3Q801.8,440.5 801.8,442.0V442.0Z"><title>Debris: 3 objects at 1700-1725 km</title></path>
+<path class="s1" d="M815.9,442.0V442.0Q815.9,441.5 816.4,441.5H825.5Q826.0,441.5 826.0,442.0V442.0Z"><title>Debris: 1 objects at 1750-1775 km</title></path>
+<path class="s1" d="M900.7,442.0V442.0Q900.7,441.5 901.2,441.5H910.3Q910.8,441.5 910.8,442.0V442.0Z"><title>Debris: 1 objects at 1925-1950 km</title></path>
+<polyline class="leader" fill="none" stroke-width="1" points="372.8,305.5 384.8,304.0 445.6,304.0"/>
+<text class="ink2" x="451.6" y="308.0" font-size="12">Fengyun-1C debris (2007 ASAT test), peak 825-850 km</text>
+<polyline class="leader" fill="none" stroke-width="1" points="336.5,322.5 348.5,324.0 445.6,324.0"/>
+<text class="ink2" x="451.6" y="328.0" font-size="12">Cosmos 2251 debris (2009 collision), peak 750-775 km</text>
+<text class="ink" x="64" y="480" font-size="13" font-weight="600">Rocket bodies and unidentified (analyst) objects  <tspan class='ink2' font-weight='400'>(546)</tspan></text>
+<line class="axis" x1="64" x2="936" y1="638.0" y2="638.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="642.0" text-anchor="end">0</text>
+<line class="grid" x1="64" x2="936" y1="600.5" y2="600.5" stroke-width="1"/>
+<text class="muted tick" x="56" y="604.5" text-anchor="end">10</text>
+<line class="grid" x1="64" x2="936" y1="563.0" y2="563.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="567.0" text-anchor="end">20</text>
+<line class="grid" x1="64" x2="936" y1="525.5" y2="525.5" stroke-width="1"/>
+<text class="muted tick" x="56" y="529.5" text-anchor="end">30</text>
+<line class="grid" x1="64" x2="936" y1="488.0" y2="488.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="492.0" text-anchor="end">40</text>
+<path class="s2" d="M125.6,638.0V633.5Q125.6,630.5 128.6,630.5H132.7Q135.7,630.5 135.7,633.5V638.0Z"><title>Rocket body / other: 2 objects at 325-350 km</title></path>
+<path class="s2" d="M186.1,638.0V637.2Q186.1,634.2 189.1,634.2H193.2Q196.2,634.2 196.2,637.2V638.0Z"><title>Rocket body / other: 1 objects at 450-475 km</title></path>
+<path class="s2" d="M198.2,638.0V633.5Q198.2,630.5 201.2,630.5H205.3Q208.3,630.5 208.3,633.5V638.0Z"><title>Rocket body / other: 2 objects at 475-500 km</title></path>
+<path class="s2" d="M210.3,638.0V637.2Q210.3,634.2 213.3,634.2H217.4Q220.4,634.2 220.4,637.2V638.0Z"><title>Rocket body / other: 1 objects at 500-525 km</title></path>
+<path class="s2" d="M222.4,638.0V626.0Q222.4,623.0 225.4,623.0H229.6Q232.6,623.0 232.6,626.0V638.0Z"><title>Rocket body / other: 4 objects at 525-550 km</title></path>
+<path class="s2" d="M234.6,638.0V633.5Q234.6,630.5 237.6,630.5H241.7Q244.7,630.5 244.7,633.5V638.0Z"><title>Rocket body / other: 2 objects at 550-575 km</title></path>
+<path class="s2" d="M246.7,638.0V614.8Q246.7,611.8 249.7,611.8H253.8Q256.8,611.8 256.8,614.8V638.0Z"><title>Rocket body / other: 7 objects at 575-600 km</title></path>
+<path class="s2" d="M258.8,638.0V626.0Q258.8,623.0 261.8,623.0H265.9Q268.9,623.0 268.9,626.0V638.0Z"><title>Rocket body / other: 4 objects at 600-625 km</title></path>
+<path class="s2" d="M270.9,638.0V622.2Q270.9,619.2 273.9,619.2H278.0Q281.0,619.2 281.0,622.2V638.0Z"><title>Rocket body / other: 5 objects at 625-650 km</title></path>
+<path class="s2" d="M283.0,638.0V596.0Q283.0,593.0 286.0,593.0H290.1Q293.1,593.0 293.1,596.0V638.0Z"><title>Rocket body / other: 12 objects at 650-675 km</title></path>
+<path class="s2" d="M295.1,638.0V592.2Q295.1,589.2 298.1,589.2H302.2Q305.2,589.2 305.2,592.2V638.0Z"><title>Rocket body / other: 13 objects at 675-700 km</title></path>
+<path class="s2" d="M307.2,638.0V562.2Q307.2,559.2 310.2,559.2H314.3Q317.3,559.2 317.3,562.2V638.0Z"><title>Rocket body / other: 21 objects at 700-725 km</title></path>
+<path class="s2" d="M319.3,638.0V581.0Q319.3,578.0 322.3,578.0H326.4Q329.4,578.0 329.4,581.0V638.0Z"><title>Rocket body / other: 16 objects at 725-750 km</title></path>
+<path class="s2" d="M331.4,638.0V506.0Q331.4,503.0 334.4,503.0H338.6Q341.6,503.0 341.6,506.0V638.0Z"><title>Rocket body / other: 36 objects at 750-775 km</title></path>
+<path class="s2" d="M343.6,638.0V566.0Q343.6,563.0 346.6,563.0H350.7Q353.7,563.0 353.7,566.0V638.0Z"><title>Rocket body / other: 20 objects at 775-800 km</title></path>
+<path class="s2" d="M355.7,638.0V577.2Q355.7,574.2 358.7,574.2H362.8Q365.8,574.2 365.8,577.2V638.0Z"><title>Rocket body / other: 17 objects at 800-825 km</title></path>
+<path class="s2" d="M367.8,638.0V517.2Q367.8,514.2 370.8,514.2H374.9Q377.9,514.2 377.9,517.2V638.0Z"><title>Rocket body / other: 33 objects at 825-850 km</title></path>
+<path class="s2" d="M379.9,638.0V566.0Q379.9,563.0 382.9,563.0H387.0Q390.0,563.0 390.0,566.0V638.0Z"><title>Rocket body / other: 20 objects at 850-875 km</title></path>
+<path class="s2" d="M392.0,638.0V584.8Q392.0,581.8 395.0,581.8H399.1Q402.1,581.8 402.1,584.8V638.0Z"><title>Rocket body / other: 15 objects at 875-900 km</title></path>
+<path class="s2" d="M404.1,638.0V581.0Q404.1,578.0 407.1,578.0H411.2Q414.2,578.0 414.2,581.0V638.0Z"><title>Rocket body / other: 16 objects at 900-925 km</title></path>
+<path class="s2" d="M416.2,638.0V584.8Q416.2,581.8 419.2,581.8H423.3Q426.3,581.8 426.3,584.8V638.0Z"><title>Rocket body / other: 15 objects at 925-950 km</title></path>
+<path class="s2" d="M428.3,638.0V599.8Q428.3,596.8 431.3,596.8H435.4Q438.4,596.8 438.4,599.8V638.0Z"><title>Rocket body / other: 11 objects at 950-975 km</title></path>
+<path class="s2" d="M440.4,638.0V592.2Q440.4,589.2 443.4,589.2H447.6Q450.6,589.2 450.6,592.2V638.0Z"><title>Rocket body / other: 13 objects at 975-1000 km</title></path>
+<path class="s2" d="M452.6,638.0V607.2Q452.6,604.2 455.6,604.2H459.7Q462.7,604.2 462.7,607.2V638.0Z"><title>Rocket body / other: 9 objects at 1000-1025 km</title></path>
+<path class="s2" d="M464.7,638.0V626.0Q464.7,623.0 467.7,623.0H471.8Q474.8,623.0 474.8,626.0V638.0Z"><title>Rocket body / other: 4 objects at 1025-1050 km</title></path>
+<path class="s2" d="M476.8,638.0V611.0Q476.8,608.0 479.8,608.0H483.9Q486.9,608.0 486.9,611.0V638.0Z"><title>Rocket body / other: 8 objects at 1050-1075 km</title></path>
+<path class="s2" d="M488.9,638.0V611.0Q488.9,608.0 491.9,608.0H496.0Q499.0,608.0 499.0,611.0V638.0Z"><title>Rocket body / other: 8 objects at 1075-1100 km</title></path>
+<path class="s2" d="M501.0,638.0V629.8Q501.0,626.8 504.0,626.8H508.1Q511.1,626.8 511.1,629.8V638.0Z"><title>Rocket body / other: 3 objects at 1100-1125 km</title></path>
+<path class="s2" d="M513.1,638.0V607.2Q513.1,604.2 516.1,604.2H520.2Q523.2,604.2 523.2,607.2V638.0Z"><title>Rocket body / other: 9 objects at 1125-1150 km</title></path>
+<path class="s2" d="M525.2,638.0V629.8Q525.2,626.8 528.2,626.8H532.3Q535.3,626.8 535.3,629.8V638.0Z"><title>Rocket body / other: 3 objects at 1150-1175 km</title></path>
+<path class="s2" d="M537.3,638.0V607.2Q537.3,604.2 540.3,604.2H544.4Q547.4,604.2 547.4,607.2V638.0Z"><title>Rocket body / other: 9 objects at 1175-1200 km</title></path>
+<path class="s2" d="M549.4,638.0V618.5Q549.4,615.5 552.4,615.5H556.6Q559.6,615.5 559.6,618.5V638.0Z"><title>Rocket body / other: 6 objects at 1200-1225 km</title></path>
+<path class="s2" d="M561.6,638.0V588.5Q561.6,585.5 564.6,585.5H568.7Q571.7,585.5 571.7,588.5V638.0Z"><title>Rocket body / other: 14 objects at 1225-1250 km</title></path>
+<path class="s2" d="M573.7,638.0V494.8Q573.7,491.8 576.7,491.8H580.8Q583.8,491.8 583.8,494.8V638.0Z"><title>Rocket body / other: 39 objects at 1250-1275 km</title></path>
+<path class="s2" d="M585.8,638.0V494.8Q585.8,491.8 588.8,491.8H592.9Q595.9,491.8 595.9,494.8V638.0Z"><title>Rocket body / other: 39 objects at 1275-1300 km</title></path>
+<path class="s2" d="M597.9,638.0V626.0Q597.9,623.0 600.9,623.0H605.0Q608.0,623.0 608.0,626.0V638.0Z"><title>Rocket body / other: 4 objects at 1300-1325 km</title></path>
+<path class="s2" d="M610.0,638.0V599.8Q610.0,596.8 613.0,596.8H617.1Q620.1,596.8 620.1,599.8V638.0Z"><title>Rocket body / other: 11 objects at 1325-1350 km</title></path>
+<path class="s2" d="M622.1,638.0V626.0Q622.1,623.0 625.1,623.0H629.2Q632.2,623.0 632.2,626.0V638.0Z"><title>Rocket body / other: 4 objects at 1350-1375 km</title></path>
+<path class="s2" d="M634.2,638.0V614.8Q634.2,611.8 637.2,611.8H641.3Q644.3,611.8 644.3,614.8V638.0Z"><title>Rocket body / other: 7 objects at 1375-1400 km</title></path>
+<path class="s2" d="M646.3,638.0V611.0Q646.3,608.0 649.3,608.0H653.4Q656.4,608.0 656.4,611.0V638.0Z"><title>Rocket body / other: 8 objects at 1400-1425 km</title></path>
+<path class="s2" d="M658.4,638.0V603.5Q658.4,600.5 661.4,600.5H665.6Q668.6,600.5 668.6,603.5V638.0Z"><title>Rocket body / other: 10 objects at 1425-1450 km</title></path>
+<path class="s2" d="M670.6,638.0V622.2Q670.6,619.2 673.6,619.2H677.7Q680.7,619.2 680.7,622.2V638.0Z"><title>Rocket body / other: 5 objects at 1450-1475 km</title></path>
+<path class="s2" d="M682.7,638.0V614.8Q682.7,611.8 685.7,611.8H689.8Q692.8,611.8 692.8,614.8V638.0Z"><title>Rocket body / other: 7 objects at 1475-1500 km</title></path>
+<path class="s2" d="M694.8,638.0V607.2Q694.8,604.2 697.8,604.2H701.9Q704.9,604.2 704.9,607.2V638.0Z"><title>Rocket body / other: 9 objects at 1500-1525 km</title></path>
+<path class="s2" d="M706.9,638.0V618.5Q706.9,615.5 709.9,615.5H714.0Q717.0,615.5 717.0,618.5V638.0Z"><title>Rocket body / other: 6 objects at 1525-1550 km</title></path>
+<path class="s2" d="M719.0,638.0V607.2Q719.0,604.2 722.0,604.2H726.1Q729.1,604.2 729.1,607.2V638.0Z"><title>Rocket body / other: 9 objects at 1550-1575 km</title></path>
+<path class="s2" d="M731.1,638.0V607.2Q731.1,604.2 734.1,604.2H738.2Q741.2,604.2 741.2,607.2V638.0Z"><title>Rocket body / other: 9 objects at 1575-1600 km</title></path>
+<path class="s2" d="M743.2,638.0V622.2Q743.2,619.2 746.2,619.2H750.3Q753.3,619.2 753.3,622.2V638.0Z"><title>Rocket body / other: 5 objects at 1600-1625 km</title></path>
+<path class="s2" d="M755.3,638.0V633.5Q755.3,630.5 758.3,630.5H762.4Q765.4,630.5 765.4,633.5V638.0Z"><title>Rocket body / other: 2 objects at 1625-1650 km</title></path>
+<path class="s2" d="M767.4,638.0V629.8Q767.4,626.8 770.4,626.8H774.6Q777.6,626.8 777.6,629.8V638.0Z"><title>Rocket body / other: 3 objects at 1650-1675 km</title></path>
+<path class="s2" d="M779.6,638.0V637.2Q779.6,634.2 782.6,634.2H786.7Q789.7,634.2 789.7,637.2V638.0Z"><title>Rocket body / other: 1 objects at 1675-1700 km</title></path>
+<path class="s2" d="M791.7,638.0V633.5Q791.7,630.5 794.7,630.5H798.8Q801.8,630.5 801.8,633.5V638.0Z"><title>Rocket body / other: 2 objects at 1700-1725 km</title></path>
+<path class="s2" d="M815.9,638.0V633.5Q815.9,630.5 818.9,630.5H823.0Q826.0,630.5 826.0,633.5V638.0Z"><title>Rocket body / other: 2 objects at 1750-1775 km</title></path>
+<path class="s2" d="M852.2,638.0V633.5Q852.2,630.5 855.2,630.5H859.3Q862.3,630.5 862.3,633.5V638.0Z"><title>Rocket body / other: 2 objects at 1825-1850 km</title></path>
+<path class="s2" d="M888.6,638.0V629.8Q888.6,626.8 891.6,626.8H895.7Q898.7,626.8 898.7,629.8V638.0Z"><title>Rocket body / other: 3 objects at 1900-1925 km</title></path>
+<text class="muted tick" x="64.0" y="656" text-anchor="middle">200</text>
+<text class="muted tick" x="160.9" y="656" text-anchor="middle">400</text>
+<text class="muted tick" x="257.8" y="656" text-anchor="middle">600</text>
+<text class="muted tick" x="354.7" y="656" text-anchor="middle">800</text>
+<text class="muted tick" x="451.6" y="656" text-anchor="middle">1,000</text>
+<text class="muted tick" x="548.4" y="656" text-anchor="middle">1,200</text>
+<text class="muted tick" x="645.3" y="656" text-anchor="middle">1,400</text>
+<text class="muted tick" x="742.2" y="656" text-anchor="middle">1,600</text>
+<text class="muted tick" x="839.1" y="656" text-anchor="middle">1,800</text>
+<text class="muted tick" x="936.0" y="656" text-anchor="middle">2,000</text>
+<text class="ink2" x="500.0" y="676" font-size="12" text-anchor="middle">Mean altitude (km)</text>
+</svg>

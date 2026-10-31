@@ -39,5 +39,9 @@ Perigee is a web app that ingests public orbit data for ~30,000 space objects to
 ## 6. Code Layout
 - `src/config.py` env-var settings (all listed in `.env.example`); `src/log.py` JSON logs with run id.
 - `src/ingest/` fetching only: `sources.py`, `download.py` (polite client, STOP file, fetch log), `archive.py` (immutable raw), `parse.py`, `validate.py`.
-- `src/orbits/` orbital physics. `src/storage/` Parquet + DuckDB queries. `src/pipeline.py` orchestrates.
+- `src/orbits/` orbital physics: `elements.py` (Kepler quantities), `propagate.py` (SGP4 over the catalog via `SatrecArray`; failures flagged with error codes, never dropped), `frames.py` (TEME -> ECEF -> WGS84), `reference.py` (NASA ISS OEM reader), `satjs_bridge.py` (runs satellite.js for parity checks).
+- `src/storage/` Parquet + DuckDB queries. `src/pipeline.py` orchestrates; each catalog snapshot carries `sgp4_error` (0 = propagates at snapshot time). Filter on it downstream.
+- `scripts/validate_propagation.py` (needs `requirements-dev.txt` + `npm install` in `scripts/satjs`) writes `docs/validation.md`; `scripts/altitude_chart.py` writes `docs/figures/`.
+- satellite.js 7 reads OMM `EPOCH` with millisecond precision only (a few metres of difference vs Python at LEO speed). That is expected, not a bug.
+- astropy cannot load from very long Windows paths (MAX_PATH); keep the checkout at a short path.
 - CelesTrak rules are in `docs/data-sources.md`. Never delete `data/state/STOP_CELESTRAK` or bypass the fetch log without the user's say-so.

@@ -36,6 +36,7 @@ from src.orbits.elements import (
     perigee_altitude_km,
     semi_major_axis_km,
 )
+from src.orbits.propagate import propagate_catalog
 from src.storage import parquet_store as store
 
 log = logging.getLogger("perigee.pipeline")
@@ -136,6 +137,18 @@ def add_orbit_geometry(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def add_sgp4_status(df: pd.DataFrame, at: datetime) -> pd.DataFrame:
+    """Propagate every object to the snapshot time and record its SGP4 error code.
+
+    Objects that fail stay in the table, flagged, so they are counted rather
+    than silently dropped; downstream steps filter on sgp4_error = 0.
+    """
+    out = df.copy()
+    result = propagate_catalog(out, [at])
+    out["sgp4_error"] = result.error_code[:, 0].astype("int16")
+    return out
+
+
 def build_snapshot(source: str, snapshot_id: str, settings: Settings) -> bool:
     """Rebuild the processed table for one archived raw snapshot. Idempotent."""
     files = archive.read_snapshot(settings.raw_dir, source, snapshot_id)
@@ -148,9 +161,8 @@ def build_snapshot(source: str, snapshot_id: str, settings: Settings) -> bool:
     df.insert(0, "snapshot_id", snapshot_id)
     df.insert(1, "snapshot_time", pd.Timestamp(taken_at))
     if source == GP:
-        store.write_parquet(
-            add_orbit_geometry(df), store.catalog_snapshot_path(settings.processed_dir, snapshot_id)
-        )
+        catalog = add_sgp4_status(add_orbit_geometry(df), taken_at)
+        store.write_parquet(catalog, store.catalog_snapshot_path(settings.processed_dir, snapshot_id))
     else:
         name = store.SATCAT if source == SATCAT else store.SPACE_WEATHER
         store.write_parquet(df, store.table_path(settings.processed_dir, name))

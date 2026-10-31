@@ -1,0 +1,9 @@
+{
+  "name": "perigee-satjs-check",
+  "private": true,
+  "description": "Propagates OMM records with satellite.js so Python and browser SGP4 can be compared.",
+  "type": "module",
+  "dependencies": {
+    "satellite.js": "7.1.0"
+  }
+}

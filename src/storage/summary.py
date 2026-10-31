@@ -5,6 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import pandas as pd
+
+from src.orbits.propagate import ERROR_LABELS
 from src.storage import parquet_store as store
 
 LEO_BAND_KM = 50
@@ -19,6 +22,7 @@ class CatalogSummary:
     by_group: dict[str, int] = field(default_factory=dict)
     by_object_type: dict[str, int] = field(default_factory=dict)
     densest_leo_bands: list[tuple[int, int]] = field(default_factory=list)
+    sgp4_failures: dict[str, int] | None = None
     epoch_age_median_h: float | None = None
     epoch_age_p95_h: float | None = None
     satcat_rows: int | None = None
@@ -87,6 +91,15 @@ def catalog_summary(processed_dir: Path) -> CatalogSummary:
                 " count(*) FROM latest WHERE regime = 'LEO' GROUP BY band ORDER BY 2 DESC LIMIT 5"
             ).fetchall()
         ]
+        has_sgp4 = con.execute("SELECT count(sgp4_error) > 0 FROM latest").fetchall()[0][0]
+        if has_sgp4:
+            summary.sgp4_failures = {
+                ERROR_LABELS.get(int(code), str(code)): int(count)
+                for code, count in con.execute(
+                    "SELECT sgp4_error, count(*) FROM latest WHERE sgp4_error <> 0 "
+                    "GROUP BY 1 ORDER BY 2 DESC"
+                ).fetchall()
+            }
         median, p95 = con.execute(
             "SELECT quantile_cont(age, 0.5), quantile_cont(age, 0.95) FROM "
             "(SELECT date_diff('second', epoch, snapshot_time) / 3600.0 AS age FROM latest)"
@@ -95,6 +108,47 @@ def catalog_summary(processed_dir: Path) -> CatalogSummary:
     finally:
         con.close()
     return summary
+
+
+OBJECT_CLASSES = ("Payload", "Debris", "Rocket body / other")
+
+
+def altitude_band_counts(
+    processed_dir: Path, band_km: int = 25, lo_km: int = 200, hi_km: int = 2_000
+) -> pd.DataFrame:
+    """Objects in the latest snapshot per mean-altitude band, by object class and group.
+
+    Mean altitude is semi-major axis minus Earth's radius: stable over an orbit,
+    unlike instantaneous height, so crowded shells show as sharp peaks. Only
+    objects that propagate (sgp4_error = 0) are counted.
+    """
+    catalog = store.catalog_relation(processed_dir)
+    satcat_join = ""
+    object_type = "NULL"
+    if store.table_path(processed_dir, store.SATCAT).exists():
+        satcat_join = f"LEFT JOIN {store.table_relation(processed_dir, store.SATCAT)} s USING (norad_id)"
+        object_type = "s.object_type"
+    con = store.connect()
+    try:
+        return con.execute(
+            f"""
+            SELECT
+              CAST(floor((c.perigee_km + c.apogee_km) / 2 / ?) * ? AS INTEGER) AS band_km,
+              CASE {object_type} WHEN 'PAY' THEN 'Payload' WHEN 'DEB' THEN 'Debris'
+                   ELSE 'Rocket body / other' END AS object_class,
+              c.source_group,
+              count(*) AS objects
+            FROM {catalog} c {satcat_join}
+            WHERE c.snapshot_id = (SELECT max(snapshot_id) FROM {catalog})
+              AND coalesce(c.sgp4_error, 0) = 0
+              AND (c.perigee_km + c.apogee_km) / 2 >= ?
+              AND (c.perigee_km + c.apogee_km) / 2 < ?
+            GROUP BY ALL ORDER BY band_km, object_class, source_group
+            """,
+            [band_km, band_km, lo_km, hi_km],
+        ).df()
+    finally:
+        con.close()
 
 
 def format_summary(summary: CatalogSummary) -> str:
@@ -122,6 +176,10 @@ def format_summary(summary: CatalogSummary) -> str:
             f"    {band:>5}-{band + LEO_BAND_KM:<5} km {count:>7,}"
             for band, count in summary.densest_leo_bands
         ]
+    if summary.sgp4_failures is not None:
+        failed = sum(summary.sgp4_failures.values())
+        lines.append(f"  SGP4 at snapshot time: {summary.total_objects - failed:,} ok, {failed:,} flagged")
+        lines += [f"    {count:>7,}  {label}" for label, count in summary.sgp4_failures.items()]
     if summary.epoch_age_median_h is not None and summary.epoch_age_p95_h is not None:
         lines.append(
             f"  Epoch age: median {summary.epoch_age_median_h:.1f} h, "

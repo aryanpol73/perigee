@@ -8,7 +8,7 @@ from src.ingest.sources import SATCAT_URL
 from src.main import main
 from src.pipeline import rebuild_all, run_data
 from src.storage import parquet_store as store
-from src.storage.summary import catalog_summary, format_summary
+from src.storage.summary import altitude_band_counts, catalog_summary, format_summary
 from tests.conftest import NOW, STATIONS_URL, FakeFetcher
 
 
@@ -139,6 +139,28 @@ def test_processed_tables_can_be_regenerated_from_raw(settings, good_responses):
     shutil.rmtree(settings.processed_dir)
     rebuild_all(settings)
     assert catalog_summary(settings.processed_dir).total_objects == 20
+
+
+def test_snapshot_records_sgp4_status(settings, good_responses):
+    _run(settings, FakeFetcher(good_responses))
+    con = store.connect()
+    rows = con.execute(
+        f"SELECT sgp4_error, count(*) FROM {store.catalog_relation(settings.processed_dir)} GROUP BY 1"
+    ).fetchall()
+    assert rows == [(0, 20)]
+    summary = catalog_summary(settings.processed_dir)
+    assert summary.sgp4_failures == {}
+    assert "SGP4 at snapshot time: 20 ok, 0 flagged" in format_summary(summary)
+
+
+def test_altitude_band_totals_equal_catalog_count(settings, good_responses):
+    _run(settings, FakeFetcher(good_responses))
+    bands = altitude_band_counts(settings.processed_dir, band_km=25, lo_km=0, hi_km=100_000)
+    assert bands["objects"].sum() == catalog_summary(settings.processed_dir).total_objects
+    assert (bands["band_km"] % 25 == 0).all()
+    # The crewed stations (ISS ~413 km, Tiangong ~385 km) and their visiting
+    # vehicles account for most of the stations group.
+    assert bands.loc[bands["band_km"].between(350, 400), "objects"].sum() >= 10
 
 
 def test_cli_summary_with_no_data(tmp_path, monkeypatch, capsys):

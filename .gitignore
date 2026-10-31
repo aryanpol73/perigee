@@ -6,3 +6,4 @@ data/
 *.parquet
 *.duckdb
 .env
+node_modules/
