@@ -219,7 +219,8 @@ def write_report(path: Path, iss: dict, parity: dict, snapshot_id: str) -> str:
         "Perigee's TEME to Earth-fixed rotation (IAU-82 GMST, UTC for UT1, no polar motion) against "
         "astropy's TEME to ITRS on the same SGP4 positions:",
         f"median **{iss['frames_median_m']:.0f} m**, max {iss['frames_max_m']:.0f} m. "
-        "The simplifications cost tens of metres, two orders of magnitude below the TLE error.",
+        f"The simplifications cost tens of metres, about "
+        f"{iss['error_at_epoch_km'] * 1000 / iss['frames_median_m']:.0f} times smaller than the TLE error.",
         "",
         "## 3. Python sgp4 against satellite.js (the browser library)",
         "",
