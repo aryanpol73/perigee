@@ -60,9 +60,13 @@ def has_catalog(processed_dir: Path) -> bool:
 
 
 def catalog_relation(processed_dir: Path) -> str:
-    """SQL table expression over every stored catalog snapshot."""
+    """SQL table expression over every stored catalog snapshot.
+
+    union_by_name lets snapshots written before a column was added be read
+    alongside newer ones (the missing column reads as NULL).
+    """
     glob = sql_path(processed_dir / CATALOG) + "/snapshot_date=*/*.parquet"
-    return f"read_parquet('{glob}', hive_partitioning = true)"
+    return f"read_parquet('{glob}', hive_partitioning = true, union_by_name = true)"
 
 
 def table_relation(processed_dir: Path, name: str) -> str:
