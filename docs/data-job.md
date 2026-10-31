@@ -29,7 +29,7 @@ Processed Parquet tables are not stored; they are rebuilt from raw.
 3. **Add both to GitHub**: repo *Settings → Secrets and variables → Actions*.
    - *Secrets* tab, new repository secret `HF_TOKEN` = the token.
    - *Variables* tab, new repository variable `PERIGEE_HF_DATASET` =
-     `<your-hf-username>/perigee-snapshots`.
+     `<your-hf-username>/perigee-snapshots`. (A secret with that name works too.)
 4. **Seed it with the snapshots already on your machine** (optional but worth it:
    they are the oldest history you have). In PowerShell, from the project folder:
 
