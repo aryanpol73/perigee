@@ -44,4 +44,5 @@ Perigee is a web app that ingests public orbit data for ~30,000 space objects to
 - `scripts/validate_propagation.py` (needs `requirements-dev.txt` + `npm install` in `scripts/satjs`) writes `docs/validation.md`; `scripts/altitude_chart.py` writes `docs/figures/`.
 - satellite.js 7 reads OMM `EPOCH` with millisecond precision only (a few metres of difference vs Python at LEO speed). That is expected, not a bug.
 - astropy cannot load from very long Windows paths (MAX_PATH); keep the checkout at a short path.
+- `src/ops/archive_sync.py` + `.github/workflows/data-refresh.yml`: hourly job that pulls state + latest raw from a private Hugging Face dataset, runs the pipeline, pushes new snapshots (`docs/data-job.md`). Deps in `requirements-jobs.txt`. It must refuse public datasets.
 - CelesTrak rules are in `docs/data-sources.md`. Never delete `data/state/STOP_CELESTRAK` or bypass the fetch log without the user's say-so.
