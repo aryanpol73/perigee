@@ -11,6 +11,12 @@ page (updated 2026-06-23). Re-read them before changing the downloader.
 | SATCAT | `https://celestrak.org/pub/satcat.csv` | once or twice a day | every 12 h |
 | Space weather (last 5 years) | `https://celestrak.org/SpaceData/SW-Last5Years.csv` | every 3 h | every 24 h |
 
+| SOCRATES results (validation only) | `https://celestrak.org/SOCRATES/sort-minRange.csv` (~22 MB) | about every 10-11 h | by hand, once per validation |
+
+SOCRATES is downloaded by hand into `data/reference/socrates/` to validate screening
+(`docs/screening-validation.md`). Its directory listing `SOCRATES/jsonDir.php` may be
+queried at most once an hour. Never use SOCRATES as ML labels.
+
 Default GP groups: `active`, `analyst`, `cosmos-2251-debris`, `iridium-33-debris`,
 `fengyun-1c-debris` (set `PERIGEE_GP_GROUPS` to change). CelesTrak has no single
 "full catalog" GP query; the complete ~30,000-object public catalog, including all

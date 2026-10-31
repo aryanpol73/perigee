@@ -20,6 +20,7 @@ import pandas as pd
 CATALOG = "catalog_snapshots"
 SATCAT = "satcat"
 SPACE_WEATHER = "space_weather"
+CONJUNCTIONS = "conjunctions"
 
 
 def connect() -> duckdb.DuckDBPyConnection:
@@ -49,6 +50,10 @@ def write_parquet(df: pd.DataFrame, path: Path) -> Path:
 def catalog_snapshot_path(processed_dir: Path, snapshot_id: str) -> Path:
     date = f"{snapshot_id[0:4]}-{snapshot_id[4:6]}-{snapshot_id[6:8]}"
     return processed_dir / CATALOG / f"snapshot_date={date}" / f"{snapshot_id}.parquet"
+
+
+def conjunctions_path(processed_dir: Path, snapshot_id: str, scope: str) -> Path:
+    return processed_dir / CONJUNCTIONS / f"{snapshot_id}_{scope}.parquet"
 
 
 def table_path(processed_dir: Path, name: str) -> Path:
