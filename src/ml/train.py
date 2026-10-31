@@ -58,7 +58,9 @@ class TrainConfig:
     val_fraction: float = 0.2
     test_fraction: float = 0.2
     embargo: pd.Timedelta = pd.Timedelta(days=4)  # = dataset label cutoff
-    max_false_alarms_per_true: float = 5.0
+    # 1 false alarm per true event (precision >= 0.5). With a ~15% base rate a
+    # looser budget is met by alerting on nearly everything and says nothing.
+    max_false_alarms_per_true: float = 1.0
     optuna_trials: int = 30
     bootstrap: int = 500
     seed: int = 42
@@ -210,7 +212,7 @@ def _fit_lgb(params: dict, train: pd.DataFrame, val: pd.DataFrame) -> lgb.Booste
     return lgb.train(
         params,
         dtrain,
-        num_boost_round=2000,
+        num_boost_round=5000,
         valid_sets=[dval],
         callbacks=[lgb.early_stopping(100, verbose=False)],
     )
