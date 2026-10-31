@@ -247,12 +247,18 @@ def _screen_chunk(first_step: int, last_step: int) -> tuple[pd.DataFrame, set[in
     i, j, miss, tau, step = (np.concatenate(parts) for parts in zip(*found, strict=True))
     pick = encounter_minima(i, j, step, miss)
     rows = []
+    max_shift = 2.0 * cfg.step_s
     for c in pick:
         guess = step[c] * cfg.step_s + tau[c]
         tca, d, speed, ok = refine_tca(
-            w["sats"][i[c]], w["sats"][j[c]], w["jd0"], guess, 2.0 * cfg.step_s, cfg.refine_iterations
+            w["sats"][i[c]], w["sats"][j[c]], w["jd0"], guess, max_shift, cfg.refine_iterations
         )
-        if ok and d < cfg.threshold_km:
+        # A refinement that stopped on its shift limit did not reach a minimum: a
+        # slow encounter split across a chunk boundary, whose true minimum is
+        # found from the other side. Co-located pairs have no minimum to reach
+        # and are kept (collapsed to one row per pair later).
+        clamped = abs(tca - guess) >= max_shift - 1e-3
+        if ok and d < cfg.threshold_km and (not clamped or speed < cfg.colocated_speed_km_s):
             rows.append((int(i[c]), int(j[c]), tca, d, speed))
     events = pd.DataFrame(rows, columns=["i", "j", "tca_s", "miss_km", "rel_speed_km_s"])
     return events, failing, len(pick)

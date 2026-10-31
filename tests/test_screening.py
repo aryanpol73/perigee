@@ -138,6 +138,19 @@ def test_parallel_workers_give_the_same_events(gp_bytes):
     assert pairs(one) == pairs(many)
 
 
+@pytest.mark.parametrize("chunk_steps", [7, 13, 30, 60])
+def test_chunk_boundaries_do_not_create_spurious_events(gp_bytes, chunk_steps):
+    """Slow encounters split across chunks must still give exactly the brute-force minima."""
+    catalog = _mini_catalog(gp_bytes)
+    events = screen(catalog, START, ScreenConfig(days=4 / 24, scope="all", workers=1, chunk_steps=chunk_steps)).events
+    moving = events[~events["colocated"]]
+    reference = _brute_force(catalog, hours=4, threshold=5.0)
+    reference = reference.merge(
+        events[events["colocated"]][["norad_a", "norad_b"]], how="left", indicator=True
+    ).query("_merge == 'left_only'")
+    assert len(moving) == len(reference)
+
+
 def test_docked_modules_are_flagged_colocated_once(gp_bytes):
     catalog = _mini_catalog(gp_bytes)
     events = screen(catalog, START, ScreenConfig(days=2 / 24, scope="all", workers=1)).events
