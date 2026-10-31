@@ -29,12 +29,14 @@ Processed Parquet tables are not stored; they are rebuilt from raw.
 3. **Add both to GitHub**: repo *Settings → Secrets and variables → Actions*.
    - *Secrets* tab, new repository secret `HF_TOKEN` = the token.
    - *Variables* tab, new repository variable `PERIGEE_HF_DATASET` =
-     `<your-hf-username>/perigee-snapshots`.
+     `<your-hf-username>/perigee-snapshots`. (A secret with that name works too.)
 4. **Seed it with the snapshots already on your machine** (optional but worth it:
    they are the oldest history you have). In PowerShell, from the project folder:
 
    ```powershell
-   $env:HF_TOKEN = Read-Host -MaskInput "HF token"
+   $s = Read-Host -AsSecureString "HF token"   # typed hidden, works in PowerShell 5.1 and 7
+   $env:HF_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR(
+       [Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))
    $env:PERIGEE_HF_DATASET = "<your-hf-username>/perigee-snapshots"
    .\.venv\Scripts\python.exe -m pip install -r requirements-jobs.txt
    .\.venv\Scripts\python.exe -m src.ops.archive_sync push

@@ -29,13 +29,15 @@ jobs:
     timeout-minutes: 20
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      PERIGEE_HF_DATASET: ${{ vars.PERIGEE_HF_DATASET }}
+      # The dataset name is not secret, but accept it from either place.
+      PERIGEE_HF_DATASET: ${{ vars.PERIGEE_HF_DATASET || secrets.PERIGEE_HF_DATASET }}
       PERIGEE_DATA_DIR: data
     steps:
       - name: Check configuration
         run: |
           if [ -z "$HF_TOKEN" ] || [ -z "$PERIGEE_HF_DATASET" ]; then
-            echo "::error::Set secret HF_TOKEN and variable PERIGEE_HF_DATASET (see docs/data-job.md)"
+            [ -z "$HF_TOKEN" ] && echo "::error::Missing repository secret HF_TOKEN (see docs/data-job.md)"
+            [ -z "$PERIGEE_HF_DATASET" ] && echo "::error::Missing PERIGEE_HF_DATASET as a repository variable or secret (see docs/data-job.md)"
             exit 1
           fi
 
