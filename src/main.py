@@ -43,8 +43,10 @@ def main(argv: list[str] | None = None) -> int:
     trn = commands.add_parser("train", help="rebuild the ML dataset from history, train and evaluate")
     trn.add_argument("--reuse", action="store_true", help="train on the stored dataset")
     trn.add_argument("--every-days", type=float, default=1.0, help="spacing of prediction times")
-    trn.add_argument("--workers", type=int, default=ScreenConfig().workers)
-    imp = commands.add_parser("import-spacetrack", help="import a Space-Track yearly TLE zip into history")
+    trn.add_argument("--workers", type=int, default=6)
+    trn.add_argument("--from", dest="start", help="first day of history to use (YYYY-MM-DD)")
+    trn.add_argument("--to", dest="end", help="last day of history to use (YYYY-MM-DD)")
+    imp =commands.add_parser("import-spacetrack", help="import a Space-Track yearly TLE zip into history")
     imp.add_argument("archive", type=Path, help="zip or text file downloaded once from space-track.org")
     imp.add_argument("--since", help="keep element sets from this date (YYYY-MM-DD)")
     imp.add_argument("--until", help="keep element sets before this date (YYYY-MM-DD)")
@@ -104,7 +106,17 @@ def main(argv: list[str] | None = None) -> int:
         from src.ml.dataset import DatasetConfig
         from src.ml.pipeline import run_train
 
-        res = run_train(settings, DatasetConfig(workers=args.workers), reuse=args.reuse, every_days=args.every_days)
+        import pandas as pd
+
+        to_ts = lambda s: pd.Timestamp(s, tz="UTC") if s else None
+        res = run_train(
+            settings,
+            DatasetConfig(workers=args.workers),
+            reuse=args.reuse,
+            every_days=args.every_days,
+            start=to_ts(args.start),
+            end=to_ts(args.end),
+        )
         if res["status"] == "insufficient_data":
             print(f"Not enough labelled history to train honestly: {res['reason']}")
             print(json.dumps(res["counts"], indent=2))

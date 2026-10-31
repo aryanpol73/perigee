@@ -13,6 +13,7 @@ Queries run in DuckDB over Parquet, so months of history never sit in memory.
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 
 import duckdb
@@ -43,9 +44,21 @@ SMA_SQL = "pow(398600.4418 / pow(mean_motion * 2 * pi() / 86400, 2), 1.0 / 3)"
 
 
 class ElsetHistory:
-    def __init__(self, processed_dir: Path, con: duckdb.DuckDBPyConnection | None = None) -> None:
+    def __init__(
+        self,
+        processed_dir: Path,
+        con: duckdb.DuckDBPyConnection | None = None,
+        memory_limit: str = "2GB",
+        threads: int = 4,
+    ) -> None:
         self.processed_dir = processed_dir
         self.con = con or store.connect()
+        # DuckDB defaults to 80% of RAM; window queries over months of history
+        # would starve the screening workers. Spill to the system temp dir (not
+        # the project folder, which may be synced) instead.
+        self.con.execute(f"SET memory_limit = '{memory_limit}'")
+        self.con.execute(f"SET threads = {int(threads)}")
+        self.con.execute(f"SET temp_directory = '{store.sql_path(Path(tempfile.gettempdir()) / 'perigee-duckdb')}'")
         sources = []
         cols = ", ".join(ELEMENT_COLUMNS)
         if store.has_catalog(processed_dir):

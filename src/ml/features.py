@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 
 from src.orbits.elements import apogee_altitude_km, perigee_altitude_km
-from src.screening.screen import ACTIVE_STATUS
 
 GEOMETRY = [
     "miss_km",
@@ -41,10 +40,11 @@ PER_OBJECT = [
     "is_debris",
     "is_rocket_body",
     "rcs_size",
-    "active",
 ]
 PHYSICS = ["f107_obs", "f107_obs_81d", "ap_avg"]
-PAIR = ["both_active", "same_family"]
+# No "active" feature: SATCAT only has today's operational status, which would
+# leak the future into historical rows.
+PAIR = ["same_family"]
 
 FEATURES = (
     GEOMETRY
@@ -79,9 +79,8 @@ def _object_table(
         out["is_debris"] = (kind == "DEB").astype(float)
         out["is_rocket_body"] = (kind == "R/B").astype(float)
         out["rcs_size"] = sc["rcs_size"].map(RCS_CODE).fillna(0).astype(float)
-        out["active"] = sc["ops_status_code"].isin(ACTIVE_STATUS).astype(float)
     else:
-        for c in ("is_payload", "is_debris", "is_rocket_body", "rcs_size", "active"):
+        for c in ("is_payload", "is_debris", "is_rocket_body", "rcs_size"):
             out[c] = np.nan
     return out
 
@@ -130,6 +129,5 @@ def build_features(
                 out[f"{role}_{c}"] = table[c].to_numpy()
     for c, v in _space_weather_at(space_weather, start).items():
         out[c] = v
-    out["both_active"] = out["stale_active"] * out["fresh_active"]
     out["same_family"] = rows["same_family"].astype(float) if "same_family" in rows else 0.0
     return out[FEATURES]

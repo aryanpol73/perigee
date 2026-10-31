@@ -56,10 +56,18 @@ class DatasetConfig:
     scope: str = "active"
     exclude_same_family: bool = True
     step_s: float = 20.0
-    workers: int = max(1, (os.cpu_count() or 2) - 1)
+    # Fewer, smaller workers than a one-off screen: dataset builds run for hours
+    # next to a DuckDB history connection on an ordinary laptop.
+    workers: int = max(1, min(6, (os.cpu_count() or 2) - 1))
+    chunk_steps: int = 30
     refine_shift_s: float = 600.0
     manoeuvre_sma_km: float = 1.0
     max_age_days: float = 30.0
+    # Uniform random sample of events per prediction time (before labelling), so
+    # months of history fit in memory. Uniform keeps class balance, precision and
+    # calibration unbiased. None keeps every event.
+    max_rows_per_time: int | None = 20_000
+    seed: int = 42
 
     @property
     def label_cutoff(self) -> pd.Timedelta:
@@ -194,18 +202,26 @@ def build_for_time(
             days=config.horizon_days,
             scope=config.scope,
             workers=config.workers,
+            chunk_steps=config.chunk_steps,
         ),
         active_mask(catalog, satcat),
     )
     events = result.events[~result.events["colocated"]].copy()
     names = catalog.set_index("norad_id")["object_name"]
+    if satcat is not None and not satcat.empty:
+        # Archived 2LE files carry no names: fall back to SATCAT's.
+        names = names.fillna(satcat.drop_duplicates("norad_id").set_index("norad_id")["object_name"].reindex(names.index))
     same = events["norad_a"].map(names).map(family) == events["norad_b"].map(names).map(family)
     events["same_family"] = same.fillna(False).astype(bool) & events["norad_a"].map(names).map(family).notna()
     counts = {"prediction_time": start.isoformat(), "objects": len(catalog), "events": len(events)}
     if config.exclude_same_family:
         counts["excluded_same_family"] = int(events["same_family"].sum())
         events = events[~events["same_family"]]
-    events = events.reset_index(drop=True)
+    if config.max_rows_per_time is not None and len(events) > config.max_rows_per_time:
+        counts["sampled_from"] = len(events)
+        seed = config.seed + int(start.timestamp()) // 86_400  # different, reproducible draw per T
+        events = events.sample(n=config.max_rows_per_time, random_state=seed)
+    events = events.sort_values(["tca", "norad_a", "norad_b"]).reset_index(drop=True)
     if events.empty:
         return events, catalog, counts
 
@@ -222,10 +238,22 @@ def build_for_time(
     return rows[rows["label_available"]].reset_index(drop=True), catalog, counts
 
 
-def prediction_times(history: ElsetHistory, config: DatasetConfig, every_days: float = 1.0) -> list[pd.Timestamp]:
-    """Daily (by default) prediction times whose labels can be complete within the history."""
+def prediction_times(
+    history: ElsetHistory,
+    config: DatasetConfig,
+    every_days: float = 1.0,
+    start: pd.Timestamp | None = None,
+    end: pd.Timestamp | None = None,
+) -> list[pd.Timestamp]:
+    """Prediction times (daily by default) whose labels can be complete within the history.
+
+    start/end restrict them to one continuous stretch of history; the first
+    `max_age_days` are skipped so every T sees a full catalog.
+    """
     lo, hi = history.span()
-    first = lo.ceil("D")
+    lo = max(lo, start) if start is not None else lo
+    hi = min(hi, end) if end is not None else hi
+    first = (lo + pd.Timedelta(days=min(config.max_age_days, 7))).ceil("D")
     last = hi - config.label_cutoff
     if last < first:
         return []

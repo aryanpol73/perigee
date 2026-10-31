@@ -46,11 +46,17 @@ def _space_weather(settings: Settings) -> pd.DataFrame | None:
         con.close()
 
 
-def build_dataset(settings: Settings, config: DatasetConfig, every_days: float = 1.0) -> pd.DataFrame:
+def build_dataset(
+    settings: Settings,
+    config: DatasetConfig,
+    every_days: float = 1.0,
+    start: pd.Timestamp | None = None,
+    end: pd.Timestamp | None = None,
+) -> pd.DataFrame:
     history = ElsetHistory(settings.processed_dir)
     satcat = load_satcat(settings)
     sw = _space_weather(settings)
-    times = prediction_times(history, config, every_days)
+    times = prediction_times(history, config, every_days, start, end)
     span = history.span()
     log.info("building dataset", extra={"prediction_times": len(times), "history": [str(span[0]), str(span[1])]})
     parts, counts = [], []
@@ -103,8 +109,10 @@ def run_train(
     reuse: bool = False,
     every_days: float = 1.0,
     model_card: Path | None = ROOT / "docs" / "model-card.md",
+    start: pd.Timestamp | None = None,
+    end: pd.Timestamp | None = None,
 ) -> dict:
-    dataset = load_dataset(settings) if reuse else build_dataset(settings, dataset_config, every_days)
+    dataset = load_dataset(settings) if reuse else build_dataset(settings, dataset_config, every_days, start, end)
     try:
         results, booster, calibrator = train_and_evaluate(dataset, train_config)
     except InsufficientData as exc:

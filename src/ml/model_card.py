@@ -40,7 +40,9 @@ def write_model_card(results: dict, path: Path) -> None:
         "",
         f"- One row per (object pair, prediction time T). At each T the catalog as published by T is screened "
         f"for {d['horizon_days']:g} days with a {d['candidate_km']:g} km threshold "
-        f"({d['scope']} scope{', same-constellation pairs excluded' if d['exclude_same_family'] else ''}).",
+        f"({d['scope']} scope{', same-constellation pairs excluded' if d['exclude_same_family'] else ''}"
+        + (f"; a uniform random sample of {d['max_rows_per_time']:,} events per prediction time" if d.get("max_rows_per_time") else "")
+        + ").",
         f"- **Label** = 1 if the miss distance recomputed near the predicted TCA, from each object's first "
         f"element set with epoch at or after TCA published within {d['horizon_days'] + d['label_delay_days']:g} "
         f"days of T, is under {d['label_km']:g} km. Newer data is a better estimate, not ground truth.",
