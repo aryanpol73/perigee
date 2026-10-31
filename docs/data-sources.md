@@ -68,8 +68,25 @@ missing or in the future, eccentricity is outside [0, 1), mean motion is not
 positive, or inclination is outside [0, 180]. An object in several GP groups
 keeps its freshest record.
 
-## Space-Track (later)
+## Space-Track (history for the ML stage)
 
-Space-Track needs a free account and its user agreement restricts redistributing
-raw data: publish code and derived results, not their raw archive. Credentials go
-in environment variables or GitHub Secrets only, never in the repo.
+Read on 2026-10-31 from <https://www.space-track.org/documentation>:
+
+- API limits: under 30 requests per minute and 300 per hour; per-class limits on top
+  (GP once an hour, SATCAT once a day after 17:00 UTC, **GP_HISTORY once per lifetime**).
+- For many objects or long date ranges, download the **yearly zip bundles from their cloud
+  storage** instead of querying `gp_history`, store them, and never download them again.
+- USSPACECOM gives blanket approval to redistribute basic data (element sets, SATCAT, decay
+  data) **with appropriate citation**: "Data from Space-Track.org (USSPACECOM)". Perigee still
+  keeps raw archives private and publishes derived results.
+
+How to load history (needs a free account):
+
+1. Log in at space-track.org, open the cloud storage / files area, and download the yearly
+   TLE zip(s) you need, once.
+2. Save them to `data/raw/spacetrack/` (git-ignored; keep them, never re-download).
+3. `python -m src.main import-spacetrack data/raw/spacetrack/<file>.zip --since 2026-01-01`
+4. `python -m src.main train`
+
+Perigee's code never logs in to Space-Track, so no credentials are stored anywhere.
+Archived TLEs have no publication time, so `available_at` = epoch + 12 h (ADR 0001).

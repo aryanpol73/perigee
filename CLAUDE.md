@@ -29,7 +29,7 @@ Perigee is a web app that ingests public orbit data for ~30,000 space objects to
 
 ## 5. Local Setup
 - Virtual env: `.venv` (Python 3.12). Activate with `.venv\Scripts\activate` (Windows).
-- Install: `pip install -r requirements.txt`
+- Install: `pip install -r requirements-dev.txt` (includes `requirements-ml.txt` and `requirements.txt`; the hourly job installs only `requirements-jobs.txt`)
 - Test: `python -m pytest`
 - Dependencies are pinned in `requirements.txt`. Note: DuckDB 2.0 relations have no `fetchone()`; use `fetchall()` or `.limit(1).fetchall()`.
 - Data job: `python -m src.main data` (or `make data`; `make` is not installed on the Windows dev machine). `--offline` rebuilds from raw without downloading.
@@ -46,5 +46,7 @@ Perigee is a web app that ingests public orbit data for ~30,000 space objects to
 - astropy cannot load from very long Windows paths (MAX_PATH); keep the checkout at a short path.
 - `src/screening/`: `screen.py` (KD-tree sieve at 20 s steps with a guaranteed radius, straight-line filter, Newton TCA refinement, parallel chunks), `run.py` (`python -m src.main screen`, writes `data/processed/conjunctions/<snapshot>_<scope>.parquet` + `.json` summary), `socrates.py` (comparison with CelesTrak SOCRATES). `scripts/validate_screening.py` writes `docs/screening-validation.md`.
 - Screening facts: identical-input recall vs SOCRATES is 100%; disagreements are missing objects, data age, and SOCRATES omitting most same-constellation pairs. Starlink-Starlink approaches grow ~3x over 7 days (unmodelled station-keeping), so treat days 4-7 of intra-constellation lists as artefacts. Co-located pairs (<10 m/s) are one row per pair.
+- `src/storage/elsets.py`: element-set history with `available_at` (point in time; DuckDB). `src/ml/`: `dataset.py` (screen at T, label from first set after TCA), `features.py` (T-only data), `train.py` (time split + embargo, baselines, LightGBM/Optuna, isotonic, pair bootstrap), `pipeline.py` + `model_card.py`; `python -m src.main train` (exit 3 = not enough history). Decisions in `docs/decisions/0001-*.md`.
+- `src/ingest/spacetrack_import.py`: imports Space-Track yearly TLE zips downloaded by hand (`import-spacetrack`). Never call Space-Track gp_history from code (1/lifetime rule).
 - `src/ops/archive_sync.py` + `.github/workflows/data-refresh.yml`: hourly job that pulls state + latest raw from a private Hugging Face dataset, runs the pipeline, pushes new snapshots (`docs/data-job.md`). Deps in `requirements-jobs.txt`. It must refuse public datasets.
 - CelesTrak rules are in `docs/data-sources.md`. Never delete `data/state/STOP_CELESTRAK` or bypass the fetch log without the user's say-so.

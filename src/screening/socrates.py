@@ -101,8 +101,8 @@ def compare(
         df["kind"] = np.select([sa & sb, sa | sb], ["Starlink-Starlink", "Starlink-other"], "other")
         # Same constellation or satellite family: the first word of both names
         # matches (STARLINK-1234 / STARLINK-5678, ONEWEB-0113 / ONEWEB-0191).
-        fa = df["a"].map(names).map(_family)
-        fb = df["b"].map(names).map(_family)
+        fa = df["a"].map(names).map(family)
+        fb = df["b"].map(names).map(family)
         df["same_family"] = (fa == fb) & fa.notna()
 
     # SOCRATES -> ours (recall). Co-located pairs are compared by pair, not by TCA.
@@ -157,7 +157,8 @@ def compare(
     return Comparison(window=(lo, hi), socrates=s, ours=o)
 
 
-def _family(name: object) -> str | None:
+def family(name: object) -> str | None:
+    """Constellation or satellite family: the first word of the name (STARLINK, ONEWEB)."""
     if not isinstance(name, str) or not name:
         return None
     word = name.replace("-", " ").split()[0]

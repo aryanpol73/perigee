@@ -1,4 +1,4 @@
 # Validation and development only; the app itself never imports these.
--r requirements.txt
+-r requirements-ml.txt
 astropy==8.0.2
 astropy-iers-data==0.2026.10.19.0.52.1
