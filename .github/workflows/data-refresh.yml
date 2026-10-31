@@ -1,0 +1,81 @@
+# Scheduled CelesTrak snapshot job. History cannot be downloaded after the fact,
+# so this keeps a dated archive accumulating for the ML stage.
+#
+# Runs hourly; the pipeline's fetch log decides what is actually due (GP every
+# 2 h, SATCAT every 12 h, space weather every 24 h), so GitHub's cron drift never
+# causes a skipped update or an extra request.
+#
+# Setup (once): add repository secret HF_TOKEN (Hugging Face write token) and
+# repository variable PERIGEE_HF_DATASET (owner/name of a PRIVATE dataset).
+# See docs/data-job.md.
+name: data-refresh
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Never run two jobs at once: they share the fetch log and STOP file.
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      PERIGEE_HF_DATASET: ${{ vars.PERIGEE_HF_DATASET }}
+      PERIGEE_DATA_DIR: data
+    steps:
+      - name: Check configuration
+        run: |
+          if [ -z "$HF_TOKEN" ] || [ -z "$PERIGEE_HF_DATASET" ]; then
+            echo "::error::Set secret HF_TOKEN and variable PERIGEE_HF_DATASET (see docs/data-job.md)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-jobs.txt
+
+      - name: Install
+        run: pip install -r requirements-jobs.txt
+
+      - name: Pull state and latest raw snapshots
+        run: python -m src.ops.archive_sync pull
+
+      - name: Rebuild tables (baseline for count checks)
+        run: python -m src.main data --offline
+
+      - name: Fetch what is due
+        id: data
+        run: |
+          set +e
+          python -m src.main data
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      # Always push: a rejected download's quarantine copy, the fetch log and any
+      # STOP file must survive this runner.
+      - name: Push new snapshots and state
+        if: always() && steps.data.outcome == 'success'
+        run: python -m src.ops.archive_sync push
+
+      - name: Fail loudly if a download was rejected or refused
+        if: always() && steps.data.outcome == 'success' && steps.data.outputs.exit_code != '0'
+        run: |
+          code="${{ steps.data.outputs.exit_code }}"
+          if [ "$code" = "2" ]; then
+            echo "::error::CelesTrak refused a request (or STOP_CELESTRAK is present). Downloads are stopped until a human deletes state/STOP_CELESTRAK in the dataset. See docs/data-job.md."
+          else
+            echo "::error::A download was rejected or failed (exit $code). Last good data is kept; see the job log."
+          fi
+          exit "$code"

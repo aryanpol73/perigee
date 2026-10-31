@@ -1,0 +1,3 @@
+# The scheduled data job (GitHub Actions): the app plus the snapshot archive client.
+-r requirements.txt
+huggingface-hub==2.2.0
