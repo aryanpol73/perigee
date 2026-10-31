@@ -32,3 +32,12 @@ Perigee is a web app that ingests public orbit data for ~30,000 space objects to
 - Install: `pip install -r requirements.txt`
 - Test: `python -m pytest`
 - Dependencies are pinned in `requirements.txt`. Note: DuckDB 2.0 relations have no `fetchone()`; use `fetchall()` or `.limit(1).fetchall()`.
+- Data job: `python -m src.main data` (or `make data`; `make` is not installed on the Windows dev machine). `--offline` rebuilds from raw without downloading.
+- Parquet is read and written through DuckDB (no pyarrow). Open connections with `src.storage.parquet_store.connect()`, which sets `TimeZone = 'UTC'`.
+- Parse ISO timestamps with `format="ISO8601"`: pandas 3 otherwise infers one format from the first value.
+
+## 6. Code Layout
+- `src/config.py` env-var settings (all listed in `.env.example`); `src/log.py` JSON logs with run id.
+- `src/ingest/` fetching only: `sources.py`, `download.py` (polite client, STOP file, fetch log), `archive.py` (immutable raw), `parse.py`, `validate.py`.
+- `src/orbits/` orbital physics. `src/storage/` Parquet + DuckDB queries. `src/pipeline.py` orchestrates.
+- CelesTrak rules are in `docs/data-sources.md`. Never delete `data/state/STOP_CELESTRAK` or bypass the fetch log without the user's say-so.
