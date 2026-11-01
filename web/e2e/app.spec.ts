@@ -86,6 +86,9 @@ test("the slider marks now and says how rough a forecast is", async ({ page }) =
   await globeReady(page);
   await expect(page.getByTestId("now-mark")).toBeVisible();
   await expect(page.locator(".rough-note")).toHaveCount(0);
+  // Nothing selected: the figure for most objects, with Starlink's (much larger) beside it.
+  await expect(page.getByTestId("forecast-error")).toContainText("for most objects");
+  await expect(page.getByTestId("forecast-error")).toContainText("for Starlink");
   const slider = page.getByLabel("Time in the orbit data's 7-day window");
   await slider.focus();
   await page.keyboard.press("End"); // the last day of the window

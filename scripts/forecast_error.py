@@ -7,8 +7,8 @@ it to T + d. Compare with the first element set whose epoch is at or after T + d
 (fitted to tracking data from then), propagated to T + d. That reference has
 kilometre-level error of its own, so short leads read a little high.
 
-Writes docs/forecast-uncertainty.md; the web app's badge uses the LEO medians
-(web/src/uncertainty.ts). Needs the 2025 Space-Track history (import-spacetrack).
+Writes docs/forecast-uncertainty.md and prints the tables the web app's time bar
+uses (web/src/uncertainty.ts: Starlink, other LEO, above LEO). Needs the 2025 Space-Track history (import-spacetrack).
 
 Usage: python scripts/forecast_error.py
 """
@@ -184,20 +184,23 @@ def main() -> None:
         "- The error is mostly along the direction of travel (timing), not altitude.",
         "- Manoeuvring satellites (Starlink adjusts its orbits often) and low, high-drag objects",
         "  drift fastest; a manoeuvre after the snapshot is invisible to any forecast from it.",
-        "- The web app shows the LEO median for the shown lead as a rough ± next to the",
-        "  FORECAST badge (web/src/uncertainty.ts).",
+        "- The web app shows the median for the shown lead as a rough ± next to the FORECAST",
+        "  badge, for the selected object's class (Starlink, other LEO, above LEO), and other",
+        "  LEO when nothing is selected (web/src/uncertainty.ts).",
         "",
     ]
     OUT.write_text("\n".join(lines), encoding="utf-8")
-    t = table(leo)
-    print("LEO medians for web/src/uncertainty.ts:")
-    print(
-        "["
-        + ", ".join(
-            f"[{d:g}, {r.median_km:.1f}, {r.p90_km:.0f}]" for d, r in t.iterrows()
+    print("Tables for web/src/uncertainty.ts ([days, median km, p90 km]):")
+    for key, name in [
+        ("starlink", "Starlink"),
+        ("leo", "LEO without Starlink"),
+        ("high", "Above LEO"),
+    ]:
+        rows = ", ".join(
+            f"[{d:g}, {r.median_km:.1f}, {r.p90_km:.0f}]"
+            for d, r in table(groups[name]).iterrows()
         )
-        + "]"
-    )
+        print(f"  {key}: [{rows}],")
     print(f"wrote {OUT}")
 
 
