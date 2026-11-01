@@ -6,11 +6,11 @@
 // [days after the snapshot, median km, 90th percentile km]
 export const LEO_ERROR_KM: readonly (readonly [number, number, number])[] = [
   [0.25, 0.9, 18],
-  [0.5, 1.1, 23],
+  [0.5, 1.1, 22],
   [1, 1.6, 34],
   [2, 2.9, 68],
   [3, 4.9, 120],
-  [4, 6.8, 181],
+  [4, 6.8, 180],
   [5, 9.5, 257],
   [6, 13.6, 347],
   [7, 17.3, 477],
