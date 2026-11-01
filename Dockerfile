@@ -7,13 +7,13 @@
 # Run:    docker run -p 7860:7860 -e PERIGEE_RESULTS_REPO=owner/perigee-results perigee-api
 
 # Base image pinned by digest (both stages); Dependabot proposes updates.
-FROM python:3.12-slim-bookworm@sha256:e697c81897302a4c4333bade000d98038fbb21eb064f8ee1fd42d02ebcd9d337 AS build
+FROM python:3.15-slim-bookworm@sha256:4e03260adeeebafccd084f3584e6b84823aba5651cfb53ef8a078ed441ddf9cd AS build
 ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 COPY requirements-api.txt /tmp/requirements-api.txt
 # Every dependency ships a manylinux wheel: no compilers in either stage.
 RUN python -m venv /opt/venv && /opt/venv/bin/pip install --only-binary=:all: -r /tmp/requirements-api.txt
 
-FROM python:3.12-slim-bookworm@sha256:e697c81897302a4c4333bade000d98038fbb21eb064f8ee1fd42d02ebcd9d337
+FROM python:3.15-slim-bookworm@sha256:4e03260adeeebafccd084f3584e6b84823aba5651cfb53ef8a078ed441ddf9cd
 # Spaces run containers as uid 1000.
 RUN useradd --create-home --uid 1000 perigee
 COPY --from=build /opt/venv /opt/venv
