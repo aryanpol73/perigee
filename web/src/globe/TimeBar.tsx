@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { offsetLabel, reachedEnd, status } from "../clock";
 import { utc } from "../format";
 import { time, useStore, wallNow } from "../store";
-import { ROUGH_AFTER_DAYS, errorLabel, forecastErrorKm, roughKm } from "../uncertainty";
+import { CLASS_NAMES, ROUGH_AFTER_DAYS, errorLabel, forecastErrorKm, roughKm, type OrbitClass } from "../uncertainty";
 
 const SPEEDS = [1, 60, 600, 3600];
 
@@ -18,8 +18,13 @@ function localTime(t: number): string {
 
 const unit = (x: number) => Math.min(1, Math.max(0, x));
 
-export function TimeBar({ snapshot }: { snapshot: string }) {
+/** Name and error class per NORAD id, once the orbit file is loaded. */
+export type ObjectClasses = Map<number, { name: string; cls: OrbitClass }>;
+
+export function TimeBar({ snapshot, objects }: { snapshot: string; objects: ObjectClasses | null }) {
   const clock = useStore((s) => s.clock);
+  const selected = useStore((s) => s.selected);
+  const focus = useStore((s) => s.focus);
   const [real, setReal] = useState(() => wallNow());
   const bar = useRef<HTMLDivElement>(null);
 
@@ -47,9 +52,19 @@ export function TimeBar({ snapshot }: { snapshot: string }) {
   const snapshotMs = new Date(snapshot).getTime();
   const ageH = (real - snapshotMs) / 3_600_000;
   const lead = shown - snapshotMs;
-  const spread = forecastErrorKm(lead);
+  // The error figure is for what is being looked at: the selected object, the less
+  // predictable of a pair, or (nothing selected) most objects, with Starlink beside it.
+  const subjects = (focus ? focus.norads : selected !== null ? [selected] : []).flatMap((id) => objects?.get(id) ?? []);
+  const subject = subjects.reduce<(typeof subjects)[number] | null>(
+    (worst, o) => (!worst || forecastErrorKm(lead, o.cls).median > forecastErrorKm(lead, worst.cls).median ? o : worst),
+    null,
+  );
+  const cls = subject?.cls ?? "leo";
+  const spread = forecastErrorKm(lead, cls);
   const error = errorLabel(spread.median);
-  const tail = `1 in 10 objects is off by more than ${roughKm(spread.p90)} km`;
+  const who = !subject ? "most objects" : subjects.length > 1 ? `this pair (${CLASS_NAMES[cls].label})` : `${subject.name} (${CLASS_NAMES[cls].label})`;
+  const starlinkNote = !subject ? `, ${errorLabel(forecastErrorKm(lead, "starlink").median)} for Starlink (it manoeuvres often)` : "";
+  const tail = `1 in 10 ${subject ? CLASS_NAMES[cls].plural : "objects like these"} is off by more than ${roughKm(spread.p90).toLocaleString("en-US")} km`;
   const rough = lead > ROUGH_AFTER_DAYS * 86_400_000;
   const span = clock.end - clock.start;
   const nowInWindow = real >= clock.start && real <= clock.end;
@@ -116,7 +131,11 @@ export function TimeBar({ snapshot }: { snapshot: string }) {
       <span className="data-age muted small">
         orbit data from {utc(snapshot)}
         {st.kind === "stale" ? ": too old to show the present" : ""} · <span className="key past" aria-hidden /> calculated up to now ·{" "}
-        <span className="key future" aria-hidden /> forecast · typical position error here <span title={tail}>{error}</span>
+        <span className="key future" aria-hidden /> forecast · typical position error here{" "}
+        <span title={tail} data-testid="forecast-error">
+          {error} for {who}
+          {starlinkNote}
+        </span>
       </span>
       {rough && (
         <span className="rough-note small" role="note">

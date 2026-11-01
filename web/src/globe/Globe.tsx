@@ -22,7 +22,8 @@ import {
   type OrbitFile,
 } from "../orbits";
 import { getState, prefersReducedMotion, setQuality, setState, subscribe, time, useStore, type Quality } from "../store";
-import { TimeBar } from "./TimeBar";
+import { orbitClass } from "../uncertainty";
+import { TimeBar, type ObjectClasses } from "./TimeBar";
 
 declare const CESIUM_BASE_URL: string;
 (window as unknown as { CESIUM_BASE_URL: string }).CESIUM_BASE_URL = CESIUM_BASE_URL;
@@ -52,6 +53,7 @@ export default function Globe({ meta }: { meta: Meta }) {
   const container = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState("Loading orbit data…");
   const simActive = useStore((s) => s.sim !== null);
+  const [objects, setObjects] = useState<ObjectClasses | null>(null);
 
   useEffect(() => {
     let disposed = false;
@@ -146,6 +148,7 @@ export default function Globe({ meta }: { meta: Meta }) {
       const records: Omm[] = decodeOrbitFile(file);
       const n = records.length;
       const perigee = records.map((r) => altitudes(r).perigee);
+      setObjects(new Map(records.map((r, i) => [r.NORAD_CAT_ID, { name: r.OBJECT_NAME, cls: orbitClass(r.OBJECT_NAME, perigee[i]) }])));
       const kinds = records.map((r) => (["PAY", "DEB", "R/B"].includes(r.OBJECT_TYPE) ? r.OBJECT_TYPE : "UNK") as ObjectType);
       const poolSize = Math.min(workerCount(), Math.max(1, n));
       const slice = Math.ceil(n / poolSize);
@@ -488,7 +491,7 @@ export default function Globe({ meta }: { meta: Meta }) {
       <div ref={container} className="globe-canvas" />
       {status && <div className="globe-status" role="status">{status}</div>}
       {simActive && <div className="sim-label" role="note">Illustrative, simplified; not a prediction.</div>}
-      <TimeBar snapshot={meta.snapshot_time} />
+      <TimeBar snapshot={meta.snapshot_time} objects={objects} />
       <Legend provisional={!meta.history_complete} />
     </div>
   );

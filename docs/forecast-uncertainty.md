@@ -72,5 +72,6 @@ Median age of the snapshot's data at T: 20 h.
 - The error is mostly along the direction of travel (timing), not altitude.
 - Manoeuvring satellites (Starlink adjusts its orbits often) and low, high-drag objects
   drift fastest; a manoeuvre after the snapshot is invisible to any forecast from it.
-- The web app shows the LEO median for the shown lead as a rough ± next to the
-  FORECAST badge (web/src/uncertainty.ts).
+- The web app shows the median for the shown lead as a rough ± next to the FORECAST
+  badge, for the selected object's class (Starlink, other LEO, above LEO), and other
+  LEO when nothing is selected (web/src/uncertainty.ts).
