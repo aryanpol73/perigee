@@ -1,6 +1,6 @@
 // The 3D globe. Every object is one point primitive (entities are far too heavy
-// at 30,000). A Web Worker propagates positions and velocities with satellite.js a
-// few times a second; every frame the main thread glides each point along a smooth
+// at 30,000). A small pool of Web Workers, each owning a slice of the catalog,
+// propagates positions and velocities with satellite.js a few times a second; every frame the main thread glides each point along a smooth
 // curve between those samples (src/motion.ts), reusing the same objects so nothing
 // is allocated per frame. The Earth uses NASA Blue Marble (day) and Black Marble
 // (city lights) imagery with real sunlight for the shown time; the imagery bundled
@@ -31,11 +31,21 @@ const SAMPLE_EVERY_MS = 120; // real time between worker samples while time move
 const TRAIL_MINUTES = 12;
 const GIBS = "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best";
 
+// Workers propagating in parallel: one slice of the catalog each, leaving a core for
+// the page. ?workers=N overrides (for measuring).
+function workerCount(): number {
+  const forced = Number(new URLSearchParams(window.location.search).get("workers"));
+  if (Number.isInteger(forced) && forced >= 1) return Math.min(8, forced);
+  return Math.max(1, Math.min(4, (navigator.hardwareConcurrency ?? 4) - 1));
+}
+
 // Measured per frame and exposed for the browser tests (window.__perigee).
 interface Perf {
   frames: number;
   updateMs: number[]; // JS time spent placing points, last 120 frames
   samples: number;
+  sampleMs: number[]; // request to complete sample (all workers), last 60 samples
+  workers: number;
 }
 
 export default function Globe({ meta }: { meta: Meta }) {
@@ -137,25 +147,34 @@ export default function Globe({ meta }: { meta: Meta }) {
       const n = records.length;
       const perigee = records.map((r) => altitudes(r).perigee);
       const kinds = records.map((r) => (["PAY", "DEB", "R/B"].includes(r.OBJECT_TYPE) ? r.OBJECT_TYPE : "UNK") as ObjectType);
-      const worker = new Worker(new URL("../orbit.worker.ts", import.meta.url), { type: "module" });
-      worker.postMessage({ kind: "load", records });
+      const poolSize = Math.min(workerCount(), Math.max(1, n));
+      const slice = Math.ceil(n / poolSize);
+      const pool = Array.from({ length: poolSize }, (_, k) => {
+        const w = new Worker(new URL("../orbit.worker.ts", import.meta.url), { type: "module" });
+        w.postMessage({ kind: "load", part: k, records: records.slice(k * slice, (k + 1) * slice) });
+        return w;
+      });
       const prims = records.map((r) =>
         points.add({ id: r.NORAD_CAT_ID, pixelSize: 2.5, color: color(TYPE_COLORS.UNK), show: false, scaleByDistance: sizeByDistance }),
       );
       const byNorad = new Map(records.map((r, i) => [r.NORAD_CAT_ID, i]));
+      const owner = (norad: number) => pool[Math.floor(byNorad.get(norad)! / slice)];
       const wanted = new Uint8Array(n); // passes filters (or is selected)
       const motion = new Motion(n);
       const positions = new Float64Array(n * 3);
       const scratch = new Cesium.Cartesian3();
       const julian = new Cesium.JulianDate();
-      const perf: Perf = { frames: 0, updateMs: [], samples: 0 };
+      const perf: Perf = { frames: 0, updateMs: [], samples: 0, sampleMs: [], workers: poolSize };
       (window as unknown as { __perigee: Perf }).__perigee = perf;
       let pending = false;
       let requestId = 0;
       let lastSampleAt = 0;
+      // The sample being assembled from the workers' slices.
+      let assembling: { id: number; time: number; states: Float64Array; parts: number } | null = null;
+      let loadedParts = 0;
       let orbitPath: InstanceType<typeof Cesium.Polyline> | null = null;
       let pairLine: InstanceType<typeof Cesium.Polyline> | null = null;
-      let trails: InstanceType<typeof Cesium.Polyline>[] = [];
+      const trails = new Map<number, InstanceType<typeof Cesium.Polyline>>();
       let lastTrailAt = 0;
       let lastShownTime = Number.NaN;
       let lastPlacedTime = Number.NaN;
@@ -284,31 +303,44 @@ export default function Globe({ meta }: { meta: Meta }) {
       const requestSample = (t: number) => {
         pending = true;
         lastSampleAt = performance.now();
-        worker.postMessage({ kind: "sample", id: ++requestId, time: t });
+        assembling = { id: ++requestId, time: t, states: new Float64Array(n * 6), parts: 0 };
+        for (const w of pool) w.postMessage({ kind: "sample", id: assembling.id, time: t });
       };
 
       const requestTrails = (t: number) => {
         const s = getState();
         const ids = [...new Set([...(s.selected !== null ? [s.selected] : []), ...(s.focus?.norads ?? [])])].filter((id) => byNorad.has(id));
         lastTrailAt = performance.now();
-        if (!ids.length) {
-          trails.forEach((l) => lines.remove(l));
-          trails = [];
-          return;
+        for (const [id, line] of trails) {
+          if (!ids.includes(id)) {
+            lines.remove(line);
+            trails.delete(id);
+          }
         }
-        worker.postMessage({ kind: "trail", id: ++requestId, norads: ids, time: t, minutes: TRAIL_MINUTES, samples: 48 });
+        // Each object's trail comes from the worker that owns it.
+        const byWorker = new Map<Worker, number[]>();
+        for (const id of ids) byWorker.set(owner(id), [...(byWorker.get(owner(id)) ?? []), id]);
+        for (const [w, norads] of byWorker) w.postMessage({ kind: "trail", id: ++requestId, norads, time: t, minutes: TRAIL_MINUTES, samples: 48 });
       };
 
-      worker.onmessage = (event) => {
+      const onMessage = (event: MessageEvent) => {
         const msg = event.data;
         if (msg.kind === "loaded") {
+          if (++loadedParts < poolSize) return;
           setStatus("");
           restyle();
           requestSample(time.now());
         } else if (msg.kind === "sample") {
+          const a = assembling;
+          if (!a || msg.id !== a.id) return;
+          a.states.set(msg.states as Float64Array, msg.part * slice * 6);
+          if (++a.parts < poolSize) return;
+          assembling = null;
           pending = false;
           perf.samples++;
-          motion.add({ time: msg.time, states: msg.states } as Sample);
+          perf.sampleMs.push(performance.now() - lastSampleAt);
+          if (perf.sampleMs.length > 60) perf.sampleMs.shift();
+          motion.add({ time: a.time, states: a.states } as Sample);
           lastShownTime = Number.NaN;
           scene.requestRender();
         } else if (msg.kind === "path") {
@@ -320,20 +352,22 @@ export default function Globe({ meta }: { meta: Meta }) {
           if (pts.length > 2) orbitPath = lines.add({ positions: pts, width: 4, material: glow("#bfe3ff", 0.18) });
           scene.requestRender();
         } else if (msg.kind === "trail") {
-          trails.forEach((l) => lines.remove(l));
-          trails = [];
           const p = msg.positions as Float64Array;
-          (msg.norads as number[]).forEach((_, k) => {
+          (msg.norads as number[]).forEach((id, k) => {
+            const old = trails.get(id);
+            if (old) lines.remove(old);
+            trails.delete(id);
             const pts = [];
             for (let j = 0; j < msg.samples; j++) {
               const at = (k * msg.samples + j) * 3;
               if (!Number.isNaN(p[at])) pts.push(new Cesium.Cartesian3(p[at], p[at + 1], p[at + 2]));
             }
-            if (pts.length > 2) trails.push(lines.add({ positions: pts, width: 5, material: glow("#ffffff", 0.3) }));
+            if (pts.length > 2) trails.set(id, lines.add({ positions: pts, width: 5, material: glow("#ffffff", 0.3) }));
           });
           scene.requestRender();
         }
       };
+      for (const w of pool) w.onmessage = onMessage;
 
       // Every rendered frame: read the clock, keep samples ahead of it, glide the points.
       const onPreRender = () => {
@@ -346,7 +380,7 @@ export default function Globe({ meta }: { meta: Meta }) {
         const lead = moving ? Math.max(1_000, speed * SAMPLE_EVERY_MS * 2) : 0;
         const want = motion.next(t, lead);
         if (want !== null && !pending && (!moving || performance.now() - lastSampleAt >= SAMPLE_EVERY_MS)) requestSample(want);
-        if ((trails.length || s.selected !== null || s.focus) && performance.now() - lastTrailAt > 1_500) requestTrails(t);
+        if ((trails.size || s.selected !== null || s.focus) && performance.now() - lastTrailAt > 1_500) requestTrails(t);
         if (t !== lastShownTime || getState().focus) {
           place(t);
           lastShownTime = t;
@@ -394,7 +428,9 @@ export default function Globe({ meta }: { meta: Meta }) {
         if (s.selected !== prev.selected || s.focus !== prev.focus) {
           if (orbitPath) lines.remove(orbitPath);
           orbitPath = null;
-          if (s.selected !== null) worker.postMessage({ kind: "path", id: ++requestId, norad: s.selected, time: time.now(), samples: 240 });
+          if (s.selected !== null && byNorad.has(s.selected)) {
+            owner(s.selected).postMessage({ kind: "path", id: ++requestId, norad: s.selected, time: time.now(), samples: 240 });
+          }
           requestTrails(time.now());
           scene.requestRender();
         }
@@ -437,7 +473,7 @@ export default function Globe({ meta }: { meta: Meta }) {
         window.cancelAnimationFrame(raf);
         scene.preRender.removeEventListener(onPreRender);
         handler.destroy();
-        worker.terminate();
+        pool.forEach((w) => w.terminate());
         viewer.destroy();
       };
     })().catch((e: Error) => setStatus(`The globe could not start: ${e.message}`));
