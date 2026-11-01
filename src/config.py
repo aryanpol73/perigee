@@ -47,6 +47,11 @@ class Settings:
     space_weather_min_days: int = 1_000
     max_count_drop: float = 0.20
     max_bad_row_fraction: float = 0.01
+    # API (read-only; serves the published results bundle).
+    results_dir: Path = Path("data/results")
+    api_cors_origins: tuple[str, ...] = ("http://localhost:5173",)
+    api_max_data_age_h: float = 48.0
+    api_rate_limit_per_min: int = 120
 
     @property
     def raw_dir(self) -> Path:
@@ -67,6 +72,7 @@ class Settings:
     @classmethod
     def from_env(cls) -> Settings:
         groups = os.environ.get("PERIGEE_GP_GROUPS")
+        origins = os.environ.get("PERIGEE_API_CORS_ORIGINS")
         return cls(
             data_dir=Path(os.environ.get("PERIGEE_DATA_DIR", "data")),
             user_agent=os.environ.get("PERIGEE_USER_AGENT", DEFAULT_USER_AGENT),
@@ -83,4 +89,10 @@ class Settings:
             space_weather_min_days=_env_int("PERIGEE_SW_MIN_DAYS", 1_000),
             max_count_drop=_env_float("PERIGEE_MAX_COUNT_DROP", 0.20),
             max_bad_row_fraction=_env_float("PERIGEE_MAX_BAD_ROW_FRACTION", 0.01),
+            results_dir=Path(os.environ.get("PERIGEE_RESULTS_DIR", "data/results")),
+            api_cors_origins=tuple(o.strip() for o in origins.split(",") if o.strip())
+            if origins
+            else ("http://localhost:5173",),
+            api_max_data_age_h=_env_float("PERIGEE_API_MAX_DATA_AGE_H", 48.0),
+            api_rate_limit_per_min=_env_int("PERIGEE_API_RATE_LIMIT_PER_MIN", 120),
         )

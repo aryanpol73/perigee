@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: data data-offline rebuild summary shells simulate validate-risk test
+.PHONY: data data-offline rebuild summary shells simulate validate-risk publish api dev test
 
 data:  ## fetch due sources, rebuild the latest tables, print a summary
 	$(PYTHON) -m src.main data
@@ -23,5 +23,15 @@ simulate:  ## illustrative breakup simulator (800 km demo)
 validate-risk:  ## shape, stability and sensitivity checks; writes docs/risk-validation.md
 	$(PYTHON) scripts/validate_risk.py
 
+publish:  ## score the latest screen and publish the results bundle
+	$(PYTHON) -m src.main publish
+
+api:  ## serve the read-only API on port 8000
+	$(PYTHON) -m src.main api
+
+dev:  ## API + web app together (fixture data if nothing is published)
+	$(PYTHON) -m src.main dev
+
 test:
 	$(PYTHON) -m pytest
+	cd web && npm test
