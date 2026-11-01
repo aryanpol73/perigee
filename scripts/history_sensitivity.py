@@ -29,12 +29,12 @@ from sklearn.metrics import average_precision_score, brier_score_loss
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.config import Settings  # noqa: E402
-from src.ml.features import FEATURES  # noqa: E402
-from src.ml.score import load_model  # noqa: E402
-from src.ml.train import TrainConfig, operating_threshold, point_metrics, time_split  # noqa: E402
-from src.storage.elsets import SMA_SQL, ElsetHistory  # noqa: E402
-from src.storage.parquet_store import connect  # noqa: E402
+from src.config import Settings
+from src.ml.features import FEATURES
+from src.ml.score import load_model
+from src.ml.train import TrainConfig, operating_threshold, point_metrics, time_split
+from src.storage.elsets import SMA_SQL, ElsetHistory
+from src.storage.parquet_store import connect
 
 UPDATE = ["n_records_30d", "sma_jump_max_km", "sma_jump_median_km", "update_gap_median_h"]
 OUT = ROOT / "docs" / "history-sensitivity.md"
@@ -132,7 +132,7 @@ def main() -> int:
         feature_rows.append((name, *(f"{df[f'{r}_{c}'].median():.2f}" for c in UPDATE for r in ("stale",))))
 
     observed = (y.mean(), y[(test["miss_km"] < 2).to_numpy()].mean())
-    table = lambda head, body: "\n".join(["| " + " | ".join(head) + " |", "|" + "---|" * len(head), *("| " + " | ".join(r) + " |" for r in body)])  # noqa: E731
+    table = lambda head, body: "\n".join(["| " + " | ".join(head) + " |", "|" + "---|" * len(head), *("| " + " | ".join(r) + " |" for r in body)])
     lines = [
         "# Update history and the model's scores",
         "",

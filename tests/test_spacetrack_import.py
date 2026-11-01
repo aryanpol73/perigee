@@ -9,6 +9,7 @@ from src.ingest.spacetrack_import import TleError, alpha5_to_int, import_archive
 from src.orbits.propagate import satrec_from_elements
 from src.storage.elsets import ElsetHistory
 
+
 def _checksummed(line68: str) -> str:
     total = sum(int(c) if c.isdigit() else (1 if c == "-" else 0) for c in line68)
     return line68 + str(total % 10)

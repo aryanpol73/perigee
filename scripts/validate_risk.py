@@ -30,12 +30,12 @@ from scipy.stats import spearmanr
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.config import Settings  # noqa: E402
-from src.orbits.elements import EARTH_RADIUS_KM  # noqa: E402
-from src.risk.shells import ShellConfig, prepare_objects, shell_index, what_if  # noqa: E402
-from src.screening.run import latest_catalog, load_satcat  # noqa: E402
-from src.sim.breakup import LABEL, Collision, as_catalog_objects, positions_at, simulate, spread  # noqa: E402
-from src.storage.elsets import ElsetHistory  # noqa: E402
+from src.config import Settings
+from src.orbits.elements import EARTH_RADIUS_KM
+from src.risk.shells import ShellConfig, prepare_objects, shell_index, what_if
+from src.screening.run import latest_catalog, load_satcat
+from src.sim.breakup import LABEL, Collision, as_catalog_objects, positions_at, simulate, spread
+from src.storage.elsets import ElsetHistory
 
 DOCS = ROOT / "docs"
 FIG = DOCS / "figures"

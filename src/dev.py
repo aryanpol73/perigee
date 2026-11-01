@@ -18,7 +18,6 @@ from pathlib import Path
 
 from src.config import Settings
 from src.results.bundle import POINTER
-from src.results.fixture import FIXTURE_DIR
 
 ROOT = Path(__file__).resolve().parents[1]
 WEB = ROOT / "web"

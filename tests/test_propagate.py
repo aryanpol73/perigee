@@ -5,8 +5,8 @@ from sgp4.api import WGS72, Satrec
 
 from src.ingest.parse import parse_gp
 from src.orbits.propagate import (
-    INIT_FAILED,
     ERROR_LABELS,
+    INIT_FAILED,
     propagate_catalog,
     satrec_from_elements,
 )
@@ -56,7 +56,7 @@ def test_catalog_propagation_shapes_and_sanity(gp_bytes):
     assert prop.ok.all()
     radius = np.linalg.norm(prop.position_teme_km, axis=-1)
     assert ((radius > 6_378) & (radius < 9_000)).all()  # every station object is in LEO
-    lat, lon, height = prop.geodetic()
+    lat, _lon, height = prop.geodetic()
     assert (np.abs(lat) <= 52.0).all()  # ISS / CSS inclinations bound latitude
     assert ((height > 150) & (height < 2_500)).all()
 

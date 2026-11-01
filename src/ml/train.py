@@ -58,7 +58,7 @@ class TrainConfig:
     label_km: float = 5.0
     val_fraction: float = 0.2
     test_fraction: float = 0.2
-    embargo: pd.Timedelta = pd.Timedelta(days=4)  # = dataset label cutoff
+    embargo: pd.Timedelta = pd.Timedelta(days=4)  # noqa: RUF009 (immutable) = dataset label cutoff
     # 1 false alarm per true event (precision >= 0.5). With a ~15% base rate a
     # looser budget is met by alerting on nearly everything and says nothing.
     max_false_alarms_per_true: float = 1.0
@@ -80,7 +80,7 @@ class Split:
 def time_split(rows: pd.DataFrame, config: TrainConfig) -> Split:
     """Chronological split by prediction time, with an embargo before each later period."""
     times = np.sort(rows["prediction_time"].unique())
-    counts = {"prediction_times": int(len(times)), "rows": int(len(rows)), "positives": int(rows["label"].sum())}
+    counts = {"prediction_times": len(times), "rows": len(rows), "positives": int(rows["label"].sum())}
     if len(times) < config.min_prediction_times:
         raise InsufficientData(
             f"{len(times)} prediction times; need at least {config.min_prediction_times} for a time split",
@@ -96,7 +96,7 @@ def time_split(rows: pd.DataFrame, config: TrainConfig) -> Split:
     val = rows[(t >= val_start) & (t <= test_start - config.embargo)]
     test = rows[t >= test_start]
     for name, part in (("train", train), ("validation", val), ("test", test)):
-        counts[f"{name}_rows"] = int(len(part))
+        counts[f"{name}_rows"] = len(part)
         counts[f"{name}_positives"] = int(part["label"].sum())
         if part["label"].sum() < config.min_positives_per_split or (part["label"] == 0).sum() == 0:
             raise InsufficientData(
@@ -201,7 +201,7 @@ def _pair_groups(df: pd.DataFrame) -> np.ndarray:
 # Models
 
 
-def _lgb_params(trial: optuna.Trial | None, seed: int, pos_weight: float) -> dict[str, Any]:
+def _lgb_params(trial: optuna.trial.BaseTrial | None, seed: int, pos_weight: float) -> dict[str, Any]:
     base = {
         "objective": "binary",
         "verbosity": -1,
@@ -244,7 +244,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
     fa = config.max_false_alarms_per_true
     results: dict[str, Any] = {"config": {k: str(v) for k, v in asdict(config).items()}, "split": split.boundaries}
     results["counts"] = {
-        name: {"rows": int(len(d)), "positives": int(d["label"].sum()), "prediction_times": int(d["prediction_time"].nunique())}
+        name: {"rows": len(d), "positives": int(d["label"].sum()), "prediction_times": int(d["prediction_time"].nunique())}
         for name, d in (("train", tr), ("validation", va), ("test", te))
     }
 
@@ -292,15 +292,15 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
 
     def objective(trial: optuna.Trial) -> float:
         booster = _fit_lgb(_lgb_params(trial, config.seed, pos_weight), tr, va)
-        return average_precision_score(y_va, booster.predict(va[FEATURES]))
+        return average_precision_score(y_va, np.asarray(booster.predict(va[FEATURES])))
 
     def trial_done(study: optuna.Study, trial: optuna.trial.FrozenTrial) -> None:
         progress(
             "tuning trial finished",
             trial=f"{trial.number + 1}/{config.optuna_trials}",
-            val_pr_auc=round(trial.value, 4),
+            val_pr_auc=round(trial.value or 0.0, 4),
             best_so_far=round(study.best_value, 4),
-            trial_min=round(trial.duration.total_seconds() / 60, 1),
+            trial_min=round(trial.duration.total_seconds() / 60, 1) if trial.duration else None,
         )
 
     study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler(seed=config.seed))
@@ -308,7 +308,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
     best_params = _lgb_params(optuna.trial.FixedTrial(study.best_params), config.seed, pos_weight)
     progress("fitting final LightGBM with the best settings")
     booster = _fit_lgb(best_params, tr, va)
-    raw_va, raw_te = booster.predict(va[FEATURES]), booster.predict(te[FEATURES])
+    raw_va, raw_te = np.asarray(booster.predict(va[FEATURES])), np.asarray(booster.predict(te[FEATURES]))
     calibrator = IsotonicRegression(out_of_bounds="clip").fit(raw_va, y_va)
     cal_te = calibrator.predict(raw_te)
     evaluate("lightgbm", raw_va, raw_te, cal_te)
@@ -346,7 +346,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
     results["grouped_cv_pr_auc"] = {"folds": cv, "mean": float(np.mean(cv)) if cv else None}
 
     # Feature attributions (SHAP values from LightGBM itself).
-    contrib = booster.predict(te[FEATURES], pred_contrib=True)[:, :-1]
+    contrib = np.asarray(booster.predict(te[FEATURES], pred_contrib=True))[:, :-1]
     importance = pd.Series(np.abs(contrib).mean(axis=0), index=FEATURES).sort_values(ascending=False)
     results["mean_abs_shap"] = {k: float(v) for k, v in importance.head(15).items()}
 

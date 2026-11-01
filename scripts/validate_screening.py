@@ -20,10 +20,10 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.config import Settings  # noqa: E402
-from src.screening.run import load_satcat  # noqa: E402
-from src.screening.socrates import compare, load_socrates, socrates_epochs  # noqa: E402
-from src.storage import parquet_store as store  # noqa: E402
+from src.config import Settings
+from src.screening.run import load_satcat
+from src.screening.socrates import compare, load_socrates, socrates_epochs
+from src.storage import parquet_store as store
 
 SOCRATES_DIR = ROOT / "data" / "reference" / "socrates"
 

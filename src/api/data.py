@@ -7,14 +7,14 @@ new bundle means a restart (or `ResultsStore.load` again).
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from src.orbits.elements import EARTH_RADIUS_KM
-from src.results.bundle import POINTER
+from src.results.remote import POINTER
 from src.risk.shells import assign_sizes
 from src.storage import parquet_store as store
 
@@ -34,7 +34,7 @@ class ResultsStore:
     shells_history: pd.DataFrame
     # Row positions of `conjunctions` in each sort order, computed once at load so a
     # request only filters (a boolean mask over a presorted index), never sorts.
-    orders: dict[str, np.ndarray] | None = None
+    orders: dict[str, np.ndarray] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         c = self.conjunctions

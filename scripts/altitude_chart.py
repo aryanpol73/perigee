@@ -18,8 +18,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.config import Settings  # noqa: E402
-from src.storage.summary import OBJECT_CLASSES, altitude_band_counts  # noqa: E402
+from src.config import Settings
+from src.storage.summary import OBJECT_CLASSES, altitude_band_counts
 
 BAND_KM, LO_KM, HI_KM = 25, 200, 2_000
 LABEL_COLUMN_KM = 1_000

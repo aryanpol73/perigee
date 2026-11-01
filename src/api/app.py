@@ -142,6 +142,15 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         description="Read-only estimates from public orbit data; not for operational use. "
         "Data from CelesTrak and Space-Track.org (USSPACECOM).",
     )
+    if settings.sentry_dsn:
+        import sentry_sdk
+
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            environment=settings.sentry_environment,
+            send_default_pii=False,
+            traces_sample_rate=0.02,
+        )
     limiter = RateLimiter(settings.api_rate_limit_per_min)
     try:
         app.state.store = ResultsStore.load(results_dir)

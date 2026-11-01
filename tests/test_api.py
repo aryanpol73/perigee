@@ -17,8 +17,8 @@ from src.api.app import create_app
 from src.config import Settings
 from src.ml.features import FEATURES
 from src.ml.score import Model, score_events
+from src.results import FIXTURE_DIR
 from src.results.bundle import POINTER, InvalidBundle, publish, validate
-from src.results.fixture import FIXTURE_DIR
 
 OPENAPI_SNAPSHOT = Path(__file__).parent / "fixtures" / "openapi.json"
 

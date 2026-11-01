@@ -21,6 +21,7 @@ import logging
 import zipfile
 from collections.abc import Iterable, Iterator
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -144,7 +145,7 @@ def import_archive(
     for old in out_dir.glob(f"{stem}_part*.parquet"):
         old.unlink()  # re-import replaces this archive's parts, never others
 
-    counts = {"archive": path.name, "parsed": 0, "skipped_malformed": 0, "outside_window": 0, "parts": 0}
+    counts: dict[str, Any] = {"archive": path.name, "parsed": 0, "skipped_malformed": 0, "outside_window": 0, "parts": 0}
     batch: list[dict] = []
 
     def flush() -> None:
