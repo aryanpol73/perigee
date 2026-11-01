@@ -1,0 +1,143 @@
+# Every push and pull request: lint, types, tests (with a coverage gate), the web
+# build and browser tests, the API image (built and started), and security checks.
+# deploy.yml runs only after this passes on main.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: pip install -r requirements-dev.txt
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Types (mypy)
+        run: mypy
+      - name: Tests with coverage gate
+        run: pytest -q --cov=src --cov-report=term --cov-report=xml --cov-fail-under=80
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: ignore
+
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      # The browser tests start the API on the committed fixture bundle.
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install
+        run: |
+          npm ci
+          pip install -r ../requirements-api.txt
+      - name: Types (tsc)
+        run: npm run typecheck
+      - name: Lint (eslint)
+        run: npx eslint . --max-warnings 0
+      - name: Unit tests (vitest)
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Browser tests (Playwright, bundled Chromium)
+        env:
+          PW_CHANNEL: ""
+          PERIGEE_PYTHON: python
+        run: |
+          npx playwright install --with-deps chromium
+          npm run e2e
+      - name: Upload browser test traces
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: playwright-traces
+          path: web/test-results
+          if-no-files-found: ignore
+
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Build the API image
+        run: docker build -t perigee-api:ci .
+      - name: Start it on the fixture bundle and check it answers
+        run: |
+          docker run -d --name api -p 7860:7860 \
+            -v "$PWD/tests/fixtures/results:/app/data/results:ro" \
+            -e PERIGEE_API_MAX_DATA_AGE_H=1000000 \
+            perigee-api:ci
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:7860/v1/health >/dev/null && break
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:7860/v1/health
+          curl -fsS "http://127.0.0.1:7860/v1/conjunctions?limit=1" >/dev/null
+          test "$(docker inspect -f '{{.Config.User}}' perigee-api:ci)" = "perigee"
+      - name: Container log
+        if: always()
+        run: docker logs api || true
+
+  security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0 # the secret scan reads the whole history
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+      - name: Python dependency audit (API, jobs and ML, everything that runs)
+        run: |
+          pip install pip-audit==2.10.1
+          pip-audit -r requirements-api.txt -r requirements-jobs.txt -r requirements-ml.txt
+      - name: npm audit (production dependencies fail the build)
+        working-directory: web
+        run: npm audit --omit=dev --audit-level=low
+      - name: npm audit (development dependencies, reported for review; docs/security.md)
+        working-directory: web
+        run: |
+          npm audit --audit-level=low || echo "::warning::npm audit reports development-only advisories; see docs/security.md"
+      - name: Secret scan (gitleaks, full history)
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

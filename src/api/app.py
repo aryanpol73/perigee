@@ -37,6 +37,16 @@ from src.sim.breakup import Collision, as_catalog_objects, positions_at, simulat
 
 log = logging.getLogger("perigee.api")
 
+# Written into the image by the deploy job, so a smoke test can tell which code runs.
+BUILD_INFO = Path(__file__).resolve().parents[1] / "build_info.json"
+
+
+def code_commit(path: Path = BUILD_INFO) -> str | None:
+    try:
+        return str(json.loads(path.read_text())["commit"])
+    except (OSError, ValueError, KeyError):
+        return None
+
 MAX_LIMIT = 500
 SIMULATE_TIMEOUT_S = 15.0
 CACHE_ENTRIES = 4_096
@@ -152,6 +162,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
             traces_sample_rate=0.02,
         )
     limiter = RateLimiter(settings.api_rate_limit_per_min)
+    deployed_commit = code_commit()
     try:
         app.state.store = ResultsStore.load(results_dir)
     except NoResults as exc:
@@ -282,6 +293,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
             max_data_age_hours=settings.api_max_data_age_h if np.isfinite(settings.api_max_data_age_h) else None,
             snapshot_id=st.meta["snapshot_id"],
             model_version=st.meta["model_version"],
+            code_commit=deployed_commit,
         )
         return JSONResponse(body.model_dump(), status_code=200 if body.status == "ok" else 503)
 

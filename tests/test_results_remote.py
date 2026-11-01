@@ -62,9 +62,16 @@ def test_push_bundle_uploads_only_bundle_files_and_prunes(tmp_path, monkeypatch)
         def __init__(self, **kw):
             self.__dict__.update(kw)
 
+    class RepositoryNotFoundError(Exception):
+        pass
+
     class FakeApi:
         def __init__(self, token):
             calls["token"] = token
+
+        def repo_info(self, repo_id, **kw):
+            if not calls.get("exists"):
+                raise RepositoryNotFoundError(repo_id)
 
         def create_repo(self, repo_id, **kw):
             calls["create"] = kw
@@ -84,6 +91,12 @@ def test_push_bundle_uploads_only_bundle_files_and_prunes(tmp_path, monkeypatch)
     assert POINTER in added and not any("notes.txt" in a for a in added)
     assert all(a == POINTER or a.startswith(_fixture_run().name + "/") for a in added)
     assert len(deleted) == 2  # 8 old runs + the new one, keep 7
+
+    # An existing dataset is used as is (a scoped token may not create repositories).
+    calls.clear()
+    calls["exists"] = True
+    push_bundle("someone/perigee-results", "t0ken", results, keep=7)
+    assert "create" not in calls and calls["ops"]
 
 
 def test_push_bundle_refuses_the_raw_archive(tmp_path):

@@ -16,7 +16,11 @@ export type SimulateRequest = Schemas["SimulateRequest"];
 export type SimulateResponse = Schemas["SimulateResponse"];
 export type Health = Schemas["Health"];
 
-const BASE = import.meta.env.VITE_API_BASE ?? "";
+// The API's origin, set at build time (VITE_API_BASE); empty = same origin (the dev proxy).
+const BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
+
+/** Absolute URL of an API path, for the rare call that does not go through get(). */
+export const apiUrl = (path: string): string => `${BASE}${path}`;
 const cache = new Map<string, Promise<unknown>>();
 
 export class ApiError extends Error {

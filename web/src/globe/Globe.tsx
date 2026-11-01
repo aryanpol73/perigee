@@ -23,6 +23,7 @@ import {
 } from "../orbits";
 import { getState, prefersReducedMotion, setQuality, setState, subscribe, time, useStore, type Quality } from "../store";
 import { orbitClass } from "../uncertainty";
+import { FullscreenButton } from "./FullscreenButton";
 import { TimeBar, type ObjectClasses } from "./TimeBar";
 
 declare const CESIUM_BASE_URL: string;
@@ -51,6 +52,7 @@ interface Perf {
 
 export default function Globe({ meta }: { meta: Meta }) {
   const container = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState("Loading orbit data…");
   const simActive = useStore((s) => s.sim !== null);
   const [objects, setObjects] = useState<ObjectClasses | null>(null);
@@ -487,12 +489,13 @@ export default function Globe({ meta }: { meta: Meta }) {
   }, [meta.orbit_file_url]);
 
   return (
-    <div className="globe">
+    <div className="globe" ref={root}>
       <div ref={container} className="globe-canvas" />
       {status && <div className="globe-status" role="status">{status}</div>}
       {simActive && <div className="sim-label" role="note">Illustrative, simplified; not a prediction.</div>}
       <TimeBar snapshot={meta.snapshot_time} objects={objects} />
       <Legend provisional={!meta.history_complete} />
+      <FullscreenButton target={root} />
     </div>
   );
 }

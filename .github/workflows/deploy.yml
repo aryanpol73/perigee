@@ -1,0 +1,158 @@
+# Ships code after CI passes on main: the API to its Hugging Face Space (which
+# builds the Dockerfile) and the web app to Cloudflare Pages, then smoke-tests both.
+# Data ships separately (publish.yml).
+#
+# Rollback: run this workflow by hand with `ref` set to an earlier commit
+# (docs/runbook.md). Setup: docs/deployment.md.
+name: deploy
+
+on:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit or tag to deploy (rollback: an earlier one)"
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  REF: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event.workflow_run.head_sha }}
+
+jobs:
+  api:
+    # Never for runs started by forks; only after a green CI run on main (or by hand).
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: production
+    env:
+      # Writes the Space and nothing else; the raw archive's HF_TOKEN never reaches this job.
+      HF_TOKEN: ${{ secrets.HF_DEPLOY_TOKEN }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      PERIGEE_HF_SPACE: ${{ vars.PERIGEE_HF_SPACE }}
+      PERIGEE_RESULTS_REPO: ${{ vars.PERIGEE_RESULTS_REPO }}
+      PERIGEE_API_URL: ${{ vars.PERIGEE_API_URL }}
+      PERIGEE_WEB_URL: ${{ vars.PERIGEE_WEB_URL }}
+    steps:
+      - name: Check configuration
+        run: |
+          missing=0
+          for v in HF_TOKEN PERIGEE_HF_SPACE PERIGEE_RESULTS_REPO PERIGEE_API_URL PERIGEE_WEB_URL; do
+            if [ -z "${!v}" ]; then echo "::error::Missing $v (HF_TOKEN here is the HF_DEPLOY_TOKEN secret; see docs/deployment.md)"; missing=1; fi
+          done
+          exit $missing
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ env.REF }}
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - name: Install the Hub client
+        run: pip install -r requirements-jobs.txt
+      - name: Assemble the Space (code only) and push it
+        run: |
+          commit=$(git rev-parse HEAD)
+          mkdir -p space
+          cp -r deploy/space/README.md Dockerfile .dockerignore requirements-api.txt src space/
+          echo "{\"commit\": \"$commit\"}" > space/src/build_info.json
+          COMMIT="$commit" python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          space = os.environ["PERIGEE_HF_SPACE"]
+          # Configuration lives in GitHub; the Space is set from it on every deploy.
+          api.add_space_variable(space, "PERIGEE_RESULTS_REPO", os.environ["PERIGEE_RESULTS_REPO"])
+          api.add_space_variable(space, "PERIGEE_API_CORS_ORIGINS", os.environ["PERIGEE_WEB_URL"].rstrip("/"))
+          if os.environ.get("SENTRY_DSN"):
+              api.add_space_secret(space, "SENTRY_DSN", os.environ["SENTRY_DSN"])
+          info = api.upload_folder(
+              repo_id=space, repo_type="space", folder_path="space",
+              commit_message=f"Deploy {os.environ['COMMIT'][:7]} from GitHub",
+              delete_patterns=["src/**", "*.txt", "Dockerfile", ".dockerignore"],
+          )
+          print(f"Space commit {info.oid}")
+          EOF
+      - name: Wait for the new build to serve, then smoke test
+        run: |
+          want=$(git rev-parse HEAD)
+          for i in $(seq 1 60); do
+            body=$(curl -sS --max-time 30 "$PERIGEE_API_URL/v1/health" || true)
+            got=$(echo "$body" | python -c "import sys, json; print(json.load(sys.stdin).get('code_commit') or '')" 2>/dev/null || true)
+            [ "$got" = "$want" ] && break
+            # The very first deploy: the API runs but nothing is published yet (run publish next).
+            if echo "$body" | grep -q "No results published yet"; then
+              echo "::warning::The API is up but has no results yet. Run the publish workflow, then this one again (docs/deployment.md, first run)."
+              exit 0
+            fi
+            sleep 20
+          done
+          if [ "$got" != "$want" ]; then
+            echo "::error::The Space did not start serving $want within 20 minutes (serving: ${got:-nothing}). Check the Space's build log."
+            exit 1
+          fi
+          curl -fsS "$PERIGEE_API_URL/v1/meta" >/dev/null
+          curl -fsS "$PERIGEE_API_URL/v1/conjunctions?limit=1" >/dev/null
+          # CORS must allow the site and nothing else.
+          allow=$(curl -fsS -o /dev/null -D - -H "Origin: ${PERIGEE_WEB_URL%/}" "$PERIGEE_API_URL/v1/meta" | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin"{print $2}')
+          [ "$allow" = "${PERIGEE_WEB_URL%/}" ] || { echo "::error::CORS does not allow ${PERIGEE_WEB_URL%/} (got '$allow')"; exit 1; }
+          echo "API at $want answers."
+
+  web:
+    needs: api
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_PAGES_PROJECT: ${{ vars.CF_PAGES_PROJECT }}
+      VITE_API_BASE: ${{ vars.PERIGEE_API_URL }}
+      VITE_SENTRY_DSN: ${{ vars.SENTRY_DSN_WEB }}
+      PERIGEE_WEB_URL: ${{ vars.PERIGEE_WEB_URL }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Check configuration
+        working-directory: .
+        run: |
+          missing=0
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CF_PAGES_PROJECT VITE_API_BASE PERIGEE_WEB_URL; do
+            if [ -z "${!v}" ]; then echo "::error::Missing $v (see docs/deployment.md)"; missing=1; fi
+          done
+          exit $missing
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ env.REF }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Build (API address and security headers baked in)
+        run: |
+          npm ci
+          npm run build
+          node scripts/write-headers.mjs
+      - name: Publish to Cloudflare Pages
+        run: npx --yes wrangler@4.151.1 pages deploy dist --project-name "$CF_PAGES_PROJECT" --branch main --commit-hash "$(git rev-parse HEAD)"
+      - name: Smoke test the site
+        run: |
+          for i in $(seq 1 20); do
+            curl -fsS -o /dev/null "$PERIGEE_WEB_URL" && break
+            sleep 10
+          done
+          headers=$(curl -fsS -D - -o /dev/null "$PERIGEE_WEB_URL" | tr -d '\r')
+          echo "$headers" | grep -qi '^content-security-policy:' || { echo "::error::No content security policy on $PERIGEE_WEB_URL"; exit 1; }
+          curl -fsS -o /dev/null "${PERIGEE_WEB_URL%/}/cesium/Assets/approximateTerrainHeights.json"
+          echo "Site answers with its security headers."

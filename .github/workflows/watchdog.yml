@@ -1,0 +1,61 @@
+# Every 3 hours: fail loudly (GitHub emails on a failed scheduled run) if the site
+# or the API is down, the served results are stale, or a scheduled job has stopped
+# succeeding. Limits are the service objectives in docs/runbook.md.
+name: watchdog
+
+on:
+  schedule:
+    - cron: "23 */3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read # to read the last successful run of the other workflows
+
+concurrency:
+  group: watchdog
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PERIGEE_API_URL: ${{ vars.PERIGEE_API_URL }}
+      PERIGEE_WEB_URL: ${{ vars.PERIGEE_WEB_URL }}
+      MAX_RESULTS_AGE_H: "36" # conjunction run no more than 36 h old
+      MAX_SNAPSHOT_JOB_GAP_H: "12" # the hourly data job (GitHub delivers its cron every 4-8 h in practice)
+      MAX_PUBLISH_GAP_H: "30" # the daily publish job
+    steps:
+      - name: Site answers
+        run: curl -fsS --retry 3 --retry-delay 20 -o /dev/null "$PERIGEE_WEB_URL"
+
+      - name: API answers with fresh results
+        run: |
+          # A sleeping Space needs up to a minute to wake.
+          body=$(curl -sS --retry 5 --retry-delay 20 --retry-all-errors --max-time 90 "$PERIGEE_API_URL/v1/health")
+          echo "$body"
+          python3 - "$body" <<'EOF'
+          import json, os, sys
+          h = json.loads(sys.argv[1])
+          age, limit = h["data_age_hours"], float(os.environ["MAX_RESULTS_AGE_H"])
+          if age > limit:
+              print(f"::error::Served results are {age:.1f} h old (limit {limit:g} h): the publish job is not landing.")
+              sys.exit(1)
+          print(f"Results {h['snapshot_id']} are {age:.1f} h old; code {h.get('code_commit')}")
+          EOF
+
+      - name: Scheduled jobs are still succeeding
+        run: |
+          check() {
+            last=$(gh run list -R "$GITHUB_REPOSITORY" -w "$1" -s success -L 1 --json createdAt -q '.[0].createdAt')
+            if [ -z "$last" ]; then echo "::error::$1 has never succeeded"; return 1; fi
+            gap=$(( ($(date -u +%s) - $(date -u -d "$last" +%s)) / 3600 ))
+            if [ "$gap" -gt "$2" ]; then echo "::error::$1 last succeeded $gap h ago (limit $2 h). Is it disabled or failing?"; return 1; fi
+            echo "$1 last succeeded $gap h ago"
+          }
+          ok=0
+          check data-refresh.yml "$MAX_SNAPSHOT_JOB_GAP_H" || ok=1
+          check publish.yml "$MAX_PUBLISH_GAP_H" || ok=1
+          exit $ok

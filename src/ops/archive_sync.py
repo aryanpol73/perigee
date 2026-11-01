@@ -8,11 +8,16 @@ produced:
         source, so intervals are honoured and validation has a baseline
   push: every raw and quarantined snapshot not yet in the dataset, plus state/
 
+Trained models live here too (models/<version>/), because they are derived from
+the Space-Track history and stay private like it: `push-models` uploads local model
+versions once (after training on a laptop), and `pull --models` restores the newest
+for the daily publish job.
+
 The dataset mirrors the local layout under data/ (raw/, quarantine/, state/).
 Raw snapshots are immutable, so push only ever adds files. Processed tables are
 not stored: they are rebuilt from raw.
 
-Usage: python -m src.ops.archive_sync pull|push
+Usage: python -m src.ops.archive_sync pull [--history-days N] [--models] | push | push-models
 Env:   HF_TOKEN, PERIGEE_HF_DATASET (owner/name), PERIGEE_DATA_DIR
 """
 
@@ -34,6 +39,7 @@ log = logging.getLogger("perigee.ops.archive_sync")
 
 ARCHIVE_DIRS = ("raw", "quarantine")
 STATE_DIR = "state"
+MODELS_DIR = "models"
 
 
 class Backend(Protocol):
@@ -148,12 +154,13 @@ def _snapshot_time(snapshot: str) -> datetime | None:
         return None
 
 
-def pull(backend: Backend, data_dir: Path, history_days: float = 0.0) -> dict[str, str]:
+def pull(backend: Backend, data_dir: Path, history_days: float = 0.0, models: bool = False) -> dict[str, str]:
     """Restore state/ and the newest raw snapshot of each source. Returns {source: snapshot}.
 
     history_days > 0 also restores every GP snapshot from that many days before
     the newest one: publishing needs a month of element sets for the model's
-    update-history features, which the hourly job itself does not.
+    update-history features, which the hourly job itself does not. models=True also
+    restores the newest model version.
     """
     remote = backend.list_files()
 
@@ -181,8 +188,38 @@ def pull(backend: Backend, data_dir: Path, history_days: float = 0.0) -> dict[st
             if t is not None and t >= since and _download_snapshot(backend, remote, data_dir, "gp", snapshot):
                 history += 1
 
-    log.info("pulled archive state", extra={"latest_snapshots": latest, "history_snapshots": history})
+    model = pull_newest_model(backend, remote, data_dir) if models else None
+
+    log.info("pulled archive state", extra={"latest_snapshots": latest, "history_snapshots": history, "model": model})
     return latest
+
+
+def pull_newest_model(backend: Backend, remote: list[str], data_dir: Path) -> str | None:
+    """Download the newest models/<version>/ (versions sort by date). Returns the version."""
+    versions = sorted({parts[1] for p in remote if len(parts := PurePosixPath(p).parts) == 3 and parts[0] == MODELS_DIR})
+    if not versions:
+        return None
+    version = versions[-1]
+    prefix = f"{MODELS_DIR}/{version}/"
+    for path in remote:
+        if path.startswith(prefix):
+            backend.download(path, data_dir / path)
+    return version
+
+
+def push_models(backend: Backend, data_dir: Path) -> list[str]:
+    """Upload local model files not yet in the dataset. Returns uploaded paths."""
+    root = data_dir / MODELS_DIR
+    remote = set(backend.list_files())
+    files = {
+        rel: local
+        for local in sorted(root.glob("*/*"))
+        if local.is_file() and not local.name.startswith(".") and (rel := local.relative_to(data_dir).as_posix()) not in remote
+    }
+    if files:
+        backend.upload(files, f"Models {', '.join(sorted({PurePosixPath(r).parts[1] for r in files}))}")
+    log.info("pushed models", extra={"files": len(files)})
+    return sorted(files)
 
 
 def push(backend: Backend, data_dir: Path, message: str) -> list[str]:
@@ -224,18 +261,22 @@ def _backend_from_env() -> Backend:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="archive_sync")
-    parser.add_argument("command", choices=["pull", "push"])
+    parser.add_argument("command", choices=["pull", "push", "push-models"])
     parser.add_argument(
         "--history-days", type=float, default=0.0, help="pull: also restore GP snapshots from this many days back"
     )
+    parser.add_argument("--models", action="store_true", help="pull: also restore the newest trained model")
     args = parser.parse_args(argv)
 
     run_id = setup_logging()
     settings = Settings.from_env()
     backend = _backend_from_env()
     if args.command == "pull":
-        latest = pull(backend, settings.data_dir, args.history_days)
+        latest = pull(backend, settings.data_dir, args.history_days, args.models)
         print(f"Pulled latest snapshots: {latest or 'none yet'}")
+    elif args.command == "push-models":
+        uploaded = push_models(backend, settings.data_dir)
+        print(f"Pushed {len(uploaded)} model file(s)")
     else:
         uploaded = push(backend, settings.data_dir, f"Data job run {run_id}")
         print(f"Pushed {len(uploaded)} file(s)")

@@ -9,6 +9,10 @@ private archive dataset (src/ops/archive_sync.py).
                 in a single commit; prune old runs.
 
 This module imports nothing heavy, so the API image stays small.
+
+Usage (publish job): python -m src.results.remote push
+Env: HF_TOKEN, PERIGEE_RESULTS_REPO (public results dataset), PERIGEE_HF_DATASET
+     (the private archive, only to refuse uploading results there), PERIGEE_RESULTS_DIR
 """
 
 from __future__ import annotations
@@ -17,6 +21,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -87,7 +92,13 @@ def push_bundle(repo_id: str, token: str, results_dir: Path, keep: int = 7, arch
     meta = json.loads((bundle / "meta.json").read_text())
     files = bundle_files(meta)
     api = HfApi(token=token)
-    api.create_repo(repo_id, repo_type="dataset", exist_ok=True, private=False)
+    # Look first: a token scoped to this dataset may not be allowed to call create_repo.
+    try:
+        api.repo_info(repo_id, repo_type="dataset")
+    except Exception as exc:
+        if type(exc).__name__ != "RepositoryNotFoundError":
+            raise
+        api.create_repo(repo_id, repo_type="dataset", private=False)
     existing = api.list_repo_files(repo_id, repo_type="dataset")
     runs = sorted({f.split("/")[0] for f in existing if "/" in f})
     stale = [r for r in runs if r != path][: max(0, len(runs) - keep + 1)] if len(runs) >= keep else []
@@ -97,3 +108,29 @@ def push_bundle(repo_id: str, token: str, results_dir: Path, keep: int = 7, arch
     api.create_commit(repo_id, operations=ops, commit_message=f"Results {meta['run_id']}", repo_type="dataset")
     log.info("results pushed", extra={"repo": repo_id, "run_id": meta["run_id"], "pruned": stale})
     return meta["run_id"]
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    from src.config import Settings
+    from src.log import setup_logging
+
+    parser = argparse.ArgumentParser(prog="python -m src.results.remote")
+    parser.add_argument("command", choices=["push"])
+    parser.add_argument("--keep", type=int, default=7, help="published runs to keep")
+    args = parser.parse_args(argv)
+    setup_logging()
+    settings = Settings.from_env()
+    token = os.environ.get("HF_TOKEN", "").strip()
+    if not settings.results_repo or not token:
+        raise SystemExit("Set HF_TOKEN (GitHub secret) and PERIGEE_RESULTS_REPO (GitHub variable, owner/name).")
+    run_id = push_bundle(
+        settings.results_repo, token, settings.results_dir, keep=args.keep, archive_repo=os.environ.get("PERIGEE_HF_DATASET")
+    )
+    print(f"Published results {run_id} to {settings.results_repo}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

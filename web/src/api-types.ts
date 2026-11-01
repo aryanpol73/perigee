@@ -280,6 +280,11 @@ export interface components {
         };
         /** Health */
         Health: {
+            /**
+             * Code Commit
+             * @description Commit of the deployed API code; null when run from a checkout
+             */
+            code_commit?: string | null;
             /** Data Age Hours */
             data_age_hours: number;
             /**

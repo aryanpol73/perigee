@@ -1,5 +1,9 @@
 # Perigee
 
+[![ci](https://github.com/aryanpol73/perigee/actions/workflows/ci.yml/badge.svg)](https://github.com/aryanpol73/perigee/actions/workflows/ci.yml)
+[![publish](https://github.com/aryanpol73/perigee/actions/workflows/publish.yml/badge.svg)](https://github.com/aryanpol73/perigee/actions/workflows/publish.yml)
+[![data-refresh](https://github.com/aryanpol73/perigee/actions/workflows/data-refresh.yml/badge.svg)](https://github.com/aryanpol73/perigee/actions/workflows/data-refresh.yml)
+
 Orbital debris risk tracker: ingests public orbit data for about 30,000 tracked objects, screens them for
 close approaches, ranks flagged approaches with an ML risk index, and scores each altitude band for
 crowding and collision risk.
@@ -20,9 +24,11 @@ Data from CelesTrak and Space-Track.org (USSPACECOM). Space-Track raw data is ne
 | Shell risk index | Peaks at the constellation shells, ~775-975 km and ~1,200-1,400 km; stable month to month | [docs/risk-validation.md](docs/risk-validation.md) |
 | Breakup simulator | NASA breakup model; a collision at 800 km spreads from a point to a ring to a shell | [docs/risk-validation.md](docs/risk-validation.md) |
 | API | Read-only FastAPI over a published results bundle; reads p95 71 ms with 20 concurrent clients and simulator load ([details](docs/api-performance.md)) | `/docs` when running; [ADR 0002](docs/decisions/0002-api-results-bundle-and-simulator.md) |
-| Web app | React + CesiumJS globe (satellite.js in a Web Worker), close approaches, risk by altitude, simulator, method and limits | `web/` |
+| Web app | React + CesiumJS globe (satellite.js in Web Workers), live and forecast clock with measured position uncertainty, close approaches, risk by altitude, simulator, method and limits | `web/`; [docs/forecast-uncertainty.md](docs/forecast-uncertainty.md) |
+| Deployment | CI on every push; API on a Hugging Face Space and the site on Cloudflare Pages after CI passes on main; daily results publish; watchdog | [docs/deployment.md](docs/deployment.md), [runbook](docs/runbook.md), [threat model](docs/threat-model.md), [ADR 0003](docs/decisions/0003-deployment.md) |
 
-Deployment comes next.
+The `publish` badge shows the last daily results refresh. Rollback: redeploy an earlier
+commit with *Actions → deploy → Run workflow* ([runbook](docs/runbook.md#rollback)).
 
 ## Run it locally
 

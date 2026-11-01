@@ -14,3 +14,6 @@ web/dist/
 web/test-results/
 web/playwright-report/
 .coverage
+
+# Written by the deploy job into the API image only.
+src/build_info.json

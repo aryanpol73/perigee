@@ -40,6 +40,7 @@ class Health(BaseModel):
     max_data_age_hours: float | None = Field(description="Age that makes the data stale; null = no limit (fixture data)")
     snapshot_id: str
     model_version: str | None
+    code_commit: str | None = Field(None, description="Commit of the deployed API code; null when run from a checkout")
 
 
 class Meta(BaseModel):
