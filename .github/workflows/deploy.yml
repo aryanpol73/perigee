@@ -1,5 +1,5 @@
-# Ships code after CI passes on main: the API to its Hugging Face Space (which
-# builds the Dockerfile) and the web app to Cloudflare Pages, then smoke-tests both.
+# Ships code after CI passes on main: the API to Render (which builds the
+# Dockerfile, render.yaml) and the web app to Cloudflare Pages, then smoke-tests both.
 # Data ships separately (publish.yml).
 #
 # Rollback: run this workflow by hand with `ref` set to an earlier commit
@@ -36,58 +36,37 @@ jobs:
     timeout-minutes: 30
     environment: production
     env:
-      # Writes the Space and nothing else; the raw archive's HF_TOKEN never reaches this job.
-      HF_TOKEN: ${{ secrets.HF_DEPLOY_TOKEN }}
-      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-      PERIGEE_HF_SPACE: ${{ vars.PERIGEE_HF_SPACE }}
-      PERIGEE_RESULTS_REPO: ${{ vars.PERIGEE_RESULTS_REPO }}
+      # Can only start a deploy of this one service; no Hugging Face token reaches this job.
+      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
       PERIGEE_API_URL: ${{ vars.PERIGEE_API_URL }}
       PERIGEE_WEB_URL: ${{ vars.PERIGEE_WEB_URL }}
     steps:
       - name: Check configuration
         run: |
           missing=0
-          for v in HF_TOKEN PERIGEE_HF_SPACE PERIGEE_RESULTS_REPO PERIGEE_API_URL PERIGEE_WEB_URL; do
-            if [ -z "${!v}" ]; then echo "::error::Missing $v (HF_TOKEN here is the HF_DEPLOY_TOKEN secret; see docs/deployment.md)"; missing=1; fi
+          for v in RENDER_DEPLOY_HOOK PERIGEE_API_URL PERIGEE_WEB_URL; do
+            if [ -z "${!v}" ]; then echo "::error::Missing $v (see docs/deployment.md)"; missing=1; fi
           done
           exit $missing
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ env.REF }}
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
-        with:
-          python-version: "3.12"
-      - name: Install the Hub client
-        run: pip install -r requirements-jobs.txt
-      - name: Assemble the Space (code only) and push it
+      - name: Ask Render to build and deploy exactly this commit
         run: |
           commit=$(git rev-parse HEAD)
-          mkdir -p space
-          cp -r deploy/space/README.md Dockerfile .dockerignore requirements-api.txt src space/
-          echo "{\"commit\": \"$commit\"}" > space/src/build_info.json
-          COMMIT="$commit" python - <<'EOF'
-          import os
-          from huggingface_hub import HfApi
-          api = HfApi(token=os.environ["HF_TOKEN"])
-          space = os.environ["PERIGEE_HF_SPACE"]
-          # Configuration lives in GitHub; the Space is set from it on every deploy.
-          api.add_space_variable(space, "PERIGEE_RESULTS_REPO", os.environ["PERIGEE_RESULTS_REPO"])
-          api.add_space_variable(space, "PERIGEE_API_CORS_ORIGINS", os.environ["PERIGEE_WEB_URL"].rstrip("/"))
-          if os.environ.get("SENTRY_DSN"):
-              api.add_space_secret(space, "SENTRY_DSN", os.environ["SENTRY_DSN"])
-          info = api.upload_folder(
-              repo_id=space, repo_type="space", folder_path="space",
-              commit_message=f"Deploy {os.environ['COMMIT'][:7]} from GitHub",
-              delete_patterns=["src/**", "*.txt", "Dockerfile", ".dockerignore"],
-          )
-          print(f"Space commit {info.oid}")
-          EOF
+          # The hook URL is a secret; never echo it.
+          code=$(curl -sS -o /tmp/hook.json -w '%{http_code}' -X POST "${RENDER_DEPLOY_HOOK}&ref=${commit}")
+          if [ "$code" -lt 200 ] || [ "$code" -ge 300 ]; then
+            echo "::error::Render refused the deploy (HTTP $code). Check the RENDER_DEPLOY_HOOK secret."
+            exit 1
+          fi
+          echo "Render is deploying ${commit:0:7}"
       - name: Wait for the new build to serve, then smoke test
         run: |
           want=$(git rev-parse HEAD)
           for i in $(seq 1 60); do
-            body=$(curl -sS --max-time 30 "$PERIGEE_API_URL/v1/health" || true)
-            got=$(echo "$body" | python -c "import sys, json; print(json.load(sys.stdin).get('code_commit') or '')" 2>/dev/null || true)
+            body=$(curl -sS --max-time 90 "$PERIGEE_API_URL/v1/health" || true)
+            got=$(echo "$body" | python3 -c "import sys, json; print(json.load(sys.stdin).get('code_commit') or '')" 2>/dev/null || true)
             [ "$got" = "$want" ] && break
             # The very first deploy: the API runs but nothing is published yet (run publish next).
             if echo "$body" | grep -q "No results published yet"; then
@@ -97,7 +76,7 @@ jobs:
             sleep 20
           done
           if [ "$got" != "$want" ]; then
-            echo "::error::The Space did not start serving $want within 20 minutes (serving: ${got:-nothing}). Check the Space's build log."
+            echo "::error::Render did not start serving $want within 20 minutes (serving: ${got:-nothing}). Check the service's Events and Logs on Render."
             exit 1
           fi
           curl -fsS "$PERIGEE_API_URL/v1/meta" >/dev/null

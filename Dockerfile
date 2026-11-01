@@ -1,7 +1,7 @@
-# The read-only API (Hugging Face Spaces, Docker). The image holds code only: at
-# startup the API downloads the newest results bundle from the public results
-# dataset (PERIGEE_RESULTS_REPO), so a data refresh is a restart, not a rebuild
-# (docs/decisions/0003-results-delivery.md).
+# The read-only API (Render free web service, render.yaml). The image holds code
+# only: at startup the API downloads the newest results bundle from the public
+# results dataset (PERIGEE_RESULTS_REPO), so a data refresh is a redeploy of the
+# same code, not a code change (docs/decisions/0003-deployment.md).
 #
 # Build:  docker build -t perigee-api .
 # Run:    docker run -p 7860:7860 -e PERIGEE_RESULTS_REPO=owner/perigee-results perigee-api
@@ -14,7 +14,7 @@ COPY requirements-api.txt /tmp/requirements-api.txt
 RUN python -m venv /opt/venv && /opt/venv/bin/pip install --only-binary=:all: -r /tmp/requirements-api.txt
 
 FROM python:3.12-slim-bookworm@sha256:e697c81897302a4c4333bade000d98038fbb21eb064f8ee1fd42d02ebcd9d337
-# Spaces run containers as uid 1000.
+# A fixed non-root user (uid 1000).
 RUN useradd --create-home --uid 1000 perigee
 COPY --from=build /opt/venv /opt/venv
 WORKDIR /app

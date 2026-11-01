@@ -1,11 +1,11 @@
 # Daily compute: rebuild the last month of snapshots from the private archive,
 # screen 7 days ahead, score, compute the shell index, publish the results bundle
-# to the public results dataset and restart the API so it loads it. Data only: no
-# code is deployed here (that is deploy.yml).
+# to the public results dataset and redeploy the API (same code) so it downloads it.
+# No code changes ship here (that is deploy.yml).
 #
 # Setup: docs/deployment.md. Secrets HF_TOKEN (reads the private archive) and
-# HF_DEPLOY_TOKEN (writes the public results dataset, restarts the Space); variables
-# PERIGEE_HF_DATASET, PERIGEE_RESULTS_REPO, PERIGEE_HF_SPACE, PERIGEE_API_URL.
+# HF_DEPLOY_TOKEN (writes the public results dataset only), RENDER_DEPLOY_HOOK;
+# variables PERIGEE_HF_DATASET, PERIGEE_RESULTS_REPO, PERIGEE_API_URL.
 name: publish
 
 on:
@@ -29,14 +29,14 @@ jobs:
       HF_DEPLOY_TOKEN: ${{ secrets.HF_DEPLOY_TOKEN }}
       PERIGEE_HF_DATASET: ${{ vars.PERIGEE_HF_DATASET }}
       PERIGEE_RESULTS_REPO: ${{ vars.PERIGEE_RESULTS_REPO }}
-      PERIGEE_HF_SPACE: ${{ vars.PERIGEE_HF_SPACE }}
+      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
       PERIGEE_API_URL: ${{ vars.PERIGEE_API_URL }}
       PERIGEE_DATA_DIR: data
     steps:
       - name: Check configuration
         run: |
           missing=0
-          for v in HF_TOKEN HF_DEPLOY_TOKEN PERIGEE_HF_DATASET PERIGEE_RESULTS_REPO PERIGEE_HF_SPACE PERIGEE_API_URL; do
+          for v in HF_TOKEN HF_DEPLOY_TOKEN PERIGEE_HF_DATASET PERIGEE_RESULTS_REPO RENDER_DEPLOY_HOOK PERIGEE_API_URL; do
             if [ -z "${!v}" ]; then echo "::error::Missing $v (see docs/deployment.md)"; missing=1; fi
           done
           exit $missing
@@ -68,23 +68,23 @@ jobs:
       - name: Upload the bundle to the public results dataset
         run: HF_TOKEN="$HF_DEPLOY_TOKEN" python -m src.results.remote push
 
-      - name: Restart the API so it downloads the new bundle
+      - name: Redeploy the API (same code) so it downloads the new bundle
         run: |
-          python - <<'EOF'
-          import os
-          from huggingface_hub import HfApi
-          HfApi(token=os.environ["HF_DEPLOY_TOKEN"]).restart_space(os.environ["PERIGEE_HF_SPACE"])
-          EOF
+          # The commit the API runs now, so a data refresh never ships untested code.
+          running=$(curl -sS --max-time 90 "$PERIGEE_API_URL/v1/health" | python -c "import sys, json; print(json.load(sys.stdin).get('code_commit') or '')" 2>/dev/null || true)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${RENDER_DEPLOY_HOOK}${running:+&ref=$running}")
+          [ "$code" -ge 200 ] && [ "$code" -lt 300 ] || { echo "::error::Render refused the deploy (HTTP $code)"; exit 1; }
+          echo "Redeploying ${running:-the branch head} to load the new results"
 
       - name: Check the API serves the new run
         run: |
           want=$(python -c "import json; print(json.load(open('data/results/LATEST.json'))['run_id'])")
-          for i in $(seq 1 40); do
-            got=$(curl -fsS "$PERIGEE_API_URL/v1/health" | python -c "import sys, json; print(json.load(sys.stdin)['snapshot_id'])" 2>/dev/null || true)
+          for i in $(seq 1 60); do
+            got=$(curl -fsS --max-time 90 "$PERIGEE_API_URL/v1/health" | python -c "import sys, json; print(json.load(sys.stdin)['snapshot_id'])" 2>/dev/null || true)
             [ "$got" = "$want" ] && { echo "API serves $got"; exit 0; }
             sleep 15
           done
-          echo "::error::The API did not start serving run $want within 10 minutes (last answer: ${got:-none})"
+          echo "::error::The API did not start serving run $want within 15 minutes (last answer: ${got:-none})"
           exit 1
 
       - name: Summary

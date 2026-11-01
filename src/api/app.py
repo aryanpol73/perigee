@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import time
 import uuid
 from collections import OrderedDict, defaultdict, deque
@@ -37,11 +38,16 @@ from src.sim.breakup import Collision, as_catalog_objects, positions_at, simulat
 
 log = logging.getLogger("perigee.api")
 
-# Written into the image by the deploy job, so a smoke test can tell which code runs.
+# Which code is running, so a deploy's smoke test can tell the new build from the old:
+# Render sets RENDER_GIT_COMMIT; other hosts can set PERIGEE_CODE_COMMIT or ship a
+# build_info.json next to src/.
 BUILD_INFO = Path(__file__).resolve().parents[1] / "build_info.json"
 
 
 def code_commit(path: Path = BUILD_INFO) -> str | None:
+    for var in ("RENDER_GIT_COMMIT", "PERIGEE_CODE_COMMIT"):
+        if value := os.environ.get(var, "").strip():
+            return value
     try:
         return str(json.loads(path.read_text())["commit"])
     except (OSError, ValueError, KeyError):

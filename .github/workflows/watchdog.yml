@@ -33,7 +33,7 @@ jobs:
 
       - name: API answers with fresh results
         run: |
-          # A sleeping Space needs up to a minute to wake.
+          # A sleeping free Render service needs about a minute to wake.
           body=$(curl -sS --retry 5 --retry-delay 20 --retry-all-errors --max-time 90 "$PERIGEE_API_URL/v1/health")
           echo "$body"
           python3 - "$body" <<'EOF'

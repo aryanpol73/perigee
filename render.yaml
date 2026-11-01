@@ -1,0 +1,23 @@
+# Render Blueprint for the API (docs/deployment.md): Render builds the Dockerfile.
+# Deploys never start on their own: .github/workflows/deploy.yml calls the deploy
+# hook with the exact commit that passed CI, and publish.yml calls it after each
+# daily results upload so the API downloads the new bundle.
+services:
+  - type: web
+    name: perigee-api
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    dockerfilePath: ./Dockerfile
+    autoDeployTrigger: "off"
+    # Always 200 once the app is up (/v1/health is 503 while data is stale or missing,
+    # which must not make Render refuse a deploy).
+    healthCheckPath: /openapi.json
+    envVars:
+      - key: PERIGEE_RESULTS_REPO # owner/perigee-results (public Hugging Face dataset)
+        sync: false
+      - key: PERIGEE_API_CORS_ORIGINS # the site's origin, e.g. https://perigee.pages.dev
+        sync: false
+      - key: SENTRY_DSN # optional
+        sync: false

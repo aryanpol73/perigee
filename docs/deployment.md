@@ -1,123 +1,140 @@
 # Deploying Perigee
 
-Four workflows run everything once the setup below is done:
-
 | Workflow | When | What |
 |---|---|---|
 | `ci.yml` | every push and pull request | lint, types, tests (coverage gate 80%), web build and browser tests, the API image built and started, dependency audits, secret scan |
-| `deploy.yml` | after `ci` passes on main (or by hand, for rollback) | API code to the Hugging Face Space, web app to Cloudflare Pages, smoke tests |
-| `data-refresh.yml` | hourly | CelesTrak snapshots into the private archive (docs/data-job.md) |
-| `publish.yml` | daily 04:41 UTC | rebuild, screen, score, publish results, restart the API |
+| `deploy.yml` | after `ci` passes on main (or by hand, for rollback) | API to Render (deploy hook, exact commit), web app to Cloudflare Pages, smoke tests |
+| `data-refresh.yml` | hourly (GitHub runs it every 4-8 h) | CelesTrak snapshots into the private archive (docs/data-job.md) |
+| `publish.yml` | daily 04:41 UTC | rebuild, screen, score, results to the public dataset, redeploy the API to load them |
 | `watchdog.yml` | every 3 h | site and API up, results under 36 h old, scheduled jobs still succeeding |
 
-Why it is built this way: docs/decisions/0003-deployment.md. When something
-breaks: docs/runbook.md.
+Where things run: the API is a free Render web service built from the `Dockerfile`
+(`render.yaml`); the site is on Cloudflare Pages; results are a public Hugging Face
+dataset; raw data stays in the private one. Why: docs/decisions/0003-deployment.md.
+When something breaks: docs/runbook.md.
 
 ## One-time setup
 
 Never paste a token into a chat, an issue or a committed file. Tokens go only into
-GitHub's secret store (and, for local one-off commands, a hidden prompt in your shell).
+GitHub's (or Render's) secret settings. Replace `yourname` below with your Hugging
+Face username.
 
-### 1. Hugging Face
+### A. Hugging Face: results dataset and its token
 
-The hourly data job (docs/data-job.md) already uses a **private** dataset (e.g.
-`perigee-snapshots`) and a token `HF_TOKEN` that can write only that dataset. Add:
+The hourly data job (docs/data-job.md) already has a **private** dataset (e.g.
+`yourname/perigee-snapshots`) and the secret `HF_TOKEN` that can write only it.
 
-1. **A public dataset for results**: <https://huggingface.co/new-dataset>, name
-   `perigee-results`, **Public**. Only derived results are ever uploaded to it.
-2. **A Docker Space for the API**: <https://huggingface.co/new-space>, name
-   `perigee-api`, SDK **Docker**, template *Blank*, hardware *CPU basic (free)*.
-   Its URL is `https://<user>-perigee-api.hf.space`.
-3. **A second fine-grained token** (`HF_DEPLOY_TOKEN`):
-   <https://huggingface.co/settings/tokens>, with **write** access to exactly the
-   `perigee-results` dataset and the `perigee-api` Space, nothing else.
-4. **Upload the trained model to the private archive** (once, from your machine;
-   the daily job pulls it from there). In PowerShell from the project folder:
+1. **Results dataset**: <https://huggingface.co/new-dataset>, name `perigee-results`,
+   **Public**, *Create dataset*. Leave it empty; `publish` fills it with derived
+   results only.
+2. **Deploy token**: <https://huggingface.co/settings/tokens> → *Create new token* →
+   *Fine-grained*, name `perigee-deploy`. Under *Repositories permissions* add
+   `yourname/perigee-results` and tick **Write**; nothing else. Copy it (shown once).
+3. **Upload the trained model to the private dataset** (once, from your machine; the
+   daily job pulls it from there). PowerShell, in the project folder, one line at a time:
 
    ```powershell
-   $s = Read-Host -AsSecureString "HF token for the PRIVATE archive"
-   $env:HF_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR(
-       [Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))
-   $env:PERIGEE_HF_DATASET = "<user>/perigee-snapshots"
+   $s = Read-Host -AsSecureString "HF token for the PRIVATE dataset"
+   $env:HF_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s))
+   $env:PERIGEE_HF_DATASET = "yourname/perigee-snapshots"
    .\.venv\Scripts\python.exe -m src.ops.archive_sync push-models
    ```
 
-### 2. Cloudflare Pages
+   It ends with "Pushed N model file(s)".
 
-1. <https://dash.cloudflare.com> → *Workers & Pages* → *Create* → *Pages* →
-   *Upload assets* (Direct Upload, not Git), project name `perigee`. Upload any
-   placeholder file once; the workflow publishes the real site. The URL is
-   `https://perigee.pages.dev`.
-2. An **API token**: *My Profile* → *API Tokens* → *Create token* → template
-   *Edit Cloudflare Workers*, or a custom token with **Account → Cloudflare Pages →
-   Edit** only.
-3. Your **account ID**: shown on the *Workers & Pages* overview page.
+### B. Render: the API
 
-### 3. Sentry (optional, free tier)
+1. Sign up at <https://render.com> (GitHub sign-in is easiest; no card is needed for
+   the free plan). Allow Render to read the `perigee` repository when asked.
+2. *New +* → **Blueprint** → pick the `perigee` repository, branch `main`. Render
+   reads `render.yaml` and shows one free web service, `perigee-api`.
+3. It asks for three values:
+   - `PERIGEE_RESULTS_REPO` = `yourname/perigee-results`
+   - `PERIGEE_API_CORS_ORIGINS` = your site's address from step C1, e.g.
+     `https://perigee.pages.dev` (no trailing slash)
+   - `SENTRY_DSN` = leave empty (optional)
 
-Create two projects at <https://sentry.io>: *Python (FastAPI)* for the API and
-*Browser JavaScript* for the site. Copy each project's DSN. A DSN only allows
-sending events, so it is not a real secret, but keep it out of the repository.
+   Click *Apply*. The first build takes a few minutes; until `publish` has run, the
+   API answers "No results published yet", which is expected.
+4. The service's address is shown at the top of its page, e.g.
+   `https://perigee-api.onrender.com` (yours may have a suffix). This is
+   `PERIGEE_API_URL`.
+5. **Deploy hook**: service → *Settings* → *Deploy Hook* → copy the URL. It is a
+   secret: anyone with it can trigger a deploy.
 
-### 4. GitHub: secrets and variables
+### C. Cloudflare Pages: the site
 
-Repository *Settings → Secrets and variables → Actions*.
+1. <https://dash.cloudflare.com> → *Workers & Pages* → *Create* → *Pages* → **Use
+   direct upload** (not Git). Project name `perigee`; upload any small file once.
+   The address is `https://perigee.pages.dev` (if the name is taken, use the one
+   Cloudflare gives you everywhere below, and in Render's `PERIGEE_API_CORS_ORIGINS`).
+2. **API token**: *My Profile* → *API Tokens* → *Create Token* → *Create Custom
+   Token*: permission **Account · Cloudflare Pages · Edit**, your account. Copy it.
+3. **Account ID**: on the *Workers & Pages* overview page, right-hand side.
 
-**Secrets**
+### D. GitHub: secrets and variables
+
+Repository → *Settings* → *Secrets and variables* → *Actions*.
+
+**Secrets** tab, *New repository secret*:
 
 | Name | Value |
 |---|---|
-| `HF_TOKEN` | already set for the data job: writes the private archive only |
-| `HF_DEPLOY_TOKEN` | the token from step 1.3 |
-| `CLOUDFLARE_API_TOKEN` | the token from step 2.2 |
-| `CLOUDFLARE_ACCOUNT_ID` | from step 2.3 |
-| `SENTRY_DSN` | optional: the API project's DSN |
+| `HF_TOKEN` | already there (private archive only) |
+| `HF_DEPLOY_TOKEN` | token from A2 |
+| `RENDER_DEPLOY_HOOK` | URL from B5 |
+| `CLOUDFLARE_API_TOKEN` | token from C2 |
+| `CLOUDFLARE_ACCOUNT_ID` | ID from C3 |
+| `SENTRY_DSN` | optional, leave out |
 
-**Variables**
+**Variables** tab, *New repository variable*:
 
-| Name | Example |
+| Name | Value |
 |---|---|
-| `PERIGEE_HF_DATASET` | `<user>/perigee-snapshots` (already set) |
-| `PERIGEE_RESULTS_REPO` | `<user>/perigee-results` |
-| `PERIGEE_HF_SPACE` | `<user>/perigee-api` |
-| `PERIGEE_API_URL` | `https://<user>-perigee-api.hf.space` |
-| `PERIGEE_WEB_URL` | `https://perigee.pages.dev` |
+| `PERIGEE_HF_DATASET` | already there (`yourname/perigee-snapshots`) |
+| `PERIGEE_RESULTS_REPO` | `yourname/perigee-results` |
+| `PERIGEE_API_URL` | from B4, e.g. `https://perigee-api.onrender.com` |
+| `PERIGEE_WEB_URL` | from C1, e.g. `https://perigee.pages.dev` |
 | `CF_PAGES_PROJECT` | `perigee` |
-| `SENTRY_DSN_WEB` | optional: the browser project's DSN |
+| `SENTRY_DSN_WEB` | optional, leave out |
 
-Then *Settings → Environments → New environment* `production` (the deploy jobs
-use it). Optionally add yourself as a required reviewer there to approve each deploy.
+No trailing slashes, no spaces.
 
-### 5. Protect main
+Then *Settings* → *Environments* → *New environment* → `production` → *Configure
+environment* (nothing else needed; add yourself as a required reviewer if you want
+to approve each deploy).
 
-*Settings → Branches → Add branch ruleset* for `main`: require a pull request,
-require the status checks `python`, `web`, `docker` and `security` to pass, block
+### E. Protect main
+
+*Settings* → *Rules* → *Rulesets* → *New branch ruleset* for `main`: require a pull
+request, require the status checks `python`, `web`, `docker`, `security`, block
 force pushes.
 
-### 6. First run, in this order
+### F. First run, in this order
 
-1. Merge the Phase 7 pull request. `ci` runs and `deploy` follows. The first time
-   it ends with a warning that the API has no results yet: nothing is published.
-2. *Actions → publish → Run workflow*. It builds and uploads the first results
-   bundle and restarts the Space (about 15-25 minutes).
-3. *Actions → deploy → Run workflow* with `ref` = `main`. Both jobs should end
-   green: the API reports the deployed commit, the site answers with its headers.
-4. Open the site.
+1. *Actions* → **publish** → *Run workflow*. About 15-25 minutes: it builds the first
+   results bundle, uploads it and redeploys the API, then checks the API serves it.
+2. *Actions* → **deploy** → *Run workflow* (`ref` = `main`). The API job checks the
+   deployed commit and CORS; the web job publishes the site and checks its headers.
+3. Open the site.
 
-### 7. Uptime monitoring
+From then on a merge to main deploys by itself after CI, and `publish` runs daily.
 
-At <https://uptimerobot.com> (free): two HTTP(s) monitors at 5-minute intervals:
+### G. Uptime monitoring
 
-- `https://<user>-perigee-api.hf.space/v1/health` (it returns 503 when data is
-  stale, so a stale API shows as down);
-- `https://perigee.pages.dev`.
+<https://uptimerobot.com> (free): two *HTTP(s)* monitors, 5-minute interval:
 
-Add your email as the alert contact and use *Send test notification* once. A
-5-minute ping also keeps the free Space from sleeping.
+- `PERIGEE_API_URL` + `/v1/health` (503 when data is stale, so stale shows as down);
+- `PERIGEE_WEB_URL`.
+
+Add your email as the alert contact and send one test notification. The 5-minute ping
+also keeps the free Render service from sleeping (it sleeps after 15 idle minutes and
+takes about a minute to wake). One service awake all month uses ~744 of Render's 750
+free hours.
 
 ## Phase 7 is done when
 
-- a push to main deploys automatically (step 6 shows it);
-- `data-refresh` and `publish` run unattended for three consecutive days
-  (`watchdog` stays green);
+- a push to main deploys automatically (a merge after step F shows it);
+- `data-refresh` and `publish` run unattended for three consecutive days (`watchdog`
+  stays green);
 - the uptime monitor is green.

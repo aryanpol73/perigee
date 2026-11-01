@@ -25,7 +25,7 @@ Data from CelesTrak and Space-Track.org (USSPACECOM). Space-Track raw data is ne
 | Breakup simulator | NASA breakup model; a collision at 800 km spreads from a point to a ring to a shell | [docs/risk-validation.md](docs/risk-validation.md) |
 | API | Read-only FastAPI over a published results bundle; reads p95 71 ms with 20 concurrent clients and simulator load ([details](docs/api-performance.md)) | `/docs` when running; [ADR 0002](docs/decisions/0002-api-results-bundle-and-simulator.md) |
 | Web app | React + CesiumJS globe (satellite.js in Web Workers), live and forecast clock with measured position uncertainty, close approaches, risk by altitude, simulator, method and limits | `web/`; [docs/forecast-uncertainty.md](docs/forecast-uncertainty.md) |
-| Deployment | CI on every push; API on a Hugging Face Space and the site on Cloudflare Pages after CI passes on main; daily results publish; watchdog | [docs/deployment.md](docs/deployment.md), [runbook](docs/runbook.md), [threat model](docs/threat-model.md), [ADR 0003](docs/decisions/0003-deployment.md) |
+| Deployment | CI on every push; API on Render and the site on Cloudflare Pages after CI passes on main; daily results publish; watchdog | [docs/deployment.md](docs/deployment.md), [runbook](docs/runbook.md), [threat model](docs/threat-model.md), [ADR 0003](docs/decisions/0003-deployment.md) |
 
 The `publish` badge shows the last daily results refresh. Rollback: redeploy an earlier
 commit with *Actions → deploy → Run workflow* ([runbook](docs/runbook.md#rollback)).
