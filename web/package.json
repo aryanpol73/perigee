@@ -14,7 +14,7 @@
     "gen:api": "openapi-typescript ../tests/fixtures/openapi.json -o src/api-types.ts"
   },
   "dependencies": {
-    "@sentry/browser": "11.7.0",
+    "@sentry/browser": "11.10.0",
     "cesium": "1.146.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
