@@ -14,6 +14,16 @@
             ],
             "title": "Above Operating Point"
           },
+          "estimate_status": {
+            "description": "provisional: made with thin update history (see Source.history_complete); none: outside model scope",
+            "enum": [
+              "standard",
+              "provisional",
+              "none"
+            ],
+            "title": "Estimate Status",
+            "type": "string"
+          },
           "hours_to_tca": {
             "title": "Hours To Tca",
             "type": "number"
@@ -68,6 +78,7 @@
           "risk_probability_estimate",
           "in_model_scope",
           "above_operating_point",
+          "estimate_status",
           "objects"
         ],
         "title": "Conjunction",
@@ -93,6 +104,16 @@
           "disclaimer": {
             "default": "Estimate from public orbit data; not for operational use.",
             "title": "Disclaimer",
+            "type": "string"
+          },
+          "estimate_status": {
+            "description": "provisional: made with thin update history (see Source.history_complete); none: outside model scope",
+            "enum": [
+              "standard",
+              "provisional",
+              "none"
+            ],
+            "title": "Estimate Status",
             "type": "string"
           },
           "hours_to_tca": {
@@ -166,6 +187,7 @@
           "risk_probability_estimate",
           "in_model_scope",
           "above_operating_point",
+          "estimate_status",
           "objects",
           "source",
           "object_details",
@@ -235,8 +257,16 @@
             "type": "number"
           },
           "max_data_age_hours": {
-            "title": "Max Data Age Hours",
-            "type": "number"
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Age that makes the data stale; null = no limit (fixture data)",
+            "title": "Max Data Age Hours"
           },
           "model_version": {
             "anyOf": [
@@ -292,7 +322,7 @@
             "type": "string"
           },
           "history_complete": {
-            "description": "False when the update-history features had less than 25 days of data",
+            "description": "False when the update-history features had less than 14 days of data",
             "title": "History Complete",
             "type": "boolean"
           },
@@ -1276,6 +1306,11 @@
             "title": "Generated At",
             "type": "string"
           },
+          "history_complete": {
+            "description": "False when estimates in this response are provisional (thin update history)",
+            "title": "History Complete",
+            "type": "boolean"
+          },
           "model_version": {
             "anyOf": [
               {
@@ -1295,7 +1330,8 @@
         "required": [
           "snapshot_id",
           "generated_at",
-          "model_version"
+          "model_version",
+          "history_complete"
         ],
         "title": "Source",
         "type": "object"

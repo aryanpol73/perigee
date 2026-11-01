@@ -104,7 +104,7 @@ export function ObjectView() {
                   >
                     {other.name ?? other.norad_id}: {km(c.miss_distance_km)} {hoursAhead(c.hours_to_tca)}
                   </button>{" "}
-                  <Risk value={c.risk_probability_estimate ?? null} operating={op} />
+                  <Risk value={c.risk_probability_estimate ?? null} operating={op} status={c.estimate_status} />
                 </li>
               );
             })}

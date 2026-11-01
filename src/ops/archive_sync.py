@@ -23,6 +23,7 @@ import logging
 import os
 import shutil
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Protocol
 
@@ -122,8 +123,38 @@ def _snapshot_of(path: str) -> tuple[str, str, str] | None:
     return None
 
 
-def pull(backend: Backend, data_dir: Path) -> dict[str, str]:
-    """Restore state/ and the newest raw snapshot of each source. Returns {source: snapshot}."""
+def _download_snapshot(backend: Backend, remote: list[str], data_dir: Path, source: str, snapshot: str) -> bool:
+    """Download one raw snapshot unless it is already here. True if downloaded."""
+    target = data_dir / "raw" / source / snapshot
+    if target.exists():
+        return False
+    # Download into a hidden temp dir and rename, so a snapshot directory
+    # only ever appears complete (the archive module relies on this).
+    tmp = target.with_name(f".{snapshot}.pull")
+    if tmp.exists():
+        shutil.rmtree(tmp)
+    prefix = f"raw/{source}/{snapshot}/"
+    for path in remote:
+        if path.startswith(prefix):
+            backend.download(path, tmp / path.removeprefix(prefix))
+    os.replace(tmp, target)
+    return True
+
+
+def _snapshot_time(snapshot: str) -> datetime | None:
+    try:
+        return datetime.strptime(snapshot, "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC)
+    except ValueError:
+        return None
+
+
+def pull(backend: Backend, data_dir: Path, history_days: float = 0.0) -> dict[str, str]:
+    """Restore state/ and the newest raw snapshot of each source. Returns {source: snapshot}.
+
+    history_days > 0 also restores every GP snapshot from that many days before
+    the newest one: publishing needs a month of element sets for the model's
+    update-history features, which the hourly job itself does not.
+    """
     remote = backend.list_files()
 
     for path in remote:
@@ -138,21 +169,19 @@ def pull(backend: Backend, data_dir: Path) -> dict[str, str]:
             latest[source] = max(latest.get(source, ""), snapshot)
 
     for source, snapshot in latest.items():
-        target = data_dir / "raw" / source / snapshot
-        if target.exists():
-            continue
-        # Download into a hidden temp dir and rename, so a snapshot directory
-        # only ever appears complete (the archive module relies on this).
-        tmp = target.with_name(f".{snapshot}.pull")
-        if tmp.exists():
-            shutil.rmtree(tmp)
-        prefix = f"raw/{source}/{snapshot}/"
-        for path in remote:
-            if path.startswith(prefix):
-                backend.download(path, tmp / path.removeprefix(prefix))
-        os.replace(tmp, target)
+        _download_snapshot(backend, remote, data_dir, source, snapshot)
 
-    log.info("pulled archive state", extra={"latest_snapshots": latest})
+    history = 0
+    newest = _snapshot_time(latest.get("gp", ""))
+    if history_days > 0 and newest is not None:
+        since = newest - timedelta(days=history_days)
+        gp = sorted({k[2] for p in remote if (k := _snapshot_of(p)) and k[0] == "raw" and k[1] == "gp"})
+        for snapshot in gp:
+            t = _snapshot_time(snapshot)
+            if t is not None and t >= since and _download_snapshot(backend, remote, data_dir, "gp", snapshot):
+                history += 1
+
+    log.info("pulled archive state", extra={"latest_snapshots": latest, "history_snapshots": history})
     return latest
 
 
@@ -196,13 +225,16 @@ def _backend_from_env() -> Backend:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="archive_sync")
     parser.add_argument("command", choices=["pull", "push"])
+    parser.add_argument(
+        "--history-days", type=float, default=0.0, help="pull: also restore GP snapshots from this many days back"
+    )
     args = parser.parse_args(argv)
 
     run_id = setup_logging()
     settings = Settings.from_env()
     backend = _backend_from_env()
     if args.command == "pull":
-        latest = pull(backend, settings.data_dir)
+        latest = pull(backend, settings.data_dir, args.history_days)
         print(f"Pulled latest snapshots: {latest or 'none yet'}")
     else:
         uploaded = push(backend, settings.data_dir, f"Data job run {run_id}")

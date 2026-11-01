@@ -11,10 +11,17 @@ DISCLAIMER = "Estimate from public orbit data; not for operational use."
 SIM_LABEL = "Illustrative, simplified; not a prediction."
 
 
+PROVISIONAL_NOTE = (
+    "Provisional: this run had under 14 days of update history for some model inputs. In testing, estimates made "
+    "without history ran at about half the observed rate and ranked approaches less well."
+)
+
+
 class Source(BaseModel):
     snapshot_id: str
     generated_at: datetime
     model_version: str | None
+    history_complete: bool = Field(description="False when estimates in this response are provisional (thin update history)")
 
 
 class ErrorBody(BaseModel):
@@ -30,7 +37,7 @@ class ErrorResponse(BaseModel):
 class Health(BaseModel):
     status: Literal["ok", "stale"]
     data_age_hours: float
-    max_data_age_hours: float
+    max_data_age_hours: float | None = Field(description="Age that makes the data stale; null = no limit (fixture data)")
     snapshot_id: str
     model_version: str | None
 
@@ -46,7 +53,7 @@ class Meta(BaseModel):
     same_constellation_left_out: int
     model_version: str | None
     operating_probability: float | None = Field(description="Validation operating point, as a probability estimate")
-    history_complete: bool = Field(description="False when the update-history features had less than 25 days of data")
+    history_complete: bool = Field(description="False when the update-history features had less than 14 days of data")
     history_days_for_features: float | None
     orbit_file_url: str
     disclaimer: str
@@ -93,6 +100,9 @@ class Conjunction(BaseModel):
     )
     in_model_scope: bool
     above_operating_point: bool | None
+    estimate_status: Literal["standard", "provisional", "none"] = Field(
+        description="provisional: made with thin update history (see Source.history_complete); none: outside model scope"
+    )
     objects: list[OrbitedObject]
 
 

@@ -34,16 +34,21 @@ and a decision on where the breakup simulator runs.
    model was not trained on them.
 5. **Scores are flagged when history is thin.** The update-history features need
    30 days of element sets before the snapshot. `meta.history_complete` is false
-   below 25 days; the app says estimates are less reliable. Locally there is one
+   below 14 days (measured in docs/history-sensitivity.md); estimates are then marked provisional. Locally there is one
    snapshot, so every local run is flagged and scores run low (mean 0.27 for
-   approaches under 2 km, against 0.41 observed in testing); the scheduled job
-   with the archived snapshots will not have this gap.
+   approaches under 2 km, against 0.41 observed in testing). A publish job only
+   avoids this if it restores the archived snapshots first
+   (`python -m src.ops.archive_sync pull --history-days 30`; plain `pull` fetches
+   only the newest). Rescoring the test period showed snapshots every 2-6 h over
+   15 or more days score like the full history (docs/history-sensitivity.md).
 
 ## Consequences
 
 - Deploying data and code stay separate (guide 13.3 option B is open for Phase 7:
   download the newest bundle at startup).
-- Read endpoints measured p95 under 40 ms on the full bundle (92,492
-  conjunctions, 20,087 objects), against a 200 ms target.
+- Under load (20 concurrent clients, two running the simulator nonstop) reads
+  measured p95 52-71 ms on the full bundle (docs/api-performance.md), against a
+  200 ms target, after adding presorted indexes, a response cache and a single
+  simulation slot.
 - A committed fixture bundle (1,798 objects, public CelesTrak data plus derived
   results) lets a clean checkout run the app without any download.

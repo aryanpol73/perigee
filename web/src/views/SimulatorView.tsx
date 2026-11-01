@@ -68,8 +68,18 @@ export function SimulatorView() {
       <p className="label-strong" role="note">Illustrative, simplified; not a prediction.</p>
       <p className="muted">
         What if two objects collided here? Fragment counts follow NASA's standard breakup model; fragments then move under Earth's
-        gravity and its equatorial bulge (no drag).
+        gravity and its equatorial bulge.
       </p>
+      <details className="limits" open>
+        <summary>Limits of this simulation</summary>
+        <ul>
+          <li>No air drag: low fragments never re-enter here, so debris below about 600 km lasts longer than it really would.</li>
+          <li>Both objects start on circular orbits of the same inclination, one heading north and one south.</li>
+          <li>The breakup model is an average: for the 2009 Iridium-Cosmos collision it gives about half the ~2,300 fragments catalogued.</li>
+          <li>Only fragments of 10 cm and larger are counted; sizes and masses are rough class averages.</li>
+          <li>The what-if index change assumes the fragments' orbits as simulated and ignores manoeuvres.</li>
+        </ul>
+      </details>
       <form
         className="controls stack"
         onSubmit={(e) => {

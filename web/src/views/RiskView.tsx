@@ -72,6 +72,7 @@ export function RiskView() {
               <text key={a} className="tick" x={x(a)} y={H - PAD.b + 14} textAnchor="middle">{a.toLocaleString()}</text>
             ))}
             <text className="tick" x={(W + PAD.l) / 2} y={H - 4} textAnchor="middle">altitude (km)</text>
+            <text className="tick" x={PAD.l + 4} y={PAD.t + 8}>relative index, log scale (not a probability)</text>
             <path d={line("risk_index_weighted")} className="series s1" />
             <path d={line("risk_index")} className="series s0" />
             {hover && <line className="crosshair" x1={x((hover.alt_lo_km + hover.alt_hi_km) / 2)} x2={x((hover.alt_lo_km + hover.alt_hi_km) / 2)} y1={PAD.t} y2={H - PAD.b} />}

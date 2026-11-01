@@ -12,7 +12,7 @@ import json
 import logging
 import time
 import uuid
-from collections import defaultdict, deque
+from collections import OrderedDict, defaultdict, deque
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
@@ -39,7 +39,7 @@ log = logging.getLogger("perigee.api")
 
 MAX_LIMIT = 500
 SIMULATE_TIMEOUT_S = 15.0
-SIMULATE_PER_MIN = 10
+CACHE_ENTRIES = 4_096
 CACHE_SECONDS = 300
 
 
@@ -59,6 +59,63 @@ class RateLimiter:
             return False
         q.append(now)
         return True
+
+
+class ResponseCache:
+    """Caches successful GET /v1 JSON responses by URL.
+
+    The bundle never changes while the process runs, so an identical request gets
+    an identical answer. Sits inside the gzip layer (caches uncompressed bodies)
+    and inside the rate limiter. Health and the orbit file are not cached here.
+    """
+
+    def __init__(self, app, entries: int = CACHE_ENTRIES) -> None:
+        self.app = app
+        self.entries = entries
+        self.store: OrderedDict[str, tuple[int, list[tuple[bytes, bytes]], bytes]] = OrderedDict()
+
+    async def __call__(self, scope, receive, send) -> None:
+        path = scope.get("path", "")
+        if (
+            scope["type"] != "http"
+            or scope["method"] != "GET"
+            or not path.startswith("/v1/")
+            or path == "/v1/health"
+            or path.startswith("/v1/orbits/")
+        ):
+            await self.app(scope, receive, send)
+            return
+        key = f"{path}?{scope.get('query_string', b'').decode()}"
+        hit = self.store.get(key)
+        if hit is not None:
+            self.store.move_to_end(key)
+            status, headers, body = hit
+            etag = dict(headers).get(b"etag")
+            wanted = dict(scope.get("headers", [])).get(b"if-none-match")
+            if etag is not None and wanted == etag:
+                await send({"type": "http.response.start", "status": 304, "headers": [h for h in headers if h[0] != b"content-length"]})
+                await send({"type": "http.response.body", "body": b""})
+                return
+            # Outer layers (gzip) edit header lists in place: always hand them a copy.
+            await send({"type": "http.response.start", "status": status, "headers": list(headers)})
+            await send({"type": "http.response.body", "body": body})
+            return
+
+        start: dict = {}
+        chunks: list[bytes] = []
+
+        async def capture(message) -> None:
+            if message["type"] == "http.response.start":
+                start.update(message, headers=list(message.get("headers", [])))
+            elif message["type"] == "http.response.body":
+                chunks.append(message.get("body", b""))
+            await send(message)
+
+        await self.app(scope, receive, capture)
+        if start.get("status") == 200:
+            self.store[key] = (200, list(start.get("headers", [])), b"".join(chunks))
+            if len(self.store) > self.entries:
+                self.store.popitem(last=False)
 
 
 def _error(status: int, code: str, message: str, request: Request) -> JSONResponse:
@@ -93,6 +150,8 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         app.state.store = None
     app.state.shell_base = None
 
+    sim_slots = anyio.CapacityLimiter(1)  # one simulation at a time, so reads are not starved
+    app.add_middleware(ResponseCache)
     app.add_middleware(GZipMiddleware, minimum_size=1_000)
     app.add_middleware(
         CORSMiddleware,
@@ -109,7 +168,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         client = request.client.host if request.client else "unknown"
         path = request.url.path
         if path.startswith("/v1/") and path != "/v1/health":
-            bucket, limit = ("simulate", SIMULATE_PER_MIN) if path == "/v1/simulate" else ("read", None)
+            bucket, limit = ("simulate", settings.api_simulate_per_min) if path == "/v1/simulate" else ("read", None)
             if not limiter.allow(client, bucket, limit):
                 return _error(429, "rate_limited", "Too many requests; try again in a minute.", request)
         response = await call_next(request)
@@ -150,7 +209,12 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         return app.state.store
 
     def source(st: ResultsStore) -> s.Source:
-        return s.Source(snapshot_id=st.meta["snapshot_id"], generated_at=st.meta["generated_at"], model_version=st.meta["model_version"])
+        return s.Source(
+            snapshot_id=st.meta["snapshot_id"],
+            generated_at=st.meta["generated_at"],
+            model_version=st.meta["model_version"],
+            history_complete=bool(st.meta.get("history_complete", False)),
+        )
 
     def respond(request: Request, model: BaseModel) -> Response:
         """JSON with an ETag and cache headers; 304 when the client already has it."""
@@ -188,6 +252,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
             risk_probability_estimate=p,
             in_model_scope=bool(row["in_model_scope"]),
             above_operating_point=None if p is None or op is None else p >= op,
+            estimate_status="none" if p is None else "standard" if st.meta.get("history_complete", False) else "provisional",
             objects=[
                 s.OrbitedObject(norad_id=int(row["norad_a"]), name=row["name_a"], object_type=row["type_a"], epoch_age_days=float(row["epoch_age_a_days"])),
                 s.OrbitedObject(norad_id=int(row["norad_b"]), name=row["name_b"], object_type=row["type_b"], epoch_age_days=float(row["epoch_age_b_days"])),
@@ -205,7 +270,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         body = s.Health(
             status="ok" if age <= settings.api_max_data_age_h else "stale",
             data_age_hours=round(float(age), 2),
-            max_data_age_hours=settings.api_max_data_age_h,
+            max_data_age_hours=settings.api_max_data_age_h if np.isfinite(settings.api_max_data_age_h) else None,
             snapshot_id=st.meta["snapshot_id"],
             model_version=st.meta["model_version"],
         )
@@ -269,7 +334,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
             mask &= o["perigee_km"] <= max_alt_km
         if q:
             mask &= (o["norad_id"].astype(str) == q.strip()) | o["name"].fillna("").str.contains(q.strip(), case=False, regex=False)
-        hits = o[mask].sort_values("norad_id")
+        hits = o[mask]  # objects are sorted by norad_id at load
         page = hits.iloc[offset : offset + limit]
         return respond(request, s.ObjectPage(source=source(st), total=len(hits), limit=limit, offset=offset,
                                              items=[obj_summary(r) for _, r in page.iterrows()]))
@@ -314,26 +379,25 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
     ):
         st = store()
         c = st.conjunctions
-        mask = pd.Series(True, index=c.index)
+        mask = np.ones(len(c), dtype=bool)
         if min_probability is not None:
-            mask &= c["risk_probability_estimate"] >= min_probability
+            mask &= (c["risk_probability_estimate"] >= min_probability).to_numpy()
         if max_miss_km is not None:
-            mask &= c["miss_distance_km"] <= max_miss_km
+            mask &= (c["miss_distance_km"] <= max_miss_km).to_numpy()
         if tca_from is not None:
-            mask &= c["tca"] >= _utc(tca_from)
+            mask &= (c["tca"] >= _utc(tca_from)).to_numpy()
         if tca_to is not None:
-            mask &= c["tca"] <= _utc(tca_to)
+            mask &= (c["tca"] <= _utc(tca_to)).to_numpy()
         if object_type:
-            mask &= (c["type_a"] == object_type) | (c["type_b"] == object_type)
+            mask &= ((c["type_a"] == object_type) | (c["type_b"] == object_type)).to_numpy()
         if norad_id is not None:
-            mask &= (c["norad_a"] == norad_id) | (c["norad_b"] == norad_id)
+            mask &= ((c["norad_a"] == norad_id) | (c["norad_b"] == norad_id)).to_numpy()
         if scored_only:
-            mask &= c["risk_probability_estimate"].notna()
-        hits = c[mask]
-        key = {"probability": ("risk_probability_estimate", False), "tca": ("tca", True), "miss": ("miss_distance_km", True)}[sort]
-        hits = hits.sort_values([key[0], "tca"], ascending=[key[1], True], na_position="last")
-        page = hits.iloc[offset : offset + limit]
-        return respond(request, s.ConjunctionPage(source=source(st), total=len(hits), limit=limit, offset=offset,
+            mask &= c["risk_probability_estimate"].notna().to_numpy()
+        order = st.orders[sort]
+        selected = order[mask[order]]
+        page = c.iloc[selected[offset : offset + limit]]
+        return respond(request, s.ConjunctionPage(source=source(st), total=len(selected), limit=limit, offset=offset,
                                                   items=[conj_model(r, st) for _, r in page.iterrows()]))
 
     @app.get("/v1/conjunctions/{conjunction_id}", response_model=s.ConjunctionDetail)
@@ -352,8 +416,8 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         )
         if not base.in_model_scope:
             note += " This approach is outside the model's scope (more than 3 days ahead), so it has no estimate."
-        elif not st.meta.get("history_complete", True):
-            note += " This run had too little update history for some model inputs, so its estimates are less reliable."
+        elif not st.meta.get("history_complete", False):
+            note += " " + s.PROVISIONAL_NOTE
         objs = [obj_summary(st.objects.loc[int(n)]) for n in (row["norad_a"], row["norad_b"])]
         return respond(
             request,
@@ -398,7 +462,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         st = store()
         try:
             with anyio.fail_after(SIMULATE_TIMEOUT_S):
-                return await anyio.to_thread.run_sync(_run_simulation, req, st)
+                return await anyio.to_thread.run_sync(_run_simulation, req, st, limiter=sim_slots)
         except TimeoutError as exc:
             raise HTTPException(503, "The simulation took too long; try fewer points or times.") from exc
 

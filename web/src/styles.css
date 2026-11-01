@@ -86,6 +86,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .risk .bar span { display: block; height: 100%; background: var(--muted); border-radius: 3px; }
 .risk.elevated .bar span { background: var(--s1); }
 .tag { font-size: 11px; border: 1px solid var(--s1); color: var(--ink); border-radius: 4px; padding: 0 4px; }
+.tag.provisional { border-style: dashed; border-color: var(--muted); color: var(--ink-2); }
+.th-note { font-weight: 400; }
 
 .detail { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line); }
 .facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 6px 0; }
@@ -95,6 +97,8 @@ button:disabled { opacity: 0.5; cursor: default; }
 .note { background: var(--surface-2); padding: 8px 10px; border-radius: 6px; }
 .reasons { padding-left: 18px; }
 .label-strong { font-weight: 600; }
+.limits { margin: 6px 0 10px; }
+.limits summary { cursor: pointer; color: var(--ink-2); }
 
 .chart { width: 100%; height: auto; }
 .chart .grid { stroke: var(--line); stroke-width: 1; }
