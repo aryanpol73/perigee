@@ -46,6 +46,19 @@ def main(argv: list[str] | None = None) -> int:
     trn.add_argument("--workers", type=int, default=6)
     trn.add_argument("--from", dest="start", help="first day of history to use (YYYY-MM-DD)")
     trn.add_argument("--to", dest="end", help="last day of history to use (YYYY-MM-DD)")
+    shl = commands.add_parser("shells", help="compute the altitude-band risk index")
+    shl.add_argument("--band-km", type=float, default=25.0)
+    shl.add_argument("--at", help="use element-set history as known at this date (YYYY-MM-DD) instead of the latest snapshot")
+    shl.add_argument("--size-mapping", choices=["default", "unknown_medium"], default="default")
+    sim = commands.add_parser("simulate", help="run the illustrative breakup simulator")
+    sim.add_argument("--altitude-km", type=float, default=800.0)
+    sim.add_argument("--inclination-deg", type=float, default=74.0)
+    sim.add_argument("--target-kg", type=float, default=950.0)
+    sim.add_argument("--impactor-kg", type=float, default=560.0)
+    sim.add_argument("--rel-speed", type=float, default=11.7, help="km/s")
+    sim.add_argument("--target-kind", choices=["SC", "RB"], default="SC")
+    sim.add_argument("--impactor-kind", choices=["SC", "RB"], default="SC")
+    sim.add_argument("--seed", type=int, default=42)
     imp =commands.add_parser("import-spacetrack", help="import a Space-Track yearly TLE zip into history")
     imp.add_argument("archive", type=Path, help="zip or text file downloaded once from space-track.org")
     imp.add_argument("--since", help="keep element sets from this date (YYYY-MM-DD)")
@@ -89,6 +102,42 @@ def main(argv: list[str] | None = None) -> int:
             f"({s['colocated_pairs']} co-located pairs) in {s['seconds']:.0f} s on {args.workers} worker(s)."
         )
         print("Estimated close approaches based on public data; not collision predictions.")
+        return exit_code
+    elif args.command == "shells":
+        import pandas as pd
+
+        from src.risk.run import run_shells
+        from src.risk.shells import ShellConfig
+
+        at = pd.Timestamp(args.at, tz="UTC") if args.at else None
+        res = run_shells(settings, ShellConfig(band_km=args.band_km, size_mapping=args.size_mapping), at)
+        print(f"Shell risk index {res['run_id'].iloc[0]} ({res['objects'].sum():,.0f} objects in range):")
+        for r in res.nlargest(5, "risk_index").itertuples():
+            print(f"  {r.alt_lo_km:>6.0f}-{r.alt_hi_km:<6.0f} km  index {r.risk_index:6.1f}  weighted {r.risk_index_weighted:6.1f}  objects {r.objects:7.0f}")
+        print("A relative index from public data, not a collision probability.")
+        return exit_code
+    elif args.command == "simulate":
+        from src.sim.breakup import Collision, simulate, spread
+
+        b = simulate(
+            Collision(
+                altitude_km=args.altitude_km,
+                inclination_deg=args.inclination_deg,
+                target_mass_kg=args.target_kg,
+                impactor_mass_kg=args.impactor_kg,
+                rel_speed_km_s=args.rel_speed,
+                target_kind=args.target_kind,
+                impactor_kind=args.impactor_kind,
+                seed=args.seed,
+            )
+        )
+        print(json.dumps(b.summary(), indent=2))
+        for hours in (0.25, 6, 24, 24 * 30, 24 * 365):
+            s = spread(b.fragments, hours)
+            print(
+                f"  after {hours:>6g} h: cloud radius {s['cloud_radius_km']:6.0f} km, along-track coverage "
+                f"{s['along_track_coverage']:.0%}, node coverage {s['node_coverage']:.0%}"
+            )
         return exit_code
     elif args.command == "import-spacetrack":
         import pandas as pd

@@ -21,6 +21,7 @@ CATALOG = "catalog_snapshots"
 SATCAT = "satcat"
 SPACE_WEATHER = "space_weather"
 CONJUNCTIONS = "conjunctions"
+SHELL_RISK = "shell_risk"
 
 
 def connect() -> duckdb.DuckDBPyConnection:
@@ -54,6 +55,10 @@ def catalog_snapshot_path(processed_dir: Path, snapshot_id: str) -> Path:
 
 def conjunctions_path(processed_dir: Path, snapshot_id: str, scope: str) -> Path:
     return processed_dir / CONJUNCTIONS / f"{snapshot_id}_{scope}.parquet"
+
+
+def shell_risk_path(processed_dir: Path, run_id: str) -> Path:
+    return processed_dir / SHELL_RISK / f"{run_id}.parquet"
 
 
 def table_path(processed_dir: Path, name: str) -> Path:
