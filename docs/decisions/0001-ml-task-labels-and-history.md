@@ -1,6 +1,6 @@
 # ADR 0001: ML task, labels and where the history comes from
 
-Status: accepted, 2026-10-31. Positive counts (guide 8.8) to be added once history is loaded.
+Status: accepted, 2026-10-31. Positive counts added 2026-11-01 from the 2025 Space-Track history.
 
 ## Context
 
@@ -45,3 +45,24 @@ hours of its own snapshots. CelesTrak has no history API.
   weeks). Until then `python -m src.main train` exits with code 3 and the counts.
 - Space-Track data must be cited ("Data from Space-Track.org (USSPACECOM)") wherever results
   are published. Raw archives stay in the private store.
+
+## Positive counts (guide 8.8)
+
+2025 Space-Track history, 51 weekly prediction times (2025-01-09 to 2025-12-25), 3-day
+horizon, 10 km candidates, active scope, same-constellation pairs excluded, 20,000 events
+sampled per prediction time. 993,570 labelled rows. Refreshed miss distance below:
+
+| Threshold | Positives | Share |
+|---|---|---|
+| 1 km | 6,236 | 0.6% |
+| 2 km | 25,143 | 2.5% |
+| 5 km (label) | 155,934 | 15.7% |
+| 10 km | 553,665 | 55.7% |
+
+5 km keeps enough positives in every period. 1 km would leave about 100 per week.
+
+Data gaps seen: the archive has almost no element sets with epochs on 2025-11-09 (1,649
+against about 60,000 on a normal day). The 2025-11-13 prediction time has half the usual
+positive rate (8% against about 15%) with an unchanged predicted-miss distribution. The
+cause is not found yet (the refreshed data for that week is not sparse). It is in the test
+period and was kept.

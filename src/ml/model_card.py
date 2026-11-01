@@ -60,16 +60,39 @@ def write_model_card(results: dict, path: Path) -> None:
         "",
         f"Operating point chosen on validation: highest recall with at most {fa} false alarms per true event.",
         "",
-        "| Model | PR-AUC (95% CI, pair bootstrap) | Precision | Recall | Brier |",
-        "|---|---|---|---|---|",
+        "| Model | PR-AUC (95% CI, pair bootstrap) | Alerts | Precision | Recall | Brier |",
+        "|---|---|---|---|---|---|",
     ]
     for key, m in results["models"].items():
         lo, hi = m["pr_auc_ci95"]
         op = m["at_operating_point"]
         lines.append(
-            f"| {LABELS.get(key, key)} | {_fmt(m['pr_auc'])} ({_fmt(lo)}-{_fmt(hi)}) | {_fmt(op['precision'])} "
-            f"| {_fmt(op['recall'])} | {_fmt(m.get('brier'))} |"
+            f"| {LABELS.get(key, key)} | {_fmt(m['pr_auc'])} ({_fmt(lo)}-{_fmt(hi)}) | {int(op['alerts']):,} "
+            f"| {_fmt(op['precision'])} | {_fmt(op['recall'])} | {_fmt(m.get('brier'))} |"
         )
+    lines += ["", f"Base rate in the test period: {c['test']['positives'] / c['test']['rows']:.1%}."]
+    for key, m in results["models"].items():
+        op = m["at_operating_point"]
+        if op["recall"] == op["recall"] and op["recall"] < 0.05:
+            lines[-1] += (
+                f" {LABELS.get(key, key)} raises only {int(op['alerts']):,} alerts: on validation it reaches the "
+                f"precision floor ({1 / (1 + float(fa)):.0%}) only with its very top scores, so the floor is out of "
+                "its reach."
+            )
+    tradeoff = results["models"].get("lightgbm", {}).get("tradeoff")
+    if tradeoff:
+        lines += [
+            "",
+            "LightGBM trade-off on the test period (any threshold, not only the operating point):",
+            "",
+            "| Recall | Best precision |",
+            "|---|---|",
+            *(f"| {r['recall']:.0%} | {_fmt(r['precision'], 2)} |" for r in tradeoff["precision_at_recall"]),
+            "",
+            "| Highest-scored approaches | Share still close with newer data |",
+            "|---|---|",
+            *(f"| top {t['k']:,} | {_fmt(t['precision'], 2)} |" for t in tradeoff["precision_at_top_k"]),
+        ]
     verdict = (
         "LightGBM beats every baseline, with the lower end of its PR-AUC interval above the best baseline."
         if results["lightgbm_beats_all_baselines"]

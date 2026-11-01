@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -58,7 +59,9 @@ class TrainConfig:
     val_fraction: float = 0.2
     test_fraction: float = 0.2
     embargo: pd.Timedelta = pd.Timedelta(days=4)  # = dataset label cutoff
-    max_false_alarms_per_true: float = 5.0
+    # 1 false alarm per true event (precision >= 0.5). With a ~15% base rate a
+    # looser budget is met by alerting on nearly everything and says nothing.
+    max_false_alarms_per_true: float = 1.0
     optuna_trials: int = 30
     bootstrap: int = 500
     seed: int = 42
@@ -142,6 +145,20 @@ def point_metrics(y: np.ndarray, alerts: np.ndarray) -> dict[str, float]:
     }
 
 
+def tradeoff_table(
+    y: np.ndarray, scores: np.ndarray, recalls=(0.25, 0.5, 0.6, 0.75, 0.9), top_k=(100, 1000, 5000)
+) -> dict[str, list[dict[str, float]]]:
+    """Best precision at several recalls, and the share of real events among the top-k scores."""
+    precision, recall, _ = precision_recall_curve(y, scores)
+    at_recall = []
+    for r in recalls:
+        ok = recall[:-1] >= r
+        at_recall.append({"recall": r, "precision": float(precision[:-1][ok].max()) if ok.any() else float("nan")})
+    order = np.argsort(-scores, kind="stable")
+    top = [{"k": k, "precision": float(y[order[:k]].mean())} for k in top_k if k <= len(y)]
+    return {"precision_at_recall": at_recall, "precision_at_top_k": top}
+
+
 def calibration_table(y: np.ndarray, p: np.ndarray, bins: int = 10) -> list[dict[str, float]]:
     edges = np.quantile(p, np.linspace(0, 1, bins + 1))
     edges = np.unique(edges)
@@ -157,17 +174,20 @@ def calibration_table(y: np.ndarray, p: np.ndarray, bins: int = 10) -> list[dict
 def bootstrap_ci(
     y: np.ndarray, scores: np.ndarray, groups: np.ndarray, metric, n: int, seed: int
 ) -> tuple[float, float]:
-    """95% interval of `metric`, resampling groups (object pairs) with replacement."""
+    """95% interval of `metric`, resampling groups (object pairs) with replacement.
+
+    A resample is row weights (how often each row's group was drawn), which
+    equals repeating the rows and avoids building per-group index lists.
+    """
     rng = np.random.default_rng(seed)
     uniq, inverse = np.unique(groups, return_inverse=True)
-    members = [np.flatnonzero(inverse == g) for g in range(len(uniq))]
     values = []
     for _ in range(n):
-        pick = rng.integers(0, len(uniq), len(uniq))
-        idx = np.concatenate([members[g] for g in pick])
-        if y[idx].min() == y[idx].max():
+        w = np.bincount(rng.integers(0, len(uniq), len(uniq)), minlength=len(uniq))[inverse]
+        drawn = w > 0
+        if y[drawn].min() == y[drawn].max():
             continue
-        values.append(metric(y[idx], scores[idx]))
+        values.append(metric(y, scores, sample_weight=w))
     if not values:
         return float("nan"), float("nan")
     return float(np.percentile(values, 2.5)), float(np.percentile(values, 97.5))
@@ -210,7 +230,7 @@ def _fit_lgb(params: dict, train: pd.DataFrame, val: pd.DataFrame) -> lgb.Booste
     return lgb.train(
         params,
         dtrain,
-        num_boost_round=2000,
+        num_boost_round=5000,
         valid_sets=[dval],
         callbacks=[lgb.early_stopping(100, verbose=False)],
     )
@@ -230,6 +250,13 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
 
     models: dict[str, dict[str, Any]] = {}
 
+    started = time.monotonic()
+
+    def progress(msg: str, **extra: Any) -> None:
+        log.info(msg, extra={"elapsed_min": round((time.monotonic() - started) / 60, 1), **extra})
+
+    progress("training started", **{k: v["rows"] for k, v in results["counts"].items()})
+
     def evaluate(name: str, s_va: np.ndarray, s_te: np.ndarray, probs_te: np.ndarray | None, threshold: float | None = None) -> None:
         th = operating_threshold(s_va, y_va, fa) if threshold is None else threshold
         ap = average_precision_score(y_te, s_te)
@@ -243,6 +270,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
             entry["brier"] = float(brier_score_loss(y_te, probs_te))
             entry["calibration"] = calibration_table(y_te, probs_te)
         models[name] = entry
+        progress("model evaluated", model=name, pr_auc=round(ap, 3))
 
     # (a) the plain screening alert: predicted miss below the label threshold.
     alert_va = (va["miss_km"] < config.label_km).to_numpy().astype(float)
@@ -266,9 +294,19 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
         booster = _fit_lgb(_lgb_params(trial, config.seed, pos_weight), tr, va)
         return average_precision_score(y_va, booster.predict(va[FEATURES]))
 
+    def trial_done(study: optuna.Study, trial: optuna.trial.FrozenTrial) -> None:
+        progress(
+            "tuning trial finished",
+            trial=f"{trial.number + 1}/{config.optuna_trials}",
+            val_pr_auc=round(trial.value, 4),
+            best_so_far=round(study.best_value, 4),
+            trial_min=round(trial.duration.total_seconds() / 60, 1),
+        )
+
     study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler(seed=config.seed))
-    study.optimize(objective, n_trials=config.optuna_trials)
+    study.optimize(objective, n_trials=config.optuna_trials, callbacks=[trial_done])
     best_params = _lgb_params(optuna.trial.FixedTrial(study.best_params), config.seed, pos_weight)
+    progress("fitting final LightGBM with the best settings")
     booster = _fit_lgb(best_params, tr, va)
     raw_va, raw_te = booster.predict(va[FEATURES]), booster.predict(te[FEATURES])
     calibrator = IsotonicRegression(out_of_bounds="clip").fit(raw_va, y_va)
@@ -276,6 +314,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
     evaluate("lightgbm", raw_va, raw_te, cal_te)
     models["lightgbm"]["best_params"] = study.best_params
     models["lightgbm"]["best_iteration"] = int(booster.best_iteration)
+    models["lightgbm"]["tradeoff"] = tradeoff_table(y_te, raw_te)
     results["models"] = models
 
     best_baseline = max((k for k in models if k != "lightgbm"), key=lambda k: models[k]["pr_auc"])
@@ -303,6 +342,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
             continue
         m = _fit_lgb(best_params, fold_tr, fold_va)
         cv.append(float(average_precision_score(fold_va["label"], m.predict(fold_va[FEATURES]))))
+        progress("cross-validation fold finished", fold=f"{k + 1}/5", pr_auc=round(cv[-1], 3))
     results["grouped_cv_pr_auc"] = {"folds": cv, "mean": float(np.mean(cv)) if cv else None}
 
     # Feature attributions (SHAP values from LightGBM itself).
@@ -311,6 +351,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
     results["mean_abs_shap"] = {k: float(v) for k, v in importance.head(15).items()}
 
     results["failure_analysis"] = failure_analysis(te, cal_te, models["lightgbm"]["operating_threshold"], raw_te)
+    progress("training finished")
     return results, booster, calibrator
 
 

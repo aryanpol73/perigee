@@ -9,7 +9,7 @@ import pytest
 from src.ml.dataset import DatasetConfig, build_for_time
 from src.ml.features import FEATURES, build_features
 from src.ml.model_card import write_model_card
-from src.ml.train import InsufficientData, TrainConfig, operating_threshold, time_split, train_and_evaluate
+from src.ml.train import InsufficientData, TrainConfig, operating_threshold, time_split, tradeoff_table, train_and_evaluate
 from src.storage import parquet_store as store
 from src.storage.elsets import ElsetHistory
 from tests.test_screening import _mini_catalog
@@ -197,3 +197,11 @@ def test_operating_threshold_respects_false_alarm_budget():
     tp, fp = int((alerts & (y == 1)).sum()), int((alerts & (y == 0)).sum())
     assert fp <= tp
     assert tp == 3
+
+
+def test_tradeoff_table_precision_at_recall_and_top_k():
+    y = np.array([1, 1, 0, 1, 0, 0, 0, 0])
+    s = np.array([0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2])
+    t = tradeoff_table(y, s, recalls=(0.5, 1.0), top_k=(2, 4, 100))
+    assert [r["precision"] for r in t["precision_at_recall"]] == [1.0, 0.75]
+    assert t["precision_at_top_k"] == [{"k": 2, "precision": 1.0}, {"k": 4, "precision": 0.75}]
