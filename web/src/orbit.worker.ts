@@ -1,11 +1,14 @@
-// Propagates every object with satellite.js off the main thread. The UI thread
-// only moves points. Positions are Earth-fixed (ECEF) in metres, as Cesium expects,
-// with Earth-fixed velocities (m/s) so the globe can glide smoothly between samples.
+// Propagates objects with satellite.js off the main thread. The UI thread only
+// moves points. Several of these workers run side by side, each owning one slice of
+// the catalog, so a sample of every object comes back in a fraction of the time
+// (that is what keeps dragging the time slider responsive). Positions are
+// Earth-fixed (ECEF) in metres, as Cesium expects, with Earth-fixed velocities (m/s)
+// so the globe can glide smoothly between samples.
 import { eciToEcf, gstime, json2satrec, propagate, type SatRec } from "satellite.js";
 import type { Omm } from "./orbits";
 
 type Request =
-  | { kind: "load"; records: Omm[] }
+  | { kind: "load"; records: Omm[]; part: number }
   | { kind: "sample"; id: number; time: number }
   | { kind: "path"; id: number; norad: number; time: number; samples: number }
   | { kind: "trail"; id: number; norads: number[]; time: number; minutes: number; samples: number };
@@ -14,6 +17,7 @@ const EARTH_ROTATION = 7.2921158553e-5; // rad/s
 
 let satrecs: (SatRec | null)[] = [];
 let index = new Map<number, number>();
+let part = 0;
 
 /** Position (m) and velocity (m/s) in the Earth-fixed frame into out[k..k+5]. */
 function stateEcef(sat: SatRec, date: Date, gmst: number, out: Float64Array, k: number): boolean {
@@ -55,6 +59,7 @@ function positionEcef(sat: SatRec, date: Date, gmst: number, out: Float64Array, 
 self.onmessage = (event: MessageEvent<Request>) => {
   const msg = event.data;
   if (msg.kind === "load") {
+    part = msg.part;
     satrecs = msg.records.map((r) => {
       try {
         return json2satrec(r as never);
@@ -63,10 +68,11 @@ self.onmessage = (event: MessageEvent<Request>) => {
       }
     });
     index = new Map(msg.records.map((r, i) => [r.NORAD_CAT_ID, i]));
-    self.postMessage({ kind: "loaded", count: satrecs.length });
+    self.postMessage({ kind: "loaded", part, count: satrecs.length });
     return;
   }
   if (msg.kind === "sample") {
+    const started = performance.now();
     const date = new Date(msg.time);
     const gmst = gstime(date);
     const out = new Float64Array(satrecs.length * 6);
@@ -78,7 +84,8 @@ self.onmessage = (event: MessageEvent<Request>) => {
         failed++;
       }
     }
-    self.postMessage({ kind: "sample", id: msg.id, time: msg.time, states: out, failed }, { transfer: [out.buffer] });
+    const ms = performance.now() - started;
+    self.postMessage({ kind: "sample", id: msg.id, part, time: msg.time, states: out, failed, ms }, { transfer: [out.buffer] });
     return;
   }
   if (msg.kind === "path") {

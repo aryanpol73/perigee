@@ -36,9 +36,15 @@ export function interpolate(a: Sample, b: Sample, t: number, out: Float64Array):
   }
 }
 
+// A straight line leaves a curved orbit quickly (about 15 km after a minute in LEO),
+// so beyond this the points hold where they are until the next sample arrives. While
+// the time slider is dragged that means points wait for their real positions instead
+// of shooting off along their velocity.
+export const MAX_EXTRAPOLATE_MS = 60_000;
+
 /** Positions at time t from one sample, moving along each velocity (short spans only). */
 export function extrapolate(a: Sample, t: number, out: Float64Array): void {
-  const dt = (t - a.time) / 1000;
+  const dt = Math.max(-MAX_EXTRAPOLATE_MS, Math.min(MAX_EXTRAPOLATE_MS, t - a.time)) / 1000;
   const A = a.states;
   const n = out.length / 3;
   for (let i = 0; i < n; i++) {

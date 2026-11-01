@@ -78,6 +78,45 @@ test("data too old to show the present is said so", async ({ page }) => {
   await expect(page.locator(".mode-badge")).toHaveText("DATA TOO OLD");
   await expect(page.getByTestId("sim-time")).toHaveText("2026-11-07 14:49 UTC"); // parked at the window's end
   await expect(page.getByRole("button", { name: "Back to live" })).toHaveCount(0);
+  await expect(page.getByTestId("now-mark")).toHaveCount(0); // the present is outside the window
+});
+
+test("the slider marks now and says how rough a forecast is", async ({ page }) => {
+  await page.goto(at("/"));
+  await globeReady(page);
+  await expect(page.getByTestId("now-mark")).toBeVisible();
+  await expect(page.locator(".rough-note")).toHaveCount(0);
+  const slider = page.getByLabel("Time in the orbit data's 7-day window");
+  await slider.focus();
+  await page.keyboard.press("End"); // the last day of the window
+  await expect(page.getByTestId("sim-time")).toHaveText("2026-11-07 14:49 UTC");
+  await expect(page.locator(".mode-badge")).toContainText("FORECAST");
+  await expect(page.locator(".mode-badge")).toContainText("±~");
+  await expect(page.locator(".rough-note")).toContainText("manoeuvres");
+});
+
+test("dragging the slider gets fresh positions quickly", async ({ page }) => {
+  await page.goto(at("/"));
+  await globeReady(page);
+  await page.waitForFunction(() => (window as unknown as { __perigee?: { samples: number } }).__perigee!.samples > 0);
+  const result = await page.evaluate(async () => {
+    const r = document.querySelector<HTMLInputElement>(".timebar .track input")!;
+    const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    const p = (window as unknown as { __perigee: { samples: number; sampleMs: number[] } }).__perigee;
+    const before = p.samples;
+    const start = Number(r.min) + 3_600_000;
+    for (let k = 1; k <= 30; k++) {
+      const v = String(start + k * 15 * 60_000);
+      setValue.call(r, v);
+      r.dispatchEvent(new Event("input", { bubbles: true }));
+      await new Promise((done) => setTimeout(done, 50));
+      if (r.value !== v) return { thumbJumpedBack: true, samples: 0 };
+    }
+    await new Promise((done) => setTimeout(done, 400));
+    return { thumbJumpedBack: false, samples: p.samples - before };
+  });
+  expect(result.thumbJumpedBack).toBe(false); // the thumb stays where it was dragged
+  expect(result.samples).toBeGreaterThan(8); // positions keep up with the drag, not just at the end
 });
 
 test("motion is smooth: every frame moves points, each update is cheap", async ({ page }) => {

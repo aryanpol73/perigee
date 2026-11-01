@@ -73,6 +73,16 @@ describe("smooth motion", () => {
     expect(m.positions(t0 + 500, out)).toBe(true);
   });
 
+  it("holds points near the last sample instead of flying off along a straight line", () => {
+    const m = new Motion(leo.length);
+    const a = sampleOf(leo, t0);
+    m.add(a);
+    const out = new Float64Array(leo.length * 3);
+    m.positions(t0 + 30 * 60_000, out); // a seek 30 min ahead, before its sample has arrived
+    const moved = Math.hypot(out[0] - a.states[0], out[1] - a.states[1], out[2] - a.states[2]);
+    expect(moved / 1000).toBeLessThan(500); // at most a minute of travel, not 30 minutes' worth
+  });
+
   it("paused needs exactly one sample at the shown time", () => {
     const m = new Motion(leo.length);
     m.add(sampleOf(leo, t0));
