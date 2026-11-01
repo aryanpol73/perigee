@@ -19,7 +19,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: [["list"]],
+  // On CI, failures also become annotations on the run (readable without the log).
+  reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     channel: channel || undefined,

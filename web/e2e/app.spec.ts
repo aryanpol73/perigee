@@ -123,10 +123,19 @@ test("dragging the slider gets fresh positions quickly", async ({ page }) => {
 });
 
 test("motion is smooth: every frame moves points, each update is cheap", async ({ page }) => {
+  // This measures our per-frame work (placing every point), not how fast the machine
+  // draws: CI runners have no GPU and render WebGL in software at a few frames a
+  // second. Battery quality keeps drawing cheap so enough frames arrive to measure.
+  await page.addInitScript(() => window.localStorage.setItem("perigee.quality", "battery"));
   await page.goto(at("/"));
   await globeReady(page);
   await page.getByLabel("Speed").selectOption("600");
-  await page.waitForFunction(() => (window as unknown as { __perigee?: { frames: number } }).__perigee!.frames > 90, null, { timeout: 30_000 });
+  const start = await page.evaluate(() => (window as unknown as { __perigee: { frames: number } }).__perigee.frames);
+  await page.waitForFunction(
+    (from) => (window as unknown as { __perigee: { frames: number } }).__perigee.frames >= from + 30,
+    start,
+    { timeout: 60_000 },
+  );
   const perf = await page.evaluate(() => {
     const p = (window as unknown as { __perigee: { updateMs: number[]; samples: number } }).__perigee;
     const u = [...p.updateMs].sort((a, b) => a - b);
