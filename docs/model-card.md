@@ -26,12 +26,30 @@ Chronological split with a 4 days 00:00:00 embargo before validation and test, s
 
 Operating point chosen on validation: highest recall with at most 1.0 false alarms per true event.
 
-| Model | PR-AUC (95% CI, pair bootstrap) | Precision | Recall | Brier |
-|---|---|---|---|---|
-| (a) Alert if predicted miss < threshold | 0.293 (0.289-0.297) | 0.368 | 0.673 | n/a |
-| (b) Miss-distance threshold tuned on validation | 0.356 (0.350-0.361) | 0.375 | 0.000 | n/a |
-| (c) Logistic regression, 5 features | 0.386 (0.380-0.392) | 0.462 | 0.222 | 0.097 |
-| **LightGBM (main model)** | 0.698 (0.693-0.704) | 0.496 | 0.762 | 0.069 |
+| Model | PR-AUC (95% CI, pair bootstrap) | Alerts | Precision | Recall | Brier |
+|---|---|---|---|---|---|
+| (a) Alert if predicted miss < threshold | 0.293 (0.289-0.297) | 48,534 | 0.368 | 0.673 | n/a |
+| (b) Miss-distance threshold tuned on validation | 0.356 (0.350-0.361) | 8 | 0.375 | 0.000 | n/a |
+| (c) Logistic regression, 5 features | 0.386 (0.380-0.392) | 12,776 | 0.462 | 0.222 | 0.097 |
+| **LightGBM (main model)** | 0.698 (0.693-0.704) | 40,860 | 0.496 | 0.762 | 0.069 |
+
+Base rate in the test period: 13.7%. (b) Miss-distance threshold tuned on validation raises only 8 alerts: on validation it reaches the precision floor (50%) only with its very top scores, so the floor is out of its reach.
+
+LightGBM trade-off on the test period (any threshold, not only the operating point):
+
+| Recall | Best precision |
+|---|---|
+| 25% | 0.92 |
+| 50% | 0.73 |
+| 60% | 0.63 |
+| 75% | 0.51 |
+| 90% | 0.38 |
+
+| Highest-scored approaches | Share still close with newer data |
+|---|---|
+| top 100 | 0.90 |
+| top 1,000 | 0.98 |
+| top 5,000 | 0.95 |
 
 LightGBM beats every baseline, with the lower end of its PR-AUC interval above the best baseline.
 

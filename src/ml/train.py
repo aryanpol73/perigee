@@ -145,6 +145,20 @@ def point_metrics(y: np.ndarray, alerts: np.ndarray) -> dict[str, float]:
     }
 
 
+def tradeoff_table(
+    y: np.ndarray, scores: np.ndarray, recalls=(0.25, 0.5, 0.6, 0.75, 0.9), top_k=(100, 1000, 5000)
+) -> dict[str, list[dict[str, float]]]:
+    """Best precision at several recalls, and the share of real events among the top-k scores."""
+    precision, recall, _ = precision_recall_curve(y, scores)
+    at_recall = []
+    for r in recalls:
+        ok = recall[:-1] >= r
+        at_recall.append({"recall": r, "precision": float(precision[:-1][ok].max()) if ok.any() else float("nan")})
+    order = np.argsort(-scores, kind="stable")
+    top = [{"k": k, "precision": float(y[order[:k]].mean())} for k in top_k if k <= len(y)]
+    return {"precision_at_recall": at_recall, "precision_at_top_k": top}
+
+
 def calibration_table(y: np.ndarray, p: np.ndarray, bins: int = 10) -> list[dict[str, float]]:
     edges = np.quantile(p, np.linspace(0, 1, bins + 1))
     edges = np.unique(edges)
@@ -300,6 +314,7 @@ def train_and_evaluate(rows: pd.DataFrame, config: TrainConfig = TrainConfig()) 
     evaluate("lightgbm", raw_va, raw_te, cal_te)
     models["lightgbm"]["best_params"] = study.best_params
     models["lightgbm"]["best_iteration"] = int(booster.best_iteration)
+    models["lightgbm"]["tradeoff"] = tradeoff_table(y_te, raw_te)
     results["models"] = models
 
     best_baseline = max((k for k in models if k != "lightgbm"), key=lambda k: models[k]["pr_auc"])
