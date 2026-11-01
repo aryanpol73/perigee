@@ -2,8 +2,15 @@
 // closest approach, flies the camera there and draws the line between the objects.
 import { useEffect, useState } from "react";
 import { get, query, useApi, type Conjunction, type ConjunctionDetail, type ConjunctionPage, type Meta } from "../api";
-import { ageDays, hoursAhead, km, objectTypeName, percent, riskLabel, utc } from "../format";
-import { setState, useStore } from "../store";
+import { ageDays, hoursAhead, hoursFromNow, km, objectTypeName, percent, riskLabel, utc } from "../format";
+import { setState, time, useStore, wallNow } from "../store";
+
+/** Select a close approach: forecast mode, paused at its closest approach. */
+export function focusApproach(c: Conjunction): void {
+  const tca = new Date(c.tca).getTime();
+  setState({ focus: { conjunctionId: c.id, norads: [c.objects[0].norad_id, c.objects[1].norad_id], tca }, selected: null });
+  time.seek(tca);
+}
 
 const PAGE = 25;
 
@@ -11,14 +18,17 @@ export function ConjunctionsView({ meta }: { meta?: Meta }) {
   const [sort, setSort] = useState<"probability" | "tca" | "miss">("probability");
   const [maxMiss, setMaxMiss] = useState<number | "">("");
   const [scoredOnly, setScoredOnly] = useState(false);
+  const [showPast, setShowPast] = useState(false);
+  // Upcoming only: from the real time, rounded to the minute so the request stays cacheable.
+  const from = showPast ? undefined : new Date(Math.floor(wallNow() / 60_000) * 60_000).toISOString();
   const [offset, setOffset] = useState(0);
   const focus = useStore((s) => s.focus);
   const page = useApi<ConjunctionPage>(
-    `/v1/conjunctions${query({ sort, max_miss_km: maxMiss || undefined, scored_only: scoredOnly || undefined, limit: PAGE, offset })}`,
+    `/v1/conjunctions${query({ sort, max_miss_km: maxMiss || undefined, scored_only: scoredOnly || undefined, tca_from: from, limit: PAGE, offset })}`,
   );
   const op = meta?.operating_probability ?? null;
 
-  useEffect(() => setOffset(0), [sort, maxMiss, scoredOnly]);
+  useEffect(() => setOffset(0), [sort, maxMiss, scoredOnly, showPast]);
 
   useEffect(() => {
     // Objects in approaches above the operating point, for the "risk" colour mode.
@@ -28,13 +38,7 @@ export function ConjunctionsView({ meta }: { meta?: Meta }) {
     );
   }, [op]);
 
-  const pick = (c: Conjunction) =>
-    setState({
-      focus: { conjunctionId: c.id, norads: [c.objects[0].norad_id, c.objects[1].norad_id], tca: new Date(c.tca).getTime() },
-      time: new Date(c.tca).getTime(),
-      playing: false,
-      selected: null,
-    });
+  const pick = (c: Conjunction) => focusApproach(c);
 
   return (
     <div className="view">
@@ -62,6 +66,9 @@ export function ConjunctionsView({ meta }: { meta?: Meta }) {
         </label>
         <label>
           <input type="checkbox" checked={scoredOnly} onChange={(e) => setScoredOnly(e.target.checked)} /> with an estimate only
+        </label>
+        <label>
+          <input type="checkbox" checked={showPast} onChange={(e) => setShowPast(e.target.checked)} /> include past ones
         </label>
       </div>
 
@@ -93,7 +100,7 @@ export function ConjunctionsView({ meta }: { meta?: Meta }) {
                     </button>
                   </td>
                   <td>
-                    {hoursAhead(c.hours_to_tca)}
+                    {hoursAhead(hoursFromNow(c.tca, wallNow()))}
                     <div className="muted small">{utc(c.tca)}</div>
                   </td>
                   <td className="num">{km(c.miss_distance_km)}</td>

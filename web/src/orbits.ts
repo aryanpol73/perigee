@@ -79,21 +79,26 @@ export function visible(o: Omm, f: Filters): boolean {
   return apogee >= f.minAltKm && perigee <= f.maxAltKm;
 }
 
-// Categorical slots 1-3 of the validated palette (light mode); unknown is neutral.
+// Object colours on the dark globe: the categorical blue / orange / green of the
+// validated palette, lifted in lightness so small points read against space.
 export const TYPE_COLORS: Record<ObjectType, string> = {
-  PAY: "#2a78d6",
-  DEB: "#eb6834",
-  "R/B": "#1baf7a",
-  UNK: "#898781",
+  PAY: "#6fb2ff",
+  DEB: "#ff8a4c",
+  "R/B": "#3fd99a",
+  UNK: "#c9c6bd",
 };
+
+/** Crewed stations get their own colour and a larger point. */
+export const STATION_COLOR = "#a8f7ff";
+export const STATIONS = new Set([25544, 48274]); // ISS (ZARYA), CSS (TIANHE)
 
 export type ColorMode = "type" | "altitude" | "risk";
 
-/** One blue hue, light (low) to dark (high), for altitude. */
+/** One blue hue, light (low orbit) to deeper blue (high orbit), for altitude. */
 export function altitudeColor(perigeeKm: number): string {
   const t = Math.min(1, Math.max(0, Math.log10(Math.max(perigeeKm, 200) / 200) / Math.log10(36000 / 200)));
-  const light = [190, 216, 245];
-  const dark = [16, 62, 130];
+  const light = [200, 232, 255];
+  const dark = [64, 104, 214]; // stays visible against space
   const c = light.map((l, i) => Math.round(l + (dark[i] - l) * t));
   return `rgb(${c[0]},${c[1]},${c[2]})`;
 }

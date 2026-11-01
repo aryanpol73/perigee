@@ -113,20 +113,42 @@ button:disabled { opacity: 0.5; cursor: default; }
 .chart-legend .line.s1 { background: var(--s1); }
 .readout { font-size: 12px; color: var(--ink-2); min-height: 1.5em; }
 
-.timebar { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 6px 10px; border-radius: 8px; }
-.timebar input[type="range"] { flex: 1; min-width: 120px; }
+/* Panels over the globe: dark glass, so the Earth stays the focus in both themes. */
+.timebar, .legend {
+  color: #eceae4;
+  background: rgba(10, 14, 22, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+.timebar .muted, .legend .muted { color: #a9a69d; }
+.timebar select, .legend select, .timebar button { background: rgba(255, 255, 255, 0.06); color: #f3f1ec; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 6px; }
+.timebar option, .legend option { color: #0b0b0b; }
+.timebar { position: absolute; left: 12px; right: 12px; bottom: 30px; display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; padding: 8px 12px; border-radius: 10px; }
+.timebar input[type="range"] { flex: 1; min-width: 140px; accent-color: #6fb2ff; }
 .timebar .time { font-variant-numeric: tabular-nums; }
-.legend { position: absolute; top: 12px; left: 12px; background: color-mix(in srgb, var(--surface) 88%, transparent); padding: 8px 10px; border-radius: 8px; max-width: 240px; }
+.timebar .data-age { flex-basis: 100%; }
+.timebar .back-live { border-color: #3fd99a; color: #c8f7e3; }
+.mode-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.mode-badge.live { background: rgba(63, 217, 154, 0.16); color: #9df0c8; border: 1px solid rgba(63, 217, 154, 0.55); }
+.mode-badge.live .dot { width: 7px; height: 7px; border-radius: 50%; background: #3fd99a; box-shadow: 0 0 8px #3fd99a; animation: live-pulse 2s ease-in-out infinite; }
+.mode-badge.forecast { background: rgba(255, 196, 77, 0.14); color: #ffd98a; border: 1px solid rgba(255, 196, 77, 0.55); }
+.mode-badge.stale { background: rgba(255, 99, 82, 0.16); color: #ffb3a8; border: 1px solid rgba(255, 99, 82, 0.6); }
+@keyframes live-pulse { 50% { opacity: 0.35; } }
+.legend { position: absolute; top: 12px; left: 12px; padding: 10px 12px; border-radius: 10px; max-width: 250px; }
 .legend ul { list-style: none; padding: 0; margin: 6px 0; }
-.legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 6px 0 4px; }
-.legend .ramp { display: flex; justify-content: space-between; height: 14px; margin: 6px 0; padding: 0 4px; font-size: 11px; color: #fff; background: linear-gradient(90deg, rgb(190, 216, 245), rgb(16, 62, 130)); border-radius: 3px; }
+.legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 6px 0 4px; box-shadow: 0 0 6px currentColor; }
+.legend .ramp { display: flex; justify-content: space-between; height: 14px; margin: 6px 0; padding: 0 4px; font-size: 11px; color: #fff; background: linear-gradient(90deg, rgb(200, 232, 255), rgb(64, 104, 214)); border-radius: 3px; }
 .legend .ramp span:first-child { color: #0b0b0b; }
 .alt-filter { display: block; margin-top: 6px; }
 .sim-label { position: absolute; top: 12px; right: 12px; background: var(--warn-bg); color: var(--warn-ink); padding: 6px 10px; border-radius: 6px; font-weight: 600; }
 
 .footer { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-2); }
 
-.cesium-viewer-bottom { display: none; }
+.cesium-viewer-bottom { left: 12px !important; right: auto !important; bottom: 4px !important; opacity: 0.75; font-size: 10px; }
+.cesium-credit-logoContainer { display: none !important; } /* no Cesium ion in use */
+.cesium-credit-textContainer, .cesium-credit-expand-link { font-size: 10px; color: #c9c6bd; }
 
 @media (max-width: 700px) {
   .layout { grid-template-columns: 1fr; grid-template-rows: 55vh auto; }
@@ -135,5 +157,6 @@ button:disabled { opacity: 0.5; cursor: default; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .mode-badge.live .dot { animation: none; }
   * { transition: none !important; animation: none !important; }
 }
