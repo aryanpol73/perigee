@@ -35,6 +35,8 @@ export function SimulatorView() {
       setState((s) => (s.sim ? { sim: { ...s.sim, frame: (s.sim.frame + 1) % s.sim.response.frames.length } } : {}));
     }, 1500);
     return () => clearInterval(t);
+    // Restart the animation for a new simulation, not on every frame it advances.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sim?.response, auto]);
 
   const run = async () => {

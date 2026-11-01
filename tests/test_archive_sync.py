@@ -7,7 +7,7 @@ import pytest
 from src.ingest import archive
 from src.ingest.download import HttpStatusError, PoliteClient
 from src.ingest.sources import SATCAT_URL
-from src.ops.archive_sync import LocalBackend, PublicDatasetError, pull, push
+from src.ops.archive_sync import LocalBackend, PublicDatasetError, pull, push, push_models
 from src.pipeline import run_data
 from tests.conftest import NOW, STATIONS_URL, FakeFetcher
 
@@ -170,3 +170,22 @@ def test_pull_history_days_restores_recent_gp_snapshots_only(settings, tmp_path)
     got = sorted(p.name for p in (with_history.data_dir / "raw" / "gp").iterdir())
     assert got == ["20261001T000000Z", "20261020T120000Z", "20261031T000000Z"]
     assert (with_history.data_dir / "raw" / "satcat" / "20261001T000000Z" / "satcat.csv.gz").exists()
+
+
+def test_models_round_trip_newest_only(settings, tmp_path):
+    remote = tmp_path / "remote"
+    laptop = _fresh_runner(settings, tmp_path, "laptop")
+    for version in ["20250601-aaaaaaa", "20251225-feaaf72"]:
+        d = laptop.data_dir / "models" / version
+        d.mkdir(parents=True)
+        (d / "lightgbm.txt").write_text(version)
+        (d / "results.json").write_text("{}")
+    assert len(push_models(LocalBackend(remote), laptop.data_dir)) == 4
+    assert push_models(LocalBackend(remote), laptop.data_dir) == []  # nothing new
+
+    runner = _fresh_runner(settings, tmp_path, "runner")
+    pull(LocalBackend(remote), runner.data_dir)
+    assert not (runner.data_dir / "models").exists()  # the hourly job does not need models
+    pull(LocalBackend(remote), runner.data_dir, models=True)
+    assert sorted(p.name for p in (runner.data_dir / "models").iterdir()) == ["20251225-feaaf72"]
+    assert (runner.data_dir / "models" / "20251225-feaaf72" / "lightgbm.txt").read_text() == "20251225-feaaf72"

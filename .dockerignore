@@ -1,0 +1,6 @@
+# Only src/ and requirements-api.txt go into the image.
+*
+!src/
+!requirements-api.txt
+**/__pycache__
+**/*.pyc

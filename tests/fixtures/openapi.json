@@ -252,6 +252,18 @@
       },
       "Health": {
         "properties": {
+          "code_commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Commit of the deployed API code; null when run from a checkout",
+            "title": "Code Commit"
+          },
           "data_age_hours": {
             "title": "Data Age Hours",
             "type": "number"

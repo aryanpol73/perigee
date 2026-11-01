@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { get, useApi, type Health, type Meta } from "./api";
+import { apiUrl, get, useApi, type Health, type Meta } from "./api";
 import { ConjunctionsView } from "./views/ConjunctionsView";
 import { MethodView } from "./views/MethodView";
 import { ObjectView } from "./views/ObjectView";
@@ -45,7 +45,7 @@ export default function App() {
   useEffect(() => {
     // Free hosts sleep; say so if the first answer is slow.
     const timer = setTimeout(() => setSlow(true), 3000);
-    fetch("/v1/health")
+    fetch(apiUrl("/v1/health"))
       .then((r) => r.json())
       .then((h: Health) => setHealth(h))
       .catch(() => setHealth(null))
@@ -62,6 +62,8 @@ export default function App() {
 
   useEffect(() => {
     if (selected !== null && tab !== "object" && tab !== "simulator") go("object");
+    // Only a new selection opens the object tab; changing tabs afterwards must not.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected]);
 
   useEffect(() => {

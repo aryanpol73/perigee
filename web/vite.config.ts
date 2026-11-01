@@ -14,6 +14,9 @@ export default defineConfig(({ command }) => ({
       targets: ["Workers", "ThirdParty", "Assets", "Widgets"].map((dir) => ({
         src: `${cesiumSource}/${dir}`,
         dest: "cesium",
+        // Keep only the part after node_modules/cesium/Build/Cesium: dist/cesium/Workers/...
+        // (the plugin otherwise keeps the whole source path; scripts/check-build.mjs guards this).
+        rename: { stripBase: 4 },
       })),
     }),
   ],

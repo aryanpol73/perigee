@@ -52,6 +52,7 @@ def test_no_collision_probability_wording(client):
 def test_health_and_meta(client):
     h = client.get("/v1/health")
     assert h.status_code == 200 and h.json()["status"] == "ok"
+    assert h.json()["code_commit"] is None  # only the deployed image carries build_info.json
     assert client.get("/v1/conjunctions", params={"limit": 1}).json()["source"]["history_complete"] is False
     m = client.get("/v1/meta").json()
     assert m["object_count"] > 100 and m["disclaimer"] and m["orbit_file_url"].startswith("/v1/orbits/orbits.")
@@ -263,3 +264,14 @@ def test_cached_responses_are_identical_with_and_without_gzip(client):
     assert plain.json() == zipped.json() == again.json()
     misses = [c["miss_distance_km"] for c in again.json()["items"]]
     assert misses == sorted(misses)
+
+
+def test_code_commit_reads_the_deploy_build_info(tmp_path):
+    from src.api.app import code_commit
+
+    info = tmp_path / "build_info.json"
+    assert code_commit(info) is None
+    info.write_text('{"commit": "abc1234"}')
+    assert code_commit(info) == "abc1234"
+    info.write_text("not json")
+    assert code_commit(info) is None
