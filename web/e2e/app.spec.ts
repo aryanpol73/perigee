@@ -149,6 +149,17 @@ test("quality setting applies and is remembered", async ({ page }) => {
   await expect(page.locator(".cesium-widget-credits")).toContainText("NASA");
 });
 
+test("the globe goes full screen and back", async ({ page }) => {
+  await page.goto(at("/"));
+  await globeReady(page);
+  await page.getByRole("button", { name: "Full screen" }).click();
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement?.className)).toBe("globe");
+  await expect(page.getByRole("button", { name: "Exit full screen" })).toBeVisible();
+  await expect(page.locator(".timebar")).toBeVisible(); // the controls come along
+  await page.getByRole("button", { name: "Exit full screen" }).click();
+  await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
+});
+
 test("filters and colour modes", async ({ page }) => {
   await page.goto(at("/"));
   await globeReady(page);
