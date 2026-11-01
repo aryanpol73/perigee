@@ -15,6 +15,7 @@ import argparse
 import json
 import logging
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 from src.config import Settings
@@ -168,6 +169,9 @@ def main(argv: list[str] | None = None) -> int:
         from src.api.app import create_app
         from src.results.fixture import FIXTURE_DIR
 
+        if args.fixture:
+            # The fixture is a fixed demo snapshot: its age is not a failed refresh.
+            settings = replace(settings, api_max_data_age_h=float("inf"))
         uvicorn.run(create_app(settings, FIXTURE_DIR if args.fixture else None), host="127.0.0.1", port=args.port, log_config=None)
         return exit_code
     elif args.command == "dev":
