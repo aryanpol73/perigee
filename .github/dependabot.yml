@@ -18,3 +18,8 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule: { interval: weekly }
+    # The image tracks the Python the code, CI and the jobs use (3.12): only
+    # patch releases and digest refreshes. Moving Python is a deliberate change.
+    ignore:
+      - dependency-name: python
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
