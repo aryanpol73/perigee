@@ -90,7 +90,7 @@ class ScreenResult:
             "objects": self.objects,
             "objects_with_sgp4_errors": self.objects_with_sgp4_errors,
             "candidates_refined": self.candidates,
-            "events": int(len(self.events)),
+            "events": len(self.events),
             "colocated_pairs": int(self.events["colocated"].sum()) if len(self.events) else 0,
             "seconds": round(self.seconds, 1),
             **{f"config_{k}": v for k, v in asdict(self.config).items()},
@@ -237,10 +237,10 @@ def _screen_chunk(first_step: int, last_step: int) -> tuple[pd.DataFrame, set[in
     failing = set(np.flatnonzero(~usable_all.all(axis=1)).tolist())
 
     found: list[tuple[IntArray, IntArray, FloatArray, FloatArray, IntArray]] = []
-    for col, step in enumerate(steps):
+    for col, step_s in enumerate(steps):
         i, j, miss, tau = coarse_candidates(r[:, col], v[:, col], usable_all[:, col], w["active"], cfg)
         if len(i):
-            found.append((i, j, miss, tau, np.full(len(i), step)))
+            found.append((i, j, miss, tau, np.full(len(i), step_s)))
     if not found:
         return _empty_events(), failing, 0
 

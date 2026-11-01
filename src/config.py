@@ -53,6 +53,11 @@ class Settings:
     api_max_data_age_h: float = 48.0
     api_rate_limit_per_min: int = 120
     api_simulate_per_min: int = 10
+    # Public dataset of derived results the API downloads at startup ("" = use results_dir as is).
+    results_repo: str = ""
+    # Error tracking (Sentry); empty disables it.
+    sentry_dsn: str = ""
+    sentry_environment: str = "development"
 
     @property
     def raw_dir(self) -> Path:
@@ -97,4 +102,7 @@ class Settings:
             api_max_data_age_h=_env_float("PERIGEE_API_MAX_DATA_AGE_H", 48.0),
             api_rate_limit_per_min=_env_int("PERIGEE_API_RATE_LIMIT_PER_MIN", 120),
             api_simulate_per_min=_env_int("PERIGEE_API_SIMULATE_PER_MIN", 10),
+            results_repo=os.environ.get("PERIGEE_RESULTS_REPO", "").strip(),
+            sentry_dsn=os.environ.get("SENTRY_DSN", "").strip(),
+            sentry_environment=os.environ.get("SENTRY_ENVIRONMENT", "development"),
         )

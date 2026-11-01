@@ -163,7 +163,7 @@ def test_too_little_history_is_refused():
 
 
 def test_train_and_evaluate_reports_everything(tmp_path):
-    results, booster, calibrator = train_and_evaluate(_synthetic_rows(), FAST)
+    results, _booster, _calibrator = train_and_evaluate(_synthetic_rows(), FAST)
     models = results["models"]
     assert set(models) == {
         "a_alert_if_predicted_miss_below_threshold",

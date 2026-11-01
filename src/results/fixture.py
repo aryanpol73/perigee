@@ -7,8 +7,6 @@ sample of the rest. No Space-Track records are included (only derived results).
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 
@@ -16,7 +14,6 @@ from src.config import Settings
 from src.screening.run import latest_catalog
 from src.storage import parquet_store as store
 
-FIXTURE_DIR = Path(__file__).resolve().parents[2] / "tests" / "fixtures" / "results"
 ISS = 25544
 
 

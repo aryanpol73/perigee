@@ -1,6 +1,7 @@
 import threading
 from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import ClassVar
 
 import pytest
 
@@ -16,7 +17,7 @@ from tests.conftest import NOW, FakeFetcher
 
 
 class _Handler(BaseHTTPRequestHandler):
-    seen_user_agents: list[str] = []
+    seen_user_agents: ClassVar[list[str]] = []
 
     def do_GET(self):
         self.seen_user_agents.append(self.headers.get("User-Agent", ""))

@@ -27,12 +27,12 @@ from astropy.utils import iers
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.config import Settings  # noqa: E402
-from src.orbits import satjs_bridge  # noqa: E402
-from src.orbits.frames import geodetic_to_ecef  # noqa: E402
-from src.orbits.propagate import propagate_catalog  # noqa: E402
-from src.orbits.reference import ISS_OEM_URL, parse_oem  # noqa: E402
-from src.storage import parquet_store as store  # noqa: E402
+from src.config import Settings
+from src.orbits import satjs_bridge
+from src.orbits.frames import geodetic_to_ecef
+from src.orbits.propagate import propagate_catalog
+from src.orbits.reference import ISS_OEM_URL, parse_oem
+from src.storage import parquet_store as store
 
 ISS = 25544
 DEFAULT_OEM = ROOT / "data" / "reference" / "ISS.OEM_J2K_EPH.txt"

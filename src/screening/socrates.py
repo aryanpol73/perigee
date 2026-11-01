@@ -61,9 +61,9 @@ def _same_inputs(df: pd.DataFrame, a: str, b: str, ours: pd.Series, theirs: pd.S
 
 def _nearest_match(left: pd.DataFrame, lt: str, right: pd.DataFrame, rt: str, cols: list[str]) -> pd.DataFrame:
     """For each left row, the same-pair right row whose TCA is nearest (within MATCH_TCA)."""
-    l = left.sort_values(lt).reset_index()
+    lhs = left.sort_values(lt).reset_index()
     r = right.sort_values(rt)[["a", "b", rt, *cols]]
-    merged = pd.merge_asof(l, r, left_on=lt, right_on=rt, by=["a", "b"], tolerance=MATCH_TCA, direction="nearest")
+    merged = pd.merge_asof(lhs, r, left_on=lt, right_on=rt, by=["a", "b"], tolerance=MATCH_TCA, direction="nearest")
     return merged.set_index("index").reindex(left.index)
 
 

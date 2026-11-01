@@ -19,10 +19,10 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.orbits.frames import julian_dates  # noqa: E402
-from src.orbits.propagate import satrec_from_elements  # noqa: E402
-from src.results.bundle import POINTER  # noqa: E402
-from src.results.fixture import FIXTURE_DIR  # noqa: E402
+from src.orbits.frames import julian_dates
+from src.orbits.propagate import satrec_from_elements
+from src.results import FIXTURE_DIR
+from src.results.bundle import POINTER
 
 OUT = ROOT / "web" / "src" / "__fixtures__" / "sgp4_reference.json"
 OFFSETS_H = (0.0, 6.0, 24.0)

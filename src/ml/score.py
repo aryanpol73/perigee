@@ -100,12 +100,12 @@ def score_events(
     rows = pd.concat([rows, geometry_at_tca(rows, known, start)], axis=1)
     # Numeric even when a feature group is missing entirely (e.g. no update history yet).
     feats = build_features(rows, known, satcat, stats, space_weather, start).astype(float)
-    raw = model.booster.predict(feats[FEATURES])
+    raw = np.asarray(model.booster.predict(feats[FEATURES]))
     out.loc[rows.index, "raw_score"] = raw
     out.loc[rows.index, "risk_probability_estimate"] = model.probability(raw)
     if explain:
         # Top reasons: the features with the largest SHAP values (log-odds) for each row.
-        contrib = model.booster.predict(feats[FEATURES], pred_contrib=True)[:, :-1]
+        contrib = np.asarray(model.booster.predict(feats[FEATURES], pred_contrib=True))[:, :-1]
         top = np.argsort(-np.abs(contrib), axis=1)[:, :3]
         out["top_reasons"] = None
         out.loc[rows.index, "top_reasons"] = [

@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -64,7 +65,8 @@ def main(argv: list[str] | None = None) -> int:
     pub.add_argument("--model", help="model version under data/models (default: newest)")
     pub.add_argument("--fixture", action="store_true", help="write the small committed fixture bundle instead")
     api = commands.add_parser("api", help="serve the read-only API")
-    api.add_argument("--port", type=int, default=8000)
+    api.add_argument("--host", default=os.environ.get("PERIGEE_API_HOST", "127.0.0.1"))
+    api.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
     api.add_argument("--fixture", action="store_true", help="serve the committed fixture bundle")
     commands.add_parser("dev", help="run the API and the web app together (fixture data if nothing is published)")
     imp =commands.add_parser("import-spacetrack", help="import a Space-Track yearly TLE zip into history")
@@ -148,16 +150,17 @@ def main(argv: list[str] | None = None) -> int:
             )
         return exit_code
     elif args.command == "publish":
+        from src.results import FIXTURE_DIR
         from src.results.bundle import build
-        from src.results.fixture import FIXTURE_DIR, fixture_selection
+        from src.results.fixture import fixture_selection
 
         if args.fixture:
-            b = build(settings, args.model, fixture_selection(settings), FIXTURE_DIR, min_objects=100)
+            bundle = build(settings, args.model, fixture_selection(settings), FIXTURE_DIR, min_objects=100)
         else:
-            b = build(settings, args.model)
-        m = b.meta
+            bundle = build(settings, args.model)
+        m = bundle.meta
         print(
-            f"Published {m['run_id']} to {b.path}: {m['object_count']:,} objects, {m['conjunction_count']:,} close "
+            f"Published {m['run_id']} to {bundle.path}: {m['object_count']:,} objects, {m['conjunction_count']:,} close "
             f"approaches ({m['scored_conjunctions']:,} scored by model {m['model_version']})."
         )
         if not m["history_complete"]:
@@ -167,12 +170,19 @@ def main(argv: list[str] | None = None) -> int:
         import uvicorn
 
         from src.api.app import create_app
-        from src.results.fixture import FIXTURE_DIR
+        from src.results import FIXTURE_DIR
 
         if args.fixture:
             # The fixture is a fixed demo snapshot: its age is not a failed refresh.
             settings = replace(settings, api_max_data_age_h=float("inf"))
-        uvicorn.run(create_app(settings, FIXTURE_DIR if args.fixture else None), host="127.0.0.1", port=args.port, log_config=None)
+        elif settings.results_repo:
+            from src.results.remote import fetch_latest
+
+            try:
+                fetch_latest(settings.results_repo, settings.results_dir)
+            except Exception:  # serve the last good bundle on disk (or 503) rather than not start
+                log.exception("could not download the latest results", extra={"repo": settings.results_repo})
+        uvicorn.run(create_app(settings, FIXTURE_DIR if args.fixture else None), host=args.host, port=args.port, log_config=None)
         return exit_code
     elif args.command == "dev":
         from src.dev import run_dev
@@ -191,10 +201,10 @@ def main(argv: list[str] | None = None) -> int:
         print("Cite in anything published: Data from Space-Track.org (USSPACECOM).")
         return exit_code
     elif args.command == "train":
+        import pandas as pd
+
         from src.ml.dataset import DatasetConfig
         from src.ml.pipeline import run_train
-
-        import pandas as pd
 
         to_ts = lambda s: pd.Timestamp(s, tz="UTC") if s else None
         res = run_train(

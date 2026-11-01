@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from src.ingest.parse import parse_gp
 from src.orbits import satjs_bridge
 from src.orbits.propagate import propagate_catalog
 from src.orbits.reference import OemError, parse_oem
-from src.ingest.parse import parse_gp
 from tests.conftest import FIXTURES
 
 

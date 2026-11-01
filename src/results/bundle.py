@@ -30,6 +30,7 @@ import pandas as pd
 from src.config import Settings
 from src.ml.pipeline import git_commit, load_space_weather
 from src.ml.score import FULL_HISTORY_DAYS, MODEL_HORIZON_H, Model, load_model, score_events
+from src.results.remote import POINTER
 from src.risk.shells import prepare_objects, shell_index
 from src.screening.run import latest_catalog
 from src.screening.socrates import family
@@ -39,7 +40,6 @@ from src.storage.elsets import ElsetHistory
 log = logging.getLogger("perigee.results")
 
 DISCLAIMER = "Estimates from public orbit data; not for operational use."
-POINTER = "LATEST.json"
 # Fields satellite.js's json2satrec reads from an OMM record, plus identity.
 ORBIT_FIELDS = (
     "NORAD_CAT_ID", "OBJECT_NAME", "OBJECT_TYPE", "EPOCH", "MEAN_MOTION", "ECCENTRICITY", "INCLINATION",
@@ -109,7 +109,7 @@ def _conjunctions(settings: Settings, snapshot_id: str, objects: pd.DataFrame) -
     fam_a, fam_b = events["norad_a"].map(names).map(family), events["norad_b"].map(names).map(family)
     events["same_family"] = (fam_a == fam_b) & fam_a.notna()
     counts = {
-        "screened": int(len(events)),
+        "screened": len(events),
         "same_constellation_left_out": int(events["same_family"].sum()),
     }
     return events[~events["same_family"]].reset_index(drop=True), counts
@@ -316,6 +316,7 @@ def build(settings: Settings, model_version: str | None = None, select: pd.Serie
         "history_days_for_features": None if np.isnan(coverage) else round(coverage, 1),
         "history_complete": bool(not np.isnan(coverage) and coverage >= FULL_HISTORY_DAYS),
         "orbit_file": orbit_file,
+        "files": sorted([*(p.name for p in tmp.iterdir()), "meta.json"]),
         "disclaimer": DISCLAIMER,
         "sources": "Data from CelesTrak and Space-Track.org (USSPACECOM).",
     }

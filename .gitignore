@@ -13,3 +13,4 @@ web/dist/
 !tests/fixtures/results/**/*.parquet
 web/test-results/
 web/playwright-report/
+.coverage

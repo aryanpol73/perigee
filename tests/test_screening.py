@@ -134,7 +134,7 @@ def test_parallel_workers_give_the_same_events(gp_bytes):
 
     pd.testing.assert_frame_equal(moving(one), moving(many), check_exact=False, atol=1e-4)
     # Co-located pairs have no meaningful TCA (the distance is flat), so only the pairs must match.
-    pairs = lambda df: set(zip(df.loc[df["colocated"], "norad_a"], df.loc[df["colocated"], "norad_b"]))
+    pairs = lambda df: set(zip(df.loc[df["colocated"], "norad_a"], df.loc[df["colocated"], "norad_b"], strict=False))
     assert pairs(one) == pairs(many)
 
 
@@ -156,7 +156,7 @@ def test_docked_modules_are_flagged_colocated_once(gp_bytes):
     events = screen(catalog, START, ScreenConfig(days=2 / 24, scope="all", workers=1)).events
     co = events[events["colocated"]]
     # ISS (ZARYA) 25544, POISK 36086 and NAUKA 49044 share one element set.
-    assert {(25544, 36086), (25544, 49044), (36086, 49044)} <= set(zip(co["norad_a"], co["norad_b"]))
+    assert {(25544, 36086), (25544, 49044), (36086, 49044)} <= set(zip(co["norad_a"], co["norad_b"], strict=False))
     assert not co.duplicated(["norad_a", "norad_b"]).any()
 
 
@@ -199,7 +199,7 @@ def test_coarse_candidates_respect_usable_and_threshold():
     p = np.array([[7000.0, 0.0, 0.0], [7000.0, 0.0, 30.0], [7000.0, 1.0, 0.0]])
     v = np.array([[0.0, 7.5, 0.0], [0.0, 7.5, 0.0], [0.0, 7.5, 0.0]])  # flying together
     cfg = ScreenConfig(step_s=20.0)
-    i, j, _, _ = coarse_candidates(p, v, np.array([True, True, False]), np.ones(3, bool), cfg)
+    i, _j, _, _ = coarse_candidates(p, v, np.array([True, True, False]), np.ones(3, bool), cfg)
     assert len(i) == 0  # 30 km apart and parallel; the third object did not propagate
 
 

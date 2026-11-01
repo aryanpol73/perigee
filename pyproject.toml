@@ -1,0 +1,36 @@
+# Tool configuration. Dependencies stay pinned in requirements*.txt.
+
+[tool.ruff]
+target-version = "py312"
+line-length = 130
+extend-exclude = ["web", "data"]
+
+[tool.ruff.lint]
+# Errors, pyflakes, warnings, import order, bugbear, pyupgrade, ruff's own checks.
+select = ["E", "F", "W", "I", "B", "UP", "RUF"]
+ignore = [
+  "E501",    # long lines: report generators and SQL read better unwrapped
+  "B008",    # FastAPI's Query() defaults are the documented pattern
+  "E731",    # short lambdas for one-line helpers in tests and report scripts
+  "RUF001", "RUF002", "RUF003",  # typographic characters in user-facing text are intended
+]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E402"]  # scripts put the repo root on sys.path before importing src
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src"]
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["src/dev.py"]
+
+[tool.coverage.report]
+show_missing = false
+skip_covered = true

@@ -143,7 +143,7 @@ class Breakup:
             "collision": asdict(self.collision),
             "catastrophic": self.catastrophic,
             "specific_energy_j_per_g": round(self.specific_energy_j_per_g, 1),
-            "modelled_fragments_over_min_lc": int(round(self.modelled_count)),
+            "modelled_fragments_over_min_lc": round(self.modelled_count),
             "simulated_fragments": len(self.fragments),
             "input_mass_kg": self.input_mass_kg,
             "fragment_mass_kg": float(self.fragments["mass_kg"].sum()),
