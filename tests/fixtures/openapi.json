@@ -1,0 +1,1792 @@
+{
+  "components": {
+    "schemas": {
+      "Conjunction": {
+        "properties": {
+          "above_operating_point": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Above Operating Point"
+          },
+          "hours_to_tca": {
+            "title": "Hours To Tca",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "in_model_scope": {
+            "title": "In Model Scope",
+            "type": "boolean"
+          },
+          "miss_distance_km": {
+            "title": "Miss Distance Km",
+            "type": "number"
+          },
+          "objects": {
+            "items": {
+              "$ref": "#/components/schemas/OrbitedObject"
+            },
+            "title": "Objects",
+            "type": "array"
+          },
+          "relative_speed_kms": {
+            "title": "Relative Speed Kms",
+            "type": "number"
+          },
+          "risk_probability_estimate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chance the approach still looks closer than 5 km once newer public data arrives; null outside the model's scope",
+            "title": "Risk Probability Estimate"
+          },
+          "tca": {
+            "format": "date-time",
+            "title": "Tca",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tca",
+          "hours_to_tca",
+          "miss_distance_km",
+          "relative_speed_kms",
+          "risk_probability_estimate",
+          "in_model_scope",
+          "above_operating_point",
+          "objects"
+        ],
+        "title": "Conjunction",
+        "type": "object"
+      },
+      "ConjunctionDetail": {
+        "properties": {
+          "above_operating_point": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Above Operating Point"
+          },
+          "confidence_note": {
+            "title": "Confidence Note",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "Estimate from public orbit data; not for operational use.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "hours_to_tca": {
+            "title": "Hours To Tca",
+            "type": "number"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "in_model_scope": {
+            "title": "In Model Scope",
+            "type": "boolean"
+          },
+          "miss_distance_km": {
+            "title": "Miss Distance Km",
+            "type": "number"
+          },
+          "object_details": {
+            "items": {
+              "$ref": "#/components/schemas/ObjectSummary"
+            },
+            "title": "Object Details",
+            "type": "array"
+          },
+          "objects": {
+            "items": {
+              "$ref": "#/components/schemas/OrbitedObject"
+            },
+            "title": "Objects",
+            "type": "array"
+          },
+          "relative_speed_kms": {
+            "title": "Relative Speed Kms",
+            "type": "number"
+          },
+          "risk_probability_estimate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chance the approach still looks closer than 5 km once newer public data arrives; null outside the model's scope",
+            "title": "Risk Probability Estimate"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "tca": {
+            "format": "date-time",
+            "title": "Tca",
+            "type": "string"
+          },
+          "top_reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "title": "Top Reasons",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "tca",
+          "hours_to_tca",
+          "miss_distance_km",
+          "relative_speed_kms",
+          "risk_probability_estimate",
+          "in_model_scope",
+          "above_operating_point",
+          "objects",
+          "source",
+          "object_details",
+          "top_reasons",
+          "confidence_note"
+        ],
+        "title": "ConjunctionDetail",
+        "type": "object"
+      },
+      "ConjunctionPage": {
+        "properties": {
+          "disclaimer": {
+            "default": "Estimate from public orbit data; not for operational use.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Conjunction"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source",
+          "total",
+          "limit",
+          "offset",
+          "items"
+        ],
+        "title": "ConjunctionPage",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "properties": {
+          "data_age_hours": {
+            "title": "Data Age Hours",
+            "type": "number"
+          },
+          "max_data_age_hours": {
+            "title": "Max Data Age Hours",
+            "type": "number"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "stale"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "data_age_hours",
+          "max_data_age_hours",
+          "snapshot_id",
+          "model_version"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "Meta": {
+        "properties": {
+          "commit": {
+            "title": "Commit",
+            "type": "string"
+          },
+          "conjunction_count": {
+            "title": "Conjunction Count",
+            "type": "integer"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "history_complete": {
+            "description": "False when the update-history features had less than 25 days of data",
+            "title": "History Complete",
+            "type": "boolean"
+          },
+          "history_days_for_features": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History Days For Features"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "object_count": {
+            "title": "Object Count",
+            "type": "integer"
+          },
+          "operating_probability": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Validation operating point, as a probability estimate",
+            "title": "Operating Probability"
+          },
+          "orbit_file_url": {
+            "title": "Orbit File Url",
+            "type": "string"
+          },
+          "same_constellation_left_out": {
+            "title": "Same Constellation Left Out",
+            "type": "integer"
+          },
+          "scored_conjunctions": {
+            "title": "Scored Conjunctions",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_time": {
+            "format": "date-time",
+            "title": "Snapshot Time",
+            "type": "string"
+          },
+          "sources": {
+            "title": "Sources",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "snapshot_time",
+          "generated_at",
+          "commit",
+          "object_count",
+          "conjunction_count",
+          "scored_conjunctions",
+          "same_constellation_left_out",
+          "model_version",
+          "operating_probability",
+          "history_complete",
+          "history_days_for_features",
+          "orbit_file_url",
+          "disclaimer",
+          "sources"
+        ],
+        "title": "Meta",
+        "type": "object"
+      },
+      "ModelSummary": {
+        "properties": {
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
+          },
+          "data_window": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Window"
+          },
+          "disclaimer": {
+            "default": "Not for operational decisions.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "lightgbm_beats_all_baselines": {
+            "title": "Lightgbm Beats All Baselines",
+            "type": "boolean"
+          },
+          "limits": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limits",
+            "type": "array"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "title": "Metrics",
+            "type": "object"
+          },
+          "model_version": {
+            "title": "Model Version",
+            "type": "string"
+          },
+          "operating_probability": {
+            "title": "Operating Probability",
+            "type": "number"
+          },
+          "scope": {
+            "title": "Scope",
+            "type": "string"
+          },
+          "test_counts": {
+            "additionalProperties": true,
+            "title": "Test Counts",
+            "type": "object"
+          },
+          "top_features": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Top Features",
+            "type": "object"
+          },
+          "tradeoff": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tradeoff"
+          }
+        },
+        "required": [
+          "model_version",
+          "commit",
+          "data_window",
+          "label",
+          "scope",
+          "test_counts",
+          "metrics",
+          "tradeoff",
+          "operating_probability",
+          "lightgbm_beats_all_baselines",
+          "top_features",
+          "limits"
+        ],
+        "title": "ModelSummary",
+        "type": "object"
+      },
+      "ObjectDetail": {
+        "properties": {
+          "apogee_km": {
+            "title": "Apogee Km",
+            "type": "number"
+          },
+          "conjunctions": {
+            "items": {
+              "$ref": "#/components/schemas/Conjunction"
+            },
+            "title": "Conjunctions",
+            "type": "array"
+          },
+          "eccentricity": {
+            "title": "Eccentricity",
+            "type": "number"
+          },
+          "epoch": {
+            "format": "date-time",
+            "title": "Epoch",
+            "type": "string"
+          },
+          "epoch_age_days": {
+            "title": "Epoch Age Days",
+            "type": "number"
+          },
+          "inclination_deg": {
+            "title": "Inclination Deg",
+            "type": "number"
+          },
+          "launch_date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Launch Date"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "norad_id": {
+            "title": "Norad Id",
+            "type": "integer"
+          },
+          "object_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object Id"
+          },
+          "object_type": {
+            "title": "Object Type",
+            "type": "string"
+          },
+          "ops_status_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ops Status Code"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "perigee_km": {
+            "title": "Perigee Km",
+            "type": "number"
+          },
+          "period_min": {
+            "title": "Period Min",
+            "type": "number"
+          },
+          "rcs_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rcs Size"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regime"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          }
+        },
+        "required": [
+          "norad_id",
+          "name",
+          "object_type",
+          "rcs_size",
+          "owner",
+          "regime",
+          "perigee_km",
+          "apogee_km",
+          "inclination_deg",
+          "epoch_age_days",
+          "source",
+          "object_id",
+          "launch_date",
+          "ops_status_code",
+          "period_min",
+          "eccentricity",
+          "epoch",
+          "conjunctions"
+        ],
+        "title": "ObjectDetail",
+        "type": "object"
+      },
+      "ObjectPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ObjectSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "source",
+          "total",
+          "limit",
+          "offset",
+          "items"
+        ],
+        "title": "ObjectPage",
+        "type": "object"
+      },
+      "ObjectSummary": {
+        "properties": {
+          "apogee_km": {
+            "title": "Apogee Km",
+            "type": "number"
+          },
+          "epoch_age_days": {
+            "title": "Epoch Age Days",
+            "type": "number"
+          },
+          "inclination_deg": {
+            "title": "Inclination Deg",
+            "type": "number"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "norad_id": {
+            "title": "Norad Id",
+            "type": "integer"
+          },
+          "object_type": {
+            "title": "Object Type",
+            "type": "string"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "perigee_km": {
+            "title": "Perigee Km",
+            "type": "number"
+          },
+          "rcs_size": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rcs Size"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regime"
+          }
+        },
+        "required": [
+          "norad_id",
+          "name",
+          "object_type",
+          "rcs_size",
+          "owner",
+          "regime",
+          "perigee_km",
+          "apogee_km",
+          "inclination_deg",
+          "epoch_age_days"
+        ],
+        "title": "ObjectSummary",
+        "type": "object"
+      },
+      "OrbitedObject": {
+        "properties": {
+          "epoch_age_days": {
+            "title": "Epoch Age Days",
+            "type": "number"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "norad_id": {
+            "title": "Norad Id",
+            "type": "integer"
+          },
+          "object_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object Type"
+          }
+        },
+        "required": [
+          "norad_id",
+          "name",
+          "object_type",
+          "epoch_age_days"
+        ],
+        "title": "OrbitedObject",
+        "type": "object"
+      },
+      "Reason": {
+        "properties": {
+          "contribution": {
+            "description": "SHAP value in log-odds; positive raises the estimate",
+            "title": "Contribution",
+            "type": "number"
+          },
+          "feature": {
+            "title": "Feature",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature",
+          "contribution"
+        ],
+        "title": "Reason",
+        "type": "object"
+      },
+      "ShellBand": {
+        "properties": {
+          "alt_hi_km": {
+            "title": "Alt Hi Km",
+            "type": "number"
+          },
+          "alt_lo_km": {
+            "title": "Alt Lo Km",
+            "type": "number"
+          },
+          "density_per_km3": {
+            "title": "Density Per Km3",
+            "type": "number"
+          },
+          "mean_rel_speed_km_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Rel Speed Km S"
+          },
+          "objects": {
+            "title": "Objects",
+            "type": "number"
+          },
+          "risk_index": {
+            "title": "Risk Index",
+            "type": "number"
+          },
+          "risk_index_weighted": {
+            "title": "Risk Index Weighted",
+            "type": "number"
+          }
+        },
+        "required": [
+          "alt_lo_km",
+          "alt_hi_km",
+          "objects",
+          "density_per_km3",
+          "mean_rel_speed_km_s",
+          "risk_index",
+          "risk_index_weighted"
+        ],
+        "title": "ShellBand",
+        "type": "object"
+      },
+      "ShellHistory": {
+        "properties": {
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/ShellRun"
+            },
+            "title": "Runs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "runs"
+        ],
+        "title": "ShellHistory",
+        "type": "object"
+      },
+      "ShellRun": {
+        "properties": {
+          "bands": {
+            "items": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "title": "Bands",
+            "type": "array"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "source",
+          "bands"
+        ],
+        "title": "ShellRun",
+        "type": "object"
+      },
+      "Shells": {
+        "properties": {
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/ShellBand"
+            },
+            "title": "Bands",
+            "type": "array"
+          },
+          "note": {
+            "default": "Relative index (100 = riskiest band in this catalog), never a probability.",
+            "title": "Note",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/Source"
+          }
+        },
+        "required": [
+          "source",
+          "bands"
+        ],
+        "title": "Shells",
+        "type": "object"
+      },
+      "SimFrame": {
+        "properties": {
+          "along_track_coverage": {
+            "title": "Along Track Coverage",
+            "type": "number"
+          },
+          "hours": {
+            "title": "Hours",
+            "type": "number"
+          },
+          "node_coverage": {
+            "title": "Node Coverage",
+            "type": "number"
+          },
+          "points": {
+            "description": "[lat deg, lon deg, altitude km] per fragment",
+            "items": {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "title": "Points",
+            "type": "array"
+          }
+        },
+        "required": [
+          "hours",
+          "along_track_coverage",
+          "node_coverage",
+          "points"
+        ],
+        "title": "SimFrame",
+        "type": "object"
+      },
+      "SimulateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "altitude_km": {
+            "default": 800.0,
+            "maximum": 2000.0,
+            "minimum": 150.0,
+            "title": "Altitude Km",
+            "type": "number"
+          },
+          "impactor_kind": {
+            "default": "SC",
+            "enum": [
+              "SC",
+              "RB"
+            ],
+            "title": "Impactor Kind",
+            "type": "string"
+          },
+          "impactor_mass_kg": {
+            "default": 560.0,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Impactor Mass Kg",
+            "type": "number"
+          },
+          "inclination_deg": {
+            "default": 74.0,
+            "maximum": 180.0,
+            "minimum": 0.0,
+            "title": "Inclination Deg",
+            "type": "number"
+          },
+          "max_points": {
+            "default": 1000,
+            "maximum": 2000.0,
+            "minimum": 1.0,
+            "title": "Max Points",
+            "type": "integer"
+          },
+          "rel_speed_km_s": {
+            "default": 11.7,
+            "maximum": 16.0,
+            "minimum": 0.1,
+            "title": "Rel Speed Km S",
+            "type": "number"
+          },
+          "seed": {
+            "default": 42,
+            "maximum": 2147483647.0,
+            "minimum": 0.0,
+            "title": "Seed",
+            "type": "integer"
+          },
+          "target_kind": {
+            "default": "SC",
+            "enum": [
+              "SC",
+              "RB"
+            ],
+            "title": "Target Kind",
+            "type": "string"
+          },
+          "target_mass_kg": {
+            "default": 950.0,
+            "maximum": 10000.0,
+            "minimum": 1.0,
+            "title": "Target Mass Kg",
+            "type": "number"
+          },
+          "times_h": {
+            "description": "Moments after the collision to return positions for (hours, at most one year each)",
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Times H",
+            "type": "array"
+          }
+        },
+        "title": "SimulateRequest",
+        "type": "object"
+      },
+      "SimulateResponse": {
+        "properties": {
+          "catastrophic": {
+            "title": "Catastrophic",
+            "type": "boolean"
+          },
+          "collision_time": {
+            "format": "date-time",
+            "title": "Collision Time",
+            "type": "string"
+          },
+          "fragment_mass_kg": {
+            "title": "Fragment Mass Kg",
+            "type": "number"
+          },
+          "frames": {
+            "items": {
+              "$ref": "#/components/schemas/SimFrame"
+            },
+            "title": "Frames",
+            "type": "array"
+          },
+          "input_mass_kg": {
+            "title": "Input Mass Kg",
+            "type": "number"
+          },
+          "label": {
+            "default": "Illustrative, simplified; not a prediction.",
+            "title": "Label",
+            "type": "string"
+          },
+          "modelled_fragments": {
+            "description": "NASA breakup model count of fragments 10 cm and larger",
+            "title": "Modelled Fragments",
+            "type": "integer"
+          },
+          "points_returned": {
+            "title": "Points Returned",
+            "type": "integer"
+          },
+          "simulated_fragments": {
+            "title": "Simulated Fragments",
+            "type": "integer"
+          },
+          "specific_energy_j_per_g": {
+            "title": "Specific Energy J Per G",
+            "type": "number"
+          },
+          "unresolved_mass_kg": {
+            "title": "Unresolved Mass Kg",
+            "type": "number"
+          },
+          "what_if": {
+            "items": {
+              "$ref": "#/components/schemas/WhatIfBand"
+            },
+            "title": "What If",
+            "type": "array"
+          }
+        },
+        "required": [
+          "catastrophic",
+          "specific_energy_j_per_g",
+          "modelled_fragments",
+          "simulated_fragments",
+          "points_returned",
+          "input_mass_kg",
+          "fragment_mass_kg",
+          "unresolved_mass_kg",
+          "collision_time",
+          "frames",
+          "what_if"
+        ],
+        "title": "SimulateResponse",
+        "type": "object"
+      },
+      "Source": {
+        "properties": {
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "model_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Version"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "generated_at",
+          "model_version"
+        ],
+        "title": "Source",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WhatIfBand": {
+        "properties": {
+          "alt_hi_km": {
+            "title": "Alt Hi Km",
+            "type": "number"
+          },
+          "alt_lo_km": {
+            "title": "Alt Lo Km",
+            "type": "number"
+          },
+          "risk_index_after": {
+            "title": "Risk Index After",
+            "type": "number"
+          },
+          "risk_index_before": {
+            "title": "Risk Index Before",
+            "type": "number"
+          }
+        },
+        "required": [
+          "alt_lo_km",
+          "alt_hi_km",
+          "risk_index_before",
+          "risk_index_after"
+        ],
+        "title": "WhatIfBand",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Read-only estimates from public orbit data; not for operational use. Data from CelesTrak and Space-Track.org (USSPACECOM).",
+    "title": "Perigee API",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/v1/conjunctions": {
+      "get": {
+        "operationId": "conjunctions_v1_conjunctions_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "min_probability",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Probability"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_miss_km",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "exclusiveMinimum": 0,
+                  "maximum": 50,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Miss Km"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tca_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tca From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "tca_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tca To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "object_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "PAY",
+                    "DEB",
+                    "R/B",
+                    "UNK"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Object Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "norad_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Norad Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scored_only",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Scored Only",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "default": "probability",
+              "enum": [
+                "probability",
+                "tca",
+                "miss"
+              ],
+              "title": "Sort",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 1000000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConjunctionPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Conjunctions"
+      }
+    },
+    "/v1/conjunctions/{conjunction_id}": {
+      "get": {
+        "operationId": "conjunction_detail_v1_conjunctions__conjunction_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conjunction_id",
+            "required": true,
+            "schema": {
+              "title": "Conjunction Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConjunctionDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Conjunction Detail"
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "operationId": "health_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/v1/meta": {
+      "get": {
+        "operationId": "meta_v1_meta_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Meta"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Meta"
+      }
+    },
+    "/v1/model": {
+      "get": {
+        "operationId": "model_v1_model_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Model"
+      }
+    },
+    "/v1/objects": {
+      "get": {
+        "operationId": "objects_v1_objects_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "object_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "PAY",
+                    "DEB",
+                    "R/B",
+                    "UNK"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Object Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_alt_km",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 500000,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Min Alt Km"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_alt_km",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 500000,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Max Alt Km"
+            }
+          },
+          {
+            "description": "Name substring or NORAD id",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 64,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Name substring or NORAD id",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 1000000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Objects"
+      }
+    },
+    "/v1/objects/{norad_id}": {
+      "get": {
+        "operationId": "object_detail_v1_objects__norad_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "norad_id",
+            "required": true,
+            "schema": {
+              "title": "Norad Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Object Detail"
+      }
+    },
+    "/v1/shells": {
+      "get": {
+        "operationId": "shells_v1_shells_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Shells"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Shells"
+      }
+    },
+    "/v1/shells/history": {
+      "get": {
+        "operationId": "shells_history_v1_shells_history_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShellHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Shells History"
+      }
+    },
+    "/v1/simulate": {
+      "post": {
+        "operationId": "simulate_endpoint_v1_simulate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Simulate Endpoint"
+      }
+    }
+  }
+}

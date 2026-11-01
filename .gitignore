@@ -7,3 +7,6 @@ data/
 *.duckdb
 .env
 node_modules/
+
+# The small fixture bundle is committed so a clean checkout runs the app.
+!tests/fixtures/results/**/*.parquet

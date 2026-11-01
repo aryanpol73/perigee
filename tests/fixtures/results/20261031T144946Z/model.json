@@ -1,0 +1,127 @@
+{
+  "model_version": "20251225-feaaf72",
+  "commit": "feaaf72682cf66da38521e79a375ac78ce4ba5a4",
+  "data_window": [
+    "2025-01-09 00:00:00+00:00",
+    "2025-12-25 00:00:00+00:00"
+  ],
+  "label": "refreshed miss distance below 5 km with newer public data",
+  "scope": "approaches predicted up to 72 h ahead; same-constellation pairs excluded",
+  "test_counts": {
+    "rows": 194140,
+    "positives": 26576,
+    "prediction_times": 10
+  },
+  "metrics": {
+    "a_alert_if_predicted_miss_below_threshold": {
+      "pr_auc": 0.29251294304777514,
+      "pr_auc_ci95": [
+        0.2886534845474016,
+        0.29663727664035
+      ],
+      "alerts": 48534,
+      "precision": 0.3682779082704908,
+      "recall": 0.6725617098133655,
+      "false_alarms_per_true": 1.7153407183618663,
+      "brier": null
+    },
+    "b_tuned_miss_threshold": {
+      "pr_auc": 0.3557686070688556,
+      "pr_auc_ci95": [
+        0.35023172711571093,
+        0.36112226763415084
+      ],
+      "alerts": 8,
+      "precision": 0.375,
+      "recall": 0.00011288380493678507,
+      "false_alarms_per_true": 1.6666666666666667,
+      "brier": null
+    },
+    "c_logistic_regression": {
+      "pr_auc": 0.3861447019627103,
+      "pr_auc_ci95": [
+        0.3800475708693602,
+        0.3919814905210827
+      ],
+      "alerts": 12776,
+      "precision": 0.4618816530995617,
+      "recall": 0.22204244431065623,
+      "false_alarms_per_true": 1.1650567700389765,
+      "brier": 0.09749109209049814
+    },
+    "lightgbm": {
+      "pr_auc": 0.6982086810589984,
+      "pr_auc_ci95": [
+        0.6929788243159934,
+        0.7036816240213969
+      ],
+      "alerts": 40860,
+      "precision": 0.49576603034752814,
+      "recall": 0.7622290788681517,
+      "false_alarms_per_true": 1.0170805153774003,
+      "brier": 0.06862854080328483
+    }
+  },
+  "tradeoff": {
+    "precision_at_recall": [
+      {
+        "recall": 0.25,
+        "precision": 0.9175172413793103
+      },
+      {
+        "recall": 0.5,
+        "precision": 0.727208055160337
+      },
+      {
+        "recall": 0.6,
+        "precision": 0.6326417265045424
+      },
+      {
+        "recall": 0.75,
+        "precision": 0.5063252552964487
+      },
+      {
+        "recall": 0.9,
+        "precision": 0.3797872340425532
+      }
+    ],
+    "precision_at_top_k": [
+      {
+        "k": 100,
+        "precision": 0.9
+      },
+      {
+        "k": 1000,
+        "precision": 0.981
+      },
+      {
+        "k": 5000,
+        "precision": 0.952
+      }
+    ]
+  },
+  "operating_probability": 0.21674662014827736,
+  "lightgbm_beats_all_baselines": true,
+  "top_features": {
+    "miss_radial_km": 5.133721861626023,
+    "miss_km": 1.0286500405289267,
+    "stale_bstar": 0.3860347135513938,
+    "fresh_perigee_km": 0.25654411442220565,
+    "stale_mean_motion": 0.24884261068383787,
+    "stale_apogee_km": 0.2419824178162363,
+    "approach_angle_deg": 0.23430441782352726,
+    "fresh_mean_motion": 0.2328222638220004,
+    "fresh_bstar": 0.2313121711509399,
+    "miss_cross_km": 0.22787903879920368,
+    "stale_sma_jump_median_km": 0.21136945565978424,
+    "fresh_apogee_km": 0.20514233333101642,
+    "fresh_update_gap_median_h": 0.20054705940253803,
+    "stale_sma_jump_max_km": 0.20011583598323182,
+    "rel_speed_km_s": 0.19012056401147376
+  },
+  "limits": [
+    "Not for operational decisions: public orbit data has kilometre-level error and no covariance.",
+    "Manoeuvres between prediction and closest approach make the label describe a different trajectory.",
+    "Same-constellation pairs are outside the model's scope."
+  ]
+}

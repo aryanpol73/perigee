@@ -59,6 +59,13 @@ def main(argv: list[str] | None = None) -> int:
     sim.add_argument("--target-kind", choices=["SC", "RB"], default="SC")
     sim.add_argument("--impactor-kind", choices=["SC", "RB"], default="SC")
     sim.add_argument("--seed", type=int, default=42)
+    pub = commands.add_parser("publish", help="score the latest screen and publish the results bundle the API serves")
+    pub.add_argument("--model", help="model version under data/models (default: newest)")
+    pub.add_argument("--fixture", action="store_true", help="write the small committed fixture bundle instead")
+    api = commands.add_parser("api", help="serve the read-only API")
+    api.add_argument("--port", type=int, default=8000)
+    api.add_argument("--fixture", action="store_true", help="serve the committed fixture bundle")
+    commands.add_parser("dev", help="run the API and the web app together (fixture data if nothing is published)")
     imp =commands.add_parser("import-spacetrack", help="import a Space-Track yearly TLE zip into history")
     imp.add_argument("archive", type=Path, help="zip or text file downloaded once from space-track.org")
     imp.add_argument("--since", help="keep element sets from this date (YYYY-MM-DD)")
@@ -139,6 +146,34 @@ def main(argv: list[str] | None = None) -> int:
                 f"{s['along_track_coverage']:.0%}, node coverage {s['node_coverage']:.0%}"
             )
         return exit_code
+    elif args.command == "publish":
+        from src.results.bundle import build
+        from src.results.fixture import FIXTURE_DIR, fixture_selection
+
+        if args.fixture:
+            b = build(settings, args.model, fixture_selection(settings), FIXTURE_DIR, min_objects=100)
+        else:
+            b = build(settings, args.model)
+        m = b.meta
+        print(
+            f"Published {m['run_id']} to {b.path}: {m['object_count']:,} objects, {m['conjunction_count']:,} close "
+            f"approaches ({m['scored_conjunctions']:,} scored by model {m['model_version']})."
+        )
+        if not m["history_complete"]:
+            print(f"Note: only {m['history_days_for_features']} days of update history before the snapshot; scores are flagged.")
+        return exit_code
+    elif args.command == "api":
+        import uvicorn
+
+        from src.api.app import create_app
+        from src.results.fixture import FIXTURE_DIR
+
+        uvicorn.run(create_app(settings, FIXTURE_DIR if args.fixture else None), host="127.0.0.1", port=args.port, log_config=None)
+        return exit_code
+    elif args.command == "dev":
+        from src.dev import run_dev
+
+        return run_dev(settings)
     elif args.command == "import-spacetrack":
         import pandas as pd
 

@@ -35,7 +35,7 @@ def ml_dir(settings: Settings) -> Path:
     return settings.processed_dir / "ml"
 
 
-def _space_weather(settings: Settings) -> pd.DataFrame | None:
+def load_space_weather(settings: Settings) -> pd.DataFrame | None:
     path = store.table_path(settings.processed_dir, store.SPACE_WEATHER)
     if not path.exists():
         return None
@@ -55,7 +55,7 @@ def build_dataset(
 ) -> pd.DataFrame:
     history = ElsetHistory(settings.processed_dir)
     satcat = load_satcat(settings)
-    sw = _space_weather(settings)
+    sw = load_space_weather(settings)
     times = prediction_times(history, config, every_days, start, end)
     span = history.span()
     log.info("building dataset", extra={"prediction_times": len(times), "history": [str(span[0]), str(span[1])]})
@@ -95,7 +95,7 @@ def load_dataset(settings: Settings) -> pd.DataFrame:
         con.close()
 
 
-def _commit() -> str:
+def git_commit() -> str:
     try:
         return subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=ROOT, check=True).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
@@ -119,7 +119,7 @@ def run_train(
         return {"status": "insufficient_data", "reason": str(exc), "counts": exc.counts}
 
     window = (str(dataset["prediction_time"].min()), str(dataset["prediction_time"].max()))
-    commit = _commit()
+    commit = git_commit()
     version = f"{pd.Timestamp(window[1]):%Y%m%d}-{commit[:7]}"
     results.update(
         status="trained",

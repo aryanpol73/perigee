@@ -1,0 +1,21 @@
+{
+  "run_id": "20261031T144946Z",
+  "snapshot_id": "20261031T144946Z",
+  "snapshot_time": "2026-10-31T14:49:46+00:00",
+  "generated_at": "2026-11-01T09:33:21.426435+00:00",
+  "commit": "57dbf6baceed44c115ce59948289d67cbaaaae98",
+  "object_count": 1798,
+  "conjunction_count": 759,
+  "scored_conjunctions": 348,
+  "conjunction_counts": {
+    "screened": 869072,
+    "same_constellation_left_out": 776580
+  },
+  "model_version": "20251225-feaaf72",
+  "operating_probability": 0.21674662014827736,
+  "history_days_for_features": 0.0,
+  "history_complete": false,
+  "orbit_file": "orbits.a8853de8551a.json.gz",
+  "disclaimer": "Estimates from public orbit data; not for operational use.",
+  "sources": "Data from CelesTrak and Space-Track.org (USSPACECOM)."
+}

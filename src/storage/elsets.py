@@ -148,6 +148,15 @@ class ElsetHistory:
             self.con.unregister("_queries")
         return df
 
+    def coverage_days(self, t: pd.Timestamp, lookback_days: float = 30.0) -> float:
+        """Days of history published in the lookback window before t (update features need it full)."""
+        rows = self.con.execute(
+            "SELECT min(available_at) FROM elsets WHERE available_at <= ? AND available_at >= ?",
+            [t, t - pd.Timedelta(days=lookback_days)],
+        ).df()
+        first = rows.iloc[0, 0]
+        return 0.0 if pd.isna(first) else float((t - pd.Timestamp(first)) / pd.Timedelta(days=1))
+
     def update_stats(self, t: pd.Timestamp, lookback_days: float = 30.0) -> pd.DataFrame:
         """Per object, from sets published by t in the lookback window: how often it was
         updated and how much its semi-major axis jumped between consecutive sets."""
