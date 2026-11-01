@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ageDays, hoursAhead, km, objectTypeName, percent, riskLabel, utc } from "./format";
+import { ageDays, hoursAhead, hoursFromNow, km, objectTypeName, percent, riskLabel, utc } from "./format";
 import { query } from "./api";
 
 describe("formatting", () => {
@@ -29,6 +29,8 @@ describe("formatting", () => {
     expect(hoursAhead(0.25)).toBe("in 15 min");
     expect(hoursAhead(30)).toBe("in 30 h");
     expect(hoursAhead(72)).toBe("in 3.0 days");
+    expect(hoursAhead(-21)).toBe("21 h ago");
+    expect(hoursFromNow("2026-11-01T12:00:00Z", Date.UTC(2026, 10, 1, 9))).toBe(3);
     expect(objectTypeName("R/B")).toBe("Rocket body");
     expect(objectTypeName(undefined)).toBe("Unknown");
   });

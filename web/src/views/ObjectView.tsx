@@ -1,9 +1,9 @@
 // One object's identity, orbit summary, data age and its upcoming close approaches.
 import { useState } from "react";
 import { query, useApi, type Meta, type ObjectDetail, type Schemas } from "../api";
-import { ageDays, hoursAhead, km, objectTypeName, utc } from "../format";
-import { setState, useStore } from "../store";
-import { Risk } from "./ConjunctionsView";
+import { ageDays, hoursAhead, hoursFromNow, km, objectTypeName, utc } from "../format";
+import { setState, useStore, wallNow } from "../store";
+import { Risk, focusApproach } from "./ConjunctionsView";
 
 type ObjectPage = Schemas["ObjectPage"];
 
@@ -94,15 +94,11 @@ export function ObjectView() {
                     type="button"
                     className="row-button"
                     onClick={() => {
-                      setState({
-                        focus: { conjunctionId: c.id, norads: [c.objects[0].norad_id, c.objects[1].norad_id], tca: new Date(c.tca).getTime() },
-                        time: new Date(c.tca).getTime(),
-                        playing: false,
-                      });
+                      focusApproach(c);
                       window.location.hash = "/conjunctions";
                     }}
                   >
-                    {other.name ?? other.norad_id}: {km(c.miss_distance_km)} {hoursAhead(c.hours_to_tca)}
+                    {other.name ?? other.norad_id}: {km(c.miss_distance_km)} {hoursAhead(hoursFromNow(c.tca, wallNow()))}
                   </button>{" "}
                   <Risk value={c.risk_probability_estimate ?? null} operating={op} status={c.estimate_status} />
                 </li>

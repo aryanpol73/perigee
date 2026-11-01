@@ -12,6 +12,12 @@
       "runtimeExecutable": ".venv/Scripts/python.exe",
       "runtimeArgs": ["-m", "src.main", "dev"],
       "port": 5173
+    },
+    {
+      "name": "app-alt",
+      "runtimeExecutable": ".venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "src.main", "dev", "--api-port", "8020", "--web-port", "5190"],
+      "port": 5190
     }
   ]
 }

@@ -20,10 +20,16 @@ export function ageDays(days: number): string {
   return `${days.toFixed(1)} days old`;
 }
 
+/** "in 3 h", "21 h ago": hours from now (negative = already past). */
 export function hoursAhead(h: number): string {
-  if (h < 1) return `in ${Math.max(1, Math.round(h * 60))} min`;
-  if (h < 48) return `in ${h.toFixed(0)} h`;
-  return `in ${(h / 24).toFixed(1)} days`;
+  const a = Math.abs(h);
+  const span = a < 1 ? `${Math.max(1, Math.round(a * 60))} min` : a < 48 ? `${a.toFixed(0)} h` : `${(a / 24).toFixed(1)} days`;
+  return h < 0 ? `${span} ago` : `in ${span}`;
+}
+
+/** Hours from the real time to an ISO timestamp. */
+export function hoursFromNow(iso: string, now: number): number {
+  return (new Date(iso).getTime() - now) / 3_600_000;
 }
 
 /** Plain-language label for a risk estimate, relative to the model's operating point. */

@@ -6,7 +6,7 @@ import { ObjectView } from "./views/ObjectView";
 import { RiskView } from "./views/RiskView";
 import { SimulatorView } from "./views/SimulatorView";
 import { utc } from "./format";
-import { setState, useStore } from "./store";
+import { time, useStore } from "./store";
 
 // Cesium is large: load it after the shell of the page is on screen.
 const Globe = lazy(() => import("./globe/Globe"));
@@ -57,7 +57,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (meta.data) setState({ time: new Date(meta.data.snapshot_time).getTime() });
+    if (meta.data) time.init(new Date(meta.data.snapshot_time).getTime());
   }, [meta.data]);
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function App() {
           <span>Loading…</span>
         )}
         <strong>Estimates from public data; not for operational use.</strong>
-        <span className="muted">Data: CelesTrak, Space-Track.org (USSPACECOM)</span>
+        <span className="muted">Data: CelesTrak, Space-Track.org (USSPACECOM). Earth imagery: NASA Blue Marble &amp; Black Marble (GIBS).</span>
       </footer>
     </div>
   );

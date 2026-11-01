@@ -68,7 +68,9 @@ def main(argv: list[str] | None = None) -> int:
     api.add_argument("--host", default=os.environ.get("PERIGEE_API_HOST", "127.0.0.1"))
     api.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
     api.add_argument("--fixture", action="store_true", help="serve the committed fixture bundle")
-    commands.add_parser("dev", help="run the API and the web app together (fixture data if nothing is published)")
+    dev = commands.add_parser("dev", help="run the API and the web app together (fixture data if nothing is published)")
+    dev.add_argument("--api-port", type=int, default=8000)
+    dev.add_argument("--web-port", type=int, default=5173)
     imp =commands.add_parser("import-spacetrack", help="import a Space-Track yearly TLE zip into history")
     imp.add_argument("archive", type=Path, help="zip or text file downloaded once from space-track.org")
     imp.add_argument("--since", help="keep element sets from this date (YYYY-MM-DD)")
@@ -187,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
     elif args.command == "dev":
         from src.dev import run_dev
 
-        return run_dev(settings)
+        return run_dev(settings, args.api_port, args.web_port)
     elif args.command == "import-spacetrack":
         import pandas as pd
 
