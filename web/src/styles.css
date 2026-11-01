@@ -170,6 +170,15 @@ button:disabled { opacity: 0.5; cursor: default; }
 .legend .ramp { display: flex; justify-content: space-between; height: 14px; margin: 6px 0; padding: 0 4px; font-size: 11px; color: #fff; background: linear-gradient(90deg, rgb(200, 232, 255), rgb(64, 104, 214)); border-radius: 3px; }
 .legend .ramp span:first-child { color: #0b0b0b; }
 .alt-filter { display: block; margin-top: 6px; }
+/* Bottom right of the globe, just above the time bar. */
+.fullscreen-button {
+  position: absolute; right: 12px; bottom: calc(var(--timebar-h, 80px) + 42px); display: grid; place-items: center; width: 38px; height: 38px; padding: 0;
+  color: #f3f1ec; background: rgba(10, 14, 22, 0.72); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 8px; cursor: pointer;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+.fullscreen-button:hover { background: rgba(30, 40, 58, 0.85); }
+.fullscreen-button:focus-visible { outline: 2px solid #9fd0ff; outline-offset: 2px; }
+.globe:fullscreen { background: #000; }
 .sim-label { position: absolute; top: 12px; right: 12px; background: var(--warn-bg); color: var(--warn-ink); padding: 6px 10px; border-radius: 6px; font-weight: 600; }
 
 .footer { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-2); }
