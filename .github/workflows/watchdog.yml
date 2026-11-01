@@ -25,7 +25,7 @@ jobs:
       PERIGEE_API_URL: ${{ vars.PERIGEE_API_URL }}
       PERIGEE_WEB_URL: ${{ vars.PERIGEE_WEB_URL }}
       MAX_RESULTS_AGE_H: "36" # conjunction run no more than 36 h old
-      MAX_SNAPSHOT_JOB_GAP_H: "6" # the hourly data job must have succeeded recently
+      MAX_SNAPSHOT_JOB_GAP_H: "12" # the hourly data job (GitHub delivers its cron every 4-8 h in practice)
       MAX_PUBLISH_GAP_H: "30" # the daily publish job
     steps:
       - name: Site answers

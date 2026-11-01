@@ -8,7 +8,7 @@ Where things run: docs/deployment.md. Data job details: docs/data-job.md.
 |---|---|---|
 | Site available | 99% | UptimeRobot (5 min) |
 | API available while awake | 99%; a cold start after sleep is not an outage | UptimeRobot on `/v1/health` |
-| Orbit snapshots | newest under 24 h old; hourly job succeeded in the last 6 h | `watchdog` |
+| Orbit snapshots | newest under 24 h old; the hourly job succeeded in the last 12 h (GitHub runs it every 4-8 h in practice) | `watchdog` |
 | Conjunction run served | under 36 h old | `watchdog`, `/v1/health` (503 when stale) |
 | API latency | p95 under 200 ms for read endpoints | docs/api-performance.md (measured locally) |
 | Page load | under 5 s on a typical mobile connection | Lighthouse, before releases |
