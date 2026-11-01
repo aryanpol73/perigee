@@ -49,8 +49,10 @@ export function MethodView({ meta }: { meta?: Meta }) {
       )}
       {meta && !meta.history_complete && (
         <p className="note">
-          This run had less than 25 days of update history for some model inputs, so its estimates are less reliable than the test
-          results above.
+          This run's estimates are provisional. Four model inputs per object describe its last 30 days of orbit updates, and this
+          run had under 14 days of them. Rescoring the test period that way (docs/history-sensitivity.md): with no history, the
+          ranking score fell from 0.70 to 0.61 and estimates came out at about half the observed rate; with 15 or more days of
+          snapshots every 2 to 6 hours they matched the full history.
         </p>
       )}
       <h3>What the numbers do not mean</h3>

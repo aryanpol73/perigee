@@ -52,6 +52,7 @@ def test_no_collision_probability_wording(client):
 def test_health_and_meta(client):
     h = client.get("/v1/health")
     assert h.status_code == 200 and h.json()["status"] == "ok"
+    assert client.get("/v1/conjunctions", params={"limit": 1}).json()["source"]["history_complete"] is False
     m = client.get("/v1/meta").json()
     assert m["object_count"] > 100 and m["disclaimer"] and m["orbit_file_url"].startswith("/v1/orbits/orbits.")
     assert "Space-Track" in m["sources"]
@@ -61,6 +62,12 @@ def test_stale_data_makes_health_fail():
     stale = TestClient(create_app(Settings(api_max_data_age_h=0.001), FIXTURE_DIR))
     r = stale.get("/v1/health")
     assert r.status_code == 503 and r.json()["status"] == "stale"
+
+
+def test_fixture_mode_health_has_no_age_limit():
+    unlimited = TestClient(create_app(Settings(api_max_data_age_h=float("inf")), FIXTURE_DIR))
+    r = unlimited.get("/v1/health")
+    assert r.status_code == 200 and r.json()["max_data_age_hours"] is None
 
 
 def test_no_results_published(tmp_path):
@@ -111,6 +118,10 @@ def test_out_of_scope_rows_have_no_estimate(client):
     for c in items:
         if not c["in_model_scope"]:
             assert c["risk_probability_estimate"] is None and c["above_operating_point"] is None
+            assert c["estimate_status"] == "none"
+        elif c["risk_probability_estimate"] is not None:
+            # The fixture has no update history, so every estimate is provisional.
+            assert c["estimate_status"] == "provisional"
 
 
 def test_empty_result_is_not_an_error(client):
@@ -241,3 +252,14 @@ def test_scoring_scope_and_probabilities():
     assert 0 <= out.loc[0, "risk_probability_estimate"] <= 1
     assert out.loc[1:, "risk_probability_estimate"].isna().all()
     assert len(json.loads(out.loc[0, "top_reasons"])) == 3
+
+
+def test_cached_responses_are_identical_with_and_without_gzip(client):
+    url = "/v1/conjunctions?limit=40&sort=miss"
+    plain = client.get(url, headers={"Accept-Encoding": "identity"})
+    zipped = client.get(url, headers={"Accept-Encoding": "gzip"})
+    again = client.get(url, headers={"Accept-Encoding": "identity"})
+    assert zipped.headers.get("content-encoding") == "gzip" and "content-encoding" not in again.headers
+    assert plain.json() == zipped.json() == again.json()
+    misses = [c["miss_distance_km"] for c in again.json()["items"]]
+    assert misses == sorted(misses)

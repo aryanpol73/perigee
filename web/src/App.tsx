@@ -92,7 +92,8 @@ export default function App() {
       )}
       {meta.data && !meta.data.history_complete && meta.data.model_version && (
         <div className="banner" role="status">
-          This run had less than 25 days of update history for some model inputs, so its risk estimates are less reliable.
+          Provisional risk estimates: this run had under 14 days of update history ({meta.data.history_days_for_features ?? 0} days).
+          In testing, estimates made without history ran at about half the observed rate and ranked approaches less well.
         </div>
       )}
 

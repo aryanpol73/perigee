@@ -19,7 +19,7 @@ Data from CelesTrak and Space-Track.org (USSPACECOM). Space-Track raw data is ne
 | ML risk index | LightGBM test PR-AUC 0.698 vs 0.386 for the best baseline (late 2025, time split) | [docs/model-card.md](docs/model-card.md) |
 | Shell risk index | Peaks at the constellation shells, ~775-975 km and ~1,200-1,400 km; stable month to month | [docs/risk-validation.md](docs/risk-validation.md) |
 | Breakup simulator | NASA breakup model; a collision at 800 km spreads from a point to a ring to a shell | [docs/risk-validation.md](docs/risk-validation.md) |
-| API | Read-only FastAPI over a published results bundle; read endpoints p95 under 40 ms | `/docs` when running; [ADR 0002](docs/decisions/0002-api-results-bundle-and-simulator.md) |
+| API | Read-only FastAPI over a published results bundle; reads p95 71 ms with 20 concurrent clients and simulator load ([details](docs/api-performance.md)) | `/docs` when running; [ADR 0002](docs/decisions/0002-api-results-bundle-and-simulator.md) |
 | Web app | React + CesiumJS globe (satellite.js in a Web Worker), close approaches, risk by altitude, simulator, method and limits | `web/` |
 
 Deployment comes next.
@@ -42,8 +42,8 @@ That one command starts the API on http://127.0.0.1:8000 (interactive docs at `/
 http://localhost:5173. With no data of your own it serves a small fixture bundle committed in
 `tests/fixtures/results` (1,798 objects from public CelesTrak data). The first run installs the web packages.
 
-Tests: `python -m pytest`, and `npm test` in `web/` (which includes a check that satellite.js in the browser
-matches Python SGP4 within 50 m).
+Tests: `python -m pytest`; in `web/`, `npm test` (unit tests, including satellite.js against Python SGP4 within
+50 m) and `npm run e2e` (Playwright browser journey; uses your installed Chrome).
 
 Your own data, end to end:
 

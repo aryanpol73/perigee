@@ -149,3 +149,24 @@ def test_hf_backend_creates_missing_dataset_as_private(monkeypatch):
 
     HfBackend("someone/perigee-snapshots", "token")
     assert calls == [("create_repo", {"repo_type": "dataset", "private": True})]
+
+
+def test_pull_history_days_restores_recent_gp_snapshots_only(settings, tmp_path):
+    remote = tmp_path / "remote"
+    gp = ["20260901T000000Z", "20261001T000000Z", "20261020T120000Z", "20261031T000000Z"]
+    for snap in gp:
+        (remote / "raw" / "gp" / snap).mkdir(parents=True)
+        (remote / "raw" / "gp" / snap / "active.csv.gz").write_bytes(b"x")
+    (remote / "raw" / "satcat" / "20261001T000000Z").mkdir(parents=True)
+    (remote / "raw" / "satcat" / "20261001T000000Z" / "satcat.csv.gz").write_bytes(b"x")
+
+    latest_only = _fresh_runner(settings, tmp_path, "latest")
+    pull(LocalBackend(remote), latest_only.data_dir)
+    assert sorted(p.name for p in (latest_only.data_dir / "raw" / "gp").iterdir()) == ["20261031T000000Z"]
+
+    with_history = _fresh_runner(settings, tmp_path, "history")
+    latest = pull(LocalBackend(remote), with_history.data_dir, history_days=30)
+    assert latest["gp"] == "20261031T000000Z"
+    got = sorted(p.name for p in (with_history.data_dir / "raw" / "gp").iterdir())
+    assert got == ["20261001T000000Z", "20261020T120000Z", "20261031T000000Z"]
+    assert (with_history.data_dir / "raw" / "satcat" / "20261001T000000Z" / "satcat.csv.gz").exists()

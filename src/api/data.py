@@ -32,6 +32,22 @@ class ResultsStore:
     conjunctions: pd.DataFrame
     shells: pd.DataFrame
     shells_history: pd.DataFrame
+    # Row positions of `conjunctions` in each sort order, computed once at load so a
+    # request only filters (a boolean mask over a presorted index), never sorts.
+    orders: dict[str, np.ndarray] | None = None
+
+    def __post_init__(self) -> None:
+        c = self.conjunctions
+        pos = np.arange(len(c))
+        tca = c["tca"].to_numpy()
+        prob = c["risk_probability_estimate"].to_numpy(dtype=float)
+        # lexsort: last key is primary. Estimates high to low, missing last, then by TCA.
+        self.orders = {
+            "probability": np.lexsort((tca, np.where(np.isnan(prob), np.inf, -prob))),
+            "tca": np.lexsort((pos, tca)),
+            "miss": np.lexsort((tca, c["miss_distance_km"].to_numpy(dtype=float))),
+        }
+        self.objects = self.objects.sort_values("norad_id")
 
     @classmethod
     def load(cls, results_dir: Path) -> ResultsStore:

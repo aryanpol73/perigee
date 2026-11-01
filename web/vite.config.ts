@@ -33,5 +33,6 @@ export default defineConfig(({ command }) => ({
   worker: { format: "es" as const },
   test: {
     environment: "node",
+    include: ["src/**/*.test.ts"],
   },
 }));

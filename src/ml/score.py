@@ -26,7 +26,9 @@ from src.ml.features import FEATURES, build_features
 log = logging.getLogger("perigee.ml.score")
 
 MODEL_HORIZON_H = 72.0
-FULL_HISTORY_DAYS = 25.0
+# Measured in docs/history-sensitivity.md: 15 days of 6-hourly snapshots score like
+# the full history, 7 days nearly so, a single snapshot far lower. 14 days is the bar.
+FULL_HISTORY_DAYS = 14.0
 
 
 @dataclass

@@ -76,7 +76,10 @@ export function ConjunctionsView({ meta }: { meta?: Meta }) {
                 <th scope="col">Objects</th>
                 <th scope="col">Closest approach</th>
                 <th scope="col" className="num">Miss</th>
-                <th scope="col">Risk estimate</th>
+                <th scope="col">
+                  Risk estimate
+                  <div className="muted small th-note">chance it still looks &lt;5 km with newer data</div>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -95,7 +98,7 @@ export function ConjunctionsView({ meta }: { meta?: Meta }) {
                   </td>
                   <td className="num">{km(c.miss_distance_km)}</td>
                   <td>
-                    <Risk value={c.risk_probability_estimate ?? null} operating={op} />
+                    <Risk value={c.risk_probability_estimate ?? null} operating={op} status={c.estimate_status} />
                   </td>
                 </tr>
               ))}
@@ -119,17 +122,30 @@ export function ConjunctionsView({ meta }: { meta?: Meta }) {
   );
 }
 
-export function Risk({ value, operating }: { value: number | null; operating: number | null }) {
-  if (value === null) return <span className="muted small">Outside model scope</span>;
+export const PROVISIONAL_TIP =
+  "Provisional: this run had under 14 days of update history. In testing, estimates made without history ran at about half the observed rate.";
+
+export function Risk({
+  value,
+  operating,
+  status = "standard",
+}: {
+  value: number | null;
+  operating: number | null;
+  status?: Conjunction["estimate_status"];
+}) {
+  if (value === null || status === "none") return <span className="muted small">Outside model scope</span>;
   const elevated = operating !== null && value >= operating;
+  const provisional = status === "provisional";
   return (
-    <span className={`risk ${elevated ? "elevated" : ""}`} title={riskLabel(value, operating)}>
+    <span className={`risk ${elevated ? "elevated" : ""}`} title={provisional ? PROVISIONAL_TIP : riskLabel(value, operating)}>
       <span className="bar" aria-hidden>
         <span style={{ width: `${Math.max(2, value * 100)}%` }} />
       </span>
       {percent(value)}
-      <span className="sr-only">, {riskLabel(value, operating)}</span>
+      <span className="sr-only">, {riskLabel(value, operating)}{provisional ? ", provisional" : ""}</span>
       {elevated && <span className="tag">elevated</span>}
+      {provisional && <span className="tag provisional" aria-hidden>provisional</span>}
     </span>
   );
 }
@@ -153,8 +169,10 @@ function Detail({ id, operating }: { id: string; operating: number | null }) {
         </dd>
         <dt>Risk estimate</dt>
         <dd>
-          <Risk value={c.risk_probability_estimate ?? null} operating={operating} />
-          <div className="muted small">Chance it still looks closer than 5 km once newer public data arrives.</div>
+          <Risk value={c.risk_probability_estimate ?? null} operating={operating} status={c.estimate_status} />
+          <div className="muted small">
+            Chance it still looks closer than 5 km once newer public data arrives. Not a collision probability.
+          </div>
         </dd>
         {c.object_details.map((o) => (
           <div key={o.norad_id} className="fact-pair">

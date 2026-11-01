@@ -182,6 +182,12 @@ export interface components {
         Conjunction: {
             /** Above Operating Point */
             above_operating_point: boolean | null;
+            /**
+             * Estimate Status
+             * @description provisional: made with thin update history (see Source.history_complete); none: outside model scope
+             * @enum {string}
+             */
+            estimate_status: "standard" | "provisional" | "none";
             /** Hours To Tca */
             hours_to_tca: number;
             /** Id */
@@ -216,6 +222,12 @@ export interface components {
              * @default Estimate from public orbit data; not for operational use.
              */
             disclaimer: string;
+            /**
+             * Estimate Status
+             * @description provisional: made with thin update history (see Source.history_complete); none: outside model scope
+             * @enum {string}
+             */
+            estimate_status: "standard" | "provisional" | "none";
             /** Hours To Tca */
             hours_to_tca: number;
             /** Id */
@@ -270,8 +282,11 @@ export interface components {
         Health: {
             /** Data Age Hours */
             data_age_hours: number;
-            /** Max Data Age Hours */
-            max_data_age_hours: number;
+            /**
+             * Max Data Age Hours
+             * @description Age that makes the data stale; null = no limit (fixture data)
+             */
+            max_data_age_hours: number | null;
             /** Model Version */
             model_version: string | null;
             /** Snapshot Id */
@@ -297,7 +312,7 @@ export interface components {
             generated_at: string;
             /**
              * History Complete
-             * @description False when the update-history features had less than 25 days of data
+             * @description False when the update-history features had less than 14 days of data
              */
             history_complete: boolean;
             /** History Days For Features */
@@ -652,6 +667,11 @@ export interface components {
              * Format: date-time
              */
             generated_at: string;
+            /**
+             * History Complete
+             * @description False when estimates in this response are provisional (thin update history)
+             */
+            history_complete: boolean;
             /** Model Version */
             model_version: string | null;
             /** Snapshot Id */

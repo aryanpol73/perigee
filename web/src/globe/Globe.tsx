@@ -231,12 +231,12 @@ export default function Globe({ meta }: { meta: Meta }) {
       {status && <div className="globe-status" role="status">{status}</div>}
       {simActive && <div className="sim-label" role="note">Illustrative, simplified; not a prediction.</div>}
       <TimeBar snapshot={meta.snapshot_time} />
-      <Legend />
+      <Legend provisional={!meta.history_complete} />
     </div>
   );
 }
 
-function Legend() {
+function Legend({ provisional }: { provisional: boolean }) {
   const mode = useStore((s) => s.colorMode);
   const filters = useStore((s) => s.filters);
   return (
@@ -267,7 +267,12 @@ function Legend() {
         </ul>
       )}
       {mode === "altitude" && <div className="ramp" aria-label="Light = low orbit, dark = high orbit"><span>low</span><span>high</span></div>}
-      {mode === "risk" && <p className="muted">Highlighted: objects in close approaches above the model's operating point.</p>}
+      {mode === "risk" && (
+        <p className="muted">
+          Highlighted: objects in close approaches above the model's operating point
+          {provisional ? " (provisional estimates this run: under 14 days of update history)" : ""}. Not a collision probability.
+        </p>
+      )}
       <label className="alt-filter">
         Max perigee{" "}
         <select

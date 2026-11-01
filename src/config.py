@@ -52,6 +52,7 @@ class Settings:
     api_cors_origins: tuple[str, ...] = ("http://localhost:5173",)
     api_max_data_age_h: float = 48.0
     api_rate_limit_per_min: int = 120
+    api_simulate_per_min: int = 10
 
     @property
     def raw_dir(self) -> Path:
@@ -95,4 +96,5 @@ class Settings:
             else ("http://localhost:5173",),
             api_max_data_age_h=_env_float("PERIGEE_API_MAX_DATA_AGE_H", 48.0),
             api_rate_limit_per_min=_env_int("PERIGEE_API_RATE_LIMIT_PER_MIN", 120),
+            api_simulate_per_min=_env_int("PERIGEE_API_SIMULATE_PER_MIN", 10),
         )
