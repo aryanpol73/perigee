@@ -380,6 +380,86 @@
         "title": "Meta",
         "type": "object"
       },
+      "ModelMetrics": {
+        "properties": {
+          "alerts": {
+            "title": "Alerts",
+            "type": "integer"
+          },
+          "brier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brier"
+          },
+          "false_alarms_per_true": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "False Alarms Per True"
+          },
+          "pr_auc": {
+            "title": "Pr Auc",
+            "type": "number"
+          },
+          "pr_auc_ci95": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Pr Auc Ci95",
+            "type": "array"
+          },
+          "precision": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precision"
+          },
+          "recall": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recall"
+          }
+        },
+        "required": [
+          "pr_auc",
+          "pr_auc_ci95",
+          "alerts",
+          "precision",
+          "recall",
+          "false_alarms_per_true"
+        ],
+        "title": "ModelMetrics",
+        "type": "object"
+      },
       "ModelSummary": {
         "properties": {
           "commit": {
@@ -428,7 +508,9 @@
             "type": "array"
           },
           "metrics": {
-            "additionalProperties": true,
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ModelMetrics"
+            },
             "title": "Metrics",
             "type": "object"
           },
@@ -445,7 +527,9 @@
             "type": "string"
           },
           "test_counts": {
-            "additionalProperties": true,
+            "additionalProperties": {
+              "type": "integer"
+            },
             "title": "Test Counts",
             "type": "object"
           },
@@ -459,14 +543,12 @@
           "tradeoff": {
             "anyOf": [
               {
-                "additionalProperties": true,
-                "type": "object"
+                "$ref": "#/components/schemas/Tradeoff"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Tradeoff"
+            ]
           }
         },
         "required": [
@@ -798,6 +880,49 @@
           "epoch_age_days"
         ],
         "title": "OrbitedObject",
+        "type": "object"
+      },
+      "PrecisionAtRecall": {
+        "properties": {
+          "precision": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precision"
+          },
+          "recall": {
+            "title": "Recall",
+            "type": "number"
+          }
+        },
+        "required": [
+          "recall",
+          "precision"
+        ],
+        "title": "PrecisionAtRecall",
+        "type": "object"
+      },
+      "PrecisionAtTopK": {
+        "properties": {
+          "k": {
+            "title": "K",
+            "type": "integer"
+          },
+          "precision": {
+            "title": "Precision",
+            "type": "number"
+          }
+        },
+        "required": [
+          "k",
+          "precision"
+        ],
+        "title": "PrecisionAtTopK",
         "type": "object"
       },
       "Reason": {
@@ -1173,6 +1298,30 @@
           "model_version"
         ],
         "title": "Source",
+        "type": "object"
+      },
+      "Tradeoff": {
+        "properties": {
+          "precision_at_recall": {
+            "items": {
+              "$ref": "#/components/schemas/PrecisionAtRecall"
+            },
+            "title": "Precision At Recall",
+            "type": "array"
+          },
+          "precision_at_top_k": {
+            "items": {
+              "$ref": "#/components/schemas/PrecisionAtTopK"
+            },
+            "title": "Precision At Top K",
+            "type": "array"
+          }
+        },
+        "required": [
+          "precision_at_recall",
+          "precision_at_top_k"
+        ],
+        "title": "Tradeoff",
         "type": "object"
       },
       "ValidationError": {

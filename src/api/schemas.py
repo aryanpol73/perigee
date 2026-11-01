@@ -204,15 +204,40 @@ class SimulateResponse(BaseModel):
     what_if: list[WhatIfBand]
 
 
+class ModelMetrics(BaseModel):
+    pr_auc: float
+    pr_auc_ci95: list[float | None]
+    alerts: int
+    precision: float | None
+    recall: float | None
+    false_alarms_per_true: float | None
+    brier: float | None = None
+
+
+class PrecisionAtRecall(BaseModel):
+    recall: float
+    precision: float | None
+
+
+class PrecisionAtTopK(BaseModel):
+    k: int
+    precision: float
+
+
+class Tradeoff(BaseModel):
+    precision_at_recall: list[PrecisionAtRecall]
+    precision_at_top_k: list[PrecisionAtTopK]
+
+
 class ModelSummary(BaseModel):
     model_version: str
     commit: str | None
     data_window: list[str] | None
     label: str
     scope: str
-    test_counts: dict
-    metrics: dict
-    tradeoff: dict | None
+    test_counts: dict[str, int]
+    metrics: dict[str, ModelMetrics]
+    tradeoff: Tradeoff | None
     operating_probability: float
     lightgbm_beats_all_baselines: bool
     top_features: dict[str, float]

@@ -1,0 +1,1180 @@
+{
+ "source": "Python sgp4 2.27 via src.orbits.propagate",
+ "cases": [
+  {
+   "record": {
+    "NORAD_CAT_ID": 24920,
+    "OBJECT_NAME": "FORTE",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-30T15:18:55.430784",
+    "MEAN_MOTION": 14.27990486,
+    "ECCENTRICITY": 0.00189837,
+    "INCLINATION": 69.9533,
+    "RA_OF_ASC_NODE": 68.0615,
+    "ARG_OF_PERICENTER": 93.6478,
+    "MEAN_ANOMALY": 266.6816,
+    "BSTAR": 7.2669583e-05,
+    "MEAN_MOTION_DOT": 1.23e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 51802
+   },
+   "points": [
+    {
+     "time": "2026-10-30T15:18:55.430784+00:00",
+     "teme_km": [
+      2682.433178,
+      6659.833538,
+      0.006132
+     ]
+    },
+    {
+     "time": "2026-10-30T21:18:55.430784+00:00",
+     "teme_km": [
+      -1502.959291,
+      -6399.181481,
+      -2904.861261
+     ]
+    },
+    {
+     "time": "2026-10-31T15:18:55.430784+00:00",
+     "teme_km": [
+      -2704.272435,
+      -117.158145,
+      6624.178144
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 25544,
+    "OBJECT_NAME": "ISS (ZARYA)",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-31T10:25:39.447840",
+    "MEAN_MOTION": 15.49127263,
+    "ECCENTRICITY": 0.0007003,
+    "INCLINATION": 51.6332,
+    "RA_OF_ASC_NODE": 345.8716,
+    "ARG_OF_PERICENTER": 330.9942,
+    "MEAN_ANOMALY": 29.0657,
+    "BSTAR": 0.00011679,
+    "MEAN_MOTION_DOT": 6.019e-05,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 59287
+   },
+   "points": [
+    {
+     "time": "2026-10-31T10:25:39.447840+00:00",
+     "teme_km": [
+      6588.485842,
+      -1658.381305,
+      0.005101
+     ]
+    },
+    {
+     "time": "2026-10-31T16:25:39.447840+00:00",
+     "teme_km": [
+      3852.86227,
+      -4148.406869,
+      -3760.557261
+     ]
+    },
+    {
+     "time": "2026-11-01T10:25:39.447840+00:00",
+     "teme_km": [
+      -6444.982815,
+      2175.22818,
+      -64.30026
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 25982,
+    "OBJECT_NAME": "ORBCOMM FM32",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-31T02:47:29.969376",
+    "MEAN_MOTION": 14.372964,
+    "ECCENTRICITY": 0.0007336,
+    "INCLINATION": 45.0149,
+    "RA_OF_ASC_NODE": 249.7475,
+    "ARG_OF_PERICENTER": 2.3653,
+    "MEAN_ANOMALY": 357.7229,
+    "BSTAR": 0.00018528,
+    "MEAN_MOTION_DOT": 4.15e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 40664
+   },
+   "points": [
+    {
+     "time": "2026-10-31T02:47:29.969376+00:00",
+     "teme_km": [
+      -2471.685082,
+      -6698.903134,
+      0.002666
+     ]
+    },
+    {
+     "time": "2026-10-31T08:47:29.969376+00:00",
+     "teme_km": [
+      -553.288646,
+      6516.523859,
+      -2896.250824
+     ]
+    },
+    {
+     "time": "2026-11-01T02:47:29.969376+00:00",
+     "teme_km": [
+      5269.508783,
+      3537.907323,
+      3281.247401
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 28649,
+    "OBJECT_NAME": "IRS-P5 (CARTOSAT-1)",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-30T06:55:56.698752",
+    "MEAN_MOTION": 14.91324436,
+    "ECCENTRICITY": 0.00013919,
+    "INCLINATION": 97.525,
+    "RA_OF_ASC_NODE": 320.2122,
+    "ARG_OF_PERICENTER": 51.4826,
+    "MEAN_ANOMALY": 308.6518,
+    "BSTAR": 6.7946555e-05,
+    "MEAN_MOTION_DOT": 6.25e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 16395
+   },
+   "points": [
+    {
+     "time": "2026-10-30T06:55:56.698752+00:00",
+     "teme_km": [
+      5359.254186,
+      -4463.229789,
+      0.00287
+     ]
+    },
+    {
+     "time": "2026-10-30T12:55:56.698752+00:00",
+     "teme_km": [
+      -219.059893,
+      1354.168942,
+      -6844.008027
+     ]
+    },
+    {
+     "time": "2026-10-31T06:55:56.698752+00:00",
+     "teme_km": [
+      4802.124684,
+      -3199.881313,
+      -3923.49766
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29781,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T21:58:24.301056",
+    "MEAN_MOTION": 14.05804828,
+    "ECCENTRICITY": 0.0071987,
+    "INCLINATION": 98.8307,
+    "RA_OF_ASC_NODE": 294.46,
+    "ARG_OF_PERICENTER": 351.1135,
+    "MEAN_ANOMALY": 38.324,
+    "BSTAR": 0.00044972,
+    "MEAN_MOTION_DOT": 7.09e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 1167
+   },
+   "points": [
+    {
+     "time": "2026-10-30T21:58:24.301056+00:00",
+     "teme_km": [
+      2087.141538,
+      -5919.799217,
+      3546.488714
+     ]
+    },
+    {
+     "time": "2026-10-31T03:58:24.301056+00:00",
+     "teme_km": [
+      -1980.749515,
+      5785.802368,
+      -3979.021624
+     ]
+    },
+    {
+     "time": "2026-10-31T21:58:24.301056+00:00",
+     "teme_km": [
+      1321.776194,
+      -4703.904593,
+      5317.127976
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29800,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T22:44:39.175296",
+    "MEAN_MOTION": 14.00137917,
+    "ECCENTRICITY": 0.0131745,
+    "INCLINATION": 98.2863,
+    "RA_OF_ASC_NODE": 300.0888,
+    "ARG_OF_PERICENTER": 39.0903,
+    "MEAN_ANOMALY": 352.4917,
+    "BSTAR": 0.0012864,
+    "MEAN_MOTION_DOT": 2.008e-05,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 64
+   },
+   "points": [
+    {
+     "time": "2026-10-30T22:44:39.175296+00:00",
+     "teme_km": [
+      2609.027478,
+      -5574.58012,
+      3686.992187
+     ]
+    },
+    {
+     "time": "2026-10-31T04:44:39.175296+00:00",
+     "teme_km": [
+      -2703.087694,
+      5717.046933,
+      -3789.669308
+     ]
+    },
+    {
+     "time": "2026-10-31T22:44:39.175296+00:00",
+     "teme_km": [
+      2802.586173,
+      -5638.571485,
+      3439.820991
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29802,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T20:39:31.544928",
+    "MEAN_MOTION": 14.70804027,
+    "ECCENTRICITY": 0.00313025,
+    "INCLINATION": 98.6369,
+    "RA_OF_ASC_NODE": 74.7016,
+    "ARG_OF_PERICENTER": 56.7072,
+    "MEAN_ANOMALY": 94.1046,
+    "BSTAR": 0.0012946252,
+    "MEAN_MOTION_DOT": 7.918e-05,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 3194
+   },
+   "points": [
+    {
+     "time": "2026-10-30T20:39:31.544928+00:00",
+     "teme_km": [
+      -1137.825724,
+      -6086.157274,
+      3344.182487
+     ]
+    },
+    {
+     "time": "2026-10-31T02:39:31.544928+00:00",
+     "teme_km": [
+      2078.937643,
+      5496.349919,
+      3829.780735
+     ]
+    },
+    {
+     "time": "2026-10-31T20:39:31.544928+00:00",
+     "teme_km": [
+      1961.843333,
+      4839.713751,
+      4678.720515
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29804,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T23:32:12.849792",
+    "MEAN_MOTION": 14.04393538,
+    "ECCENTRICITY": 0.0098957,
+    "INCLINATION": 98.8054,
+    "RA_OF_ASC_NODE": 307.4533,
+    "ARG_OF_PERICENTER": 118.8847,
+    "MEAN_ANOMALY": 270.8603,
+    "BSTAR": -0.00012853,
+    "MEAN_MOTION_DOT": -2.56e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 1412
+   },
+   "points": [
+    {
+     "time": "2026-10-30T23:32:12.849792+00:00",
+     "teme_km": [
+      3455.650424,
+      -5383.445041,
+      3422.447529
+     ]
+    },
+    {
+     "time": "2026-10-31T05:32:12.849792+00:00",
+     "teme_km": [
+      -3179.550007,
+      5138.855654,
+      -4041.012046
+     ]
+    },
+    {
+     "time": "2026-10-31T23:32:12.849792+00:00",
+     "teme_km": [
+      2785.949667,
+      -4695.541902,
+      4744.856954
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29835,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T21:32:42.307296",
+    "MEAN_MOTION": 14.43597493,
+    "ECCENTRICITY": 0.0167124,
+    "INCLINATION": 99.0719,
+    "RA_OF_ASC_NODE": 97.4668,
+    "ARG_OF_PERICENTER": 161.5061,
+    "MEAN_ANOMALY": 352.4618,
+    "BSTAR": 5.902e-05,
+    "MEAN_MOTION_DOT": 1.8e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 4140
+   },
+   "points": [
+    {
+     "time": "2026-10-30T21:32:42.307296+00:00",
+     "teme_km": [
+      1300.611849,
+      -6170.113421,
+      3052.832126
+     ]
+    },
+    {
+     "time": "2026-10-31T03:32:42.307296+00:00",
+     "teme_km": [
+      -730.884656,
+      7052.107593,
+      1406.285112
+     ]
+    },
+    {
+     "time": "2026-10-31T21:32:42.307296+00:00",
+     "teme_km": [
+      -1552.37833,
+      4354.558569,
+      -5564.9216
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29845,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T22:28:11.527392",
+    "MEAN_MOTION": 14.27046325,
+    "ECCENTRICITY": 0.0075651,
+    "INCLINATION": 98.533,
+    "RA_OF_ASC_NODE": 301.1392,
+    "ARG_OF_PERICENTER": 268.2843,
+    "MEAN_ANOMALY": 120.7154,
+    "BSTAR": 0.00016011,
+    "MEAN_MOTION_DOT": 3.58e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 2703
+   },
+   "points": [
+    {
+     "time": "2026-10-30T22:28:11.527392+00:00",
+     "teme_km": [
+      2785.834385,
+      -5634.366542,
+      3524.835666
+     ]
+    },
+    {
+     "time": "2026-10-31T04:28:11.527392+00:00",
+     "teme_km": [
+      -1565.096357,
+      4174.471625,
+      -5579.987926
+     ]
+    },
+    {
+     "time": "2026-10-31T22:28:11.527392+00:00",
+     "teme_km": [
+      -2849.271336,
+      2848.408551,
+      5988.108372
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29871,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T22:22:37.746048",
+    "MEAN_MOTION": 14.44308868,
+    "ECCENTRICITY": 0.0055025,
+    "INCLINATION": 99.0067,
+    "RA_OF_ASC_NODE": 279.9609,
+    "ARG_OF_PERICENTER": 231.4779,
+    "MEAN_ANOMALY": 152.3914,
+    "BSTAR": 0.00034971,
+    "MEAN_MOTION_DOT": 1.174e-05,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 3350
+   },
+   "points": [
+    {
+     "time": "2026-10-30T22:22:37.746048+00:00",
+     "teme_km": [
+      680.311896,
+      -6515.606449,
+      2881.244347
+     ]
+    },
+    {
+     "time": "2026-10-31T04:22:37.746048+00:00",
+     "teme_km": [
+      408.141794,
+      3322.683268,
+      -6251.350827
+     ]
+    },
+    {
+     "time": "2026-10-31T22:22:37.746048+00:00",
+     "teme_km": [
+      -1355.765476,
+      6968.64888,
+      -7.709311
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29873,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-31T04:10:41.316384",
+    "MEAN_MOTION": 13.98435388,
+    "ECCENTRICITY": 0.0093051,
+    "INCLINATION": 99.4011,
+    "RA_OF_ASC_NODE": 177.9997,
+    "ARG_OF_PERICENTER": 42.5721,
+    "MEAN_ANOMALY": 78.405,
+    "BSTAR": 0.0003808,
+    "MEAN_MOTION_DOT": 5.19e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 821
+   },
+   "points": [
+    {
+     "time": "2026-10-31T04:10:41.316384+00:00",
+     "teme_km": [
+      3887.98383,
+      870.074892,
+      6067.73439
+     ]
+    },
+    {
+     "time": "2026-10-31T10:10:41.316384+00:00",
+     "teme_km": [
+      -3434.5781,
+      -951.437001,
+      -6371.230692
+     ]
+    },
+    {
+     "time": "2026-11-01T04:10:41.316384+00:00",
+     "teme_km": [
+      2931.588752,
+      1035.567781,
+      6551.164143
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29874,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-31T03:47:32.419104",
+    "MEAN_MOTION": 14.32129806,
+    "ECCENTRICITY": 0.0097946,
+    "INCLINATION": 98.3623,
+    "RA_OF_ASC_NODE": 194.3081,
+    "ARG_OF_PERICENTER": 114.3031,
+    "MEAN_ANOMALY": 39.9125,
+    "BSTAR": 0.0010663,
+    "MEAN_MOTION_DOT": 2.984e-05,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 1453
+   },
+   "points": [
+    {
+     "time": "2026-10-31T03:47:32.419104+00:00",
+     "teme_km": [
+      6137.116288,
+      2015.65842,
+      2967.116457
+     ]
+    },
+    {
+     "time": "2026-10-31T09:47:32.419104+00:00",
+     "teme_km": [
+      -6964.900077,
+      -1784.388759,
+      152.8778
+     ]
+    },
+    {
+     "time": "2026-11-01T03:47:32.419104+00:00",
+     "teme_km": [
+      594.764171,
+      -927.738911,
+      -7149.657735
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29890,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T21:14:11.042592",
+    "MEAN_MOTION": 14.24381806,
+    "ECCENTRICITY": 0.001335,
+    "INCLINATION": 99.4963,
+    "RA_OF_ASC_NODE": 95.3986,
+    "ARG_OF_PERICENTER": 245.3741,
+    "MEAN_ANOMALY": 114.6045,
+    "BSTAR": 0.00033772,
+    "MEAN_MOTION_DOT": 7.31e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 2026
+   },
+   "points": [
+    {
+     "time": "2026-10-30T21:14:11.042592+00:00",
+     "teme_km": [
+      -676.991532,
+      7163.692241,
+      0.000911
+     ]
+    },
+    {
+     "time": "2026-10-31T03:14:11.042592+00:00",
+     "teme_km": [
+      234.336352,
+      -6709.15515,
+      -2565.961787
+     ]
+    },
+    {
+     "time": "2026-10-31T21:14:11.042592+00:00",
+     "teme_km": [
+      1101.951778,
+      773.799419,
+      7062.97075
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29913,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T11:51:34.701696",
+    "MEAN_MOTION": 14.07671157,
+    "ECCENTRICITY": 0.00637802,
+    "INCLINATION": 98.8024,
+    "RA_OF_ASC_NODE": 298.881,
+    "ARG_OF_PERICENTER": 85.3635,
+    "MEAN_ANOMALY": 65.6091,
+    "BSTAR": 8.601374e-05,
+    "MEAN_MOTION_DOT": 1.06e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 1481
+   },
+   "points": [
+    {
+     "time": "2026-10-30T11:51:34.701696+00:00",
+     "teme_km": [
+      -3532.504532,
+      5319.535196,
+      3380.832938
+     ]
+    },
+    {
+     "time": "2026-10-30T17:51:34.701696+00:00",
+     "teme_km": [
+      3628.969074,
+      -5597.103489,
+      -2878.133392
+     ]
+    },
+    {
+     "time": "2026-10-31T11:51:34.701696+00:00",
+     "teme_km": [
+      -3660.06155,
+      6244.997212,
+      422.485075
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29956,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-31T00:28:38.380224",
+    "MEAN_MOTION": 14.06233212,
+    "ECCENTRICITY": 0.0053302,
+    "INCLINATION": 98.7598,
+    "RA_OF_ASC_NODE": 328.0023,
+    "ARG_OF_PERICENTER": 189.5389,
+    "MEAN_ANOMALY": 200.4421,
+    "BSTAR": 7.7912e-05,
+    "MEAN_MOTION_DOT": 8.7e-07,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 1575
+   },
+   "points": [
+    {
+     "time": "2026-10-31T00:28:38.380224+00:00",
+     "teme_km": [
+      5076.934672,
+      -3820.175104,
+      3564.385601
+     ]
+    },
+    {
+     "time": "2026-10-31T06:28:38.380224+00:00",
+     "teme_km": [
+      -4679.895746,
+      3643.818178,
+      -4120.346309
+     ]
+    },
+    {
+     "time": "2026-11-01T00:28:38.380224+00:00",
+     "teme_km": [
+      3647.128755,
+      -3172.220193,
+      5436.283492
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 29989,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-31T04:36:25.255872",
+    "MEAN_MOTION": 14.16027401,
+    "ECCENTRICITY": 0.0123282,
+    "INCLINATION": 98.7069,
+    "RA_OF_ASC_NODE": 280.072,
+    "ARG_OF_PERICENTER": 353.0003,
+    "MEAN_ANOMALY": 71.2301,
+    "BSTAR": 0.0001164,
+    "MEAN_MOTION_DOT": 2.04e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 2170
+   },
+   "points": [
+    {
+     "time": "2026-10-31T04:36:25.255872+00:00",
+     "teme_km": [
+      -454.710072,
+      -3102.650054,
+      6462.40171
+     ]
+    },
+    {
+     "time": "2026-10-31T10:36:25.255872+00:00",
+     "teme_km": [
+      747.280826,
+      1844.274482,
+      -6952.924861
+     ]
+    },
+    {
+     "time": "2026-11-01T04:36:25.255872+00:00",
+     "teme_km": [
+      -1634.610588,
+      3406.722491,
+      6208.343579
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 30004,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-31T00:11:10.883904",
+    "MEAN_MOTION": 14.17838741,
+    "ECCENTRICITY": 0.0037133,
+    "INCLINATION": 99.2171,
+    "RA_OF_ASC_NODE": 142.3439,
+    "ARG_OF_PERICENTER": 151.9443,
+    "MEAN_ANOMALY": 6.0141,
+    "BSTAR": 0.00034317,
+    "MEAN_MOTION_DOT": 6.58e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 1871
+   },
+   "points": [
+    {
+     "time": "2026-10-31T00:11:10.883904+00:00",
+     "teme_km": [
+      5539.586708,
+      -3732.440275,
+      2643.926883
+     ]
+    },
+    {
+     "time": "2026-10-31T06:11:10.883904+00:00",
+     "teme_km": [
+      -5794.330994,
+      4252.354864,
+      -867.142506
+     ]
+    },
+    {
+     "time": "2026-11-01T00:11:10.883904+00:00",
+     "teme_km": [
+      3999.990138,
+      -3895.069107,
+      -4559.30845
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 30010,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-31T03:35:21.417216",
+    "MEAN_MOTION": 14.25138401,
+    "ECCENTRICITY": 0.0073216,
+    "INCLINATION": 99.0472,
+    "RA_OF_ASC_NODE": 151.8234,
+    "ARG_OF_PERICENTER": 3.912,
+    "MEAN_ANOMALY": 121.027,
+    "BSTAR": 5.8449e-05,
+    "MEAN_MOTION_DOT": 9.4e-07,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 2851
+   },
+   "points": [
+    {
+     "time": "2026-10-31T03:35:21.417216+00:00",
+     "teme_km": [
+      4144.391661,
+      -1175.334782,
+      5779.732777
+     ]
+    },
+    {
+     "time": "2026-10-31T09:35:21.417216+00:00",
+     "teme_km": [
+      -5545.189397,
+      2230.825895,
+      -3923.895545
+     ]
+    },
+    {
+     "time": "2026-11-01T03:35:21.417216+00:00",
+     "teme_km": [
+      5170.445913,
+      -3333.604039,
+      -3811.773217
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 30040,
+    "OBJECT_NAME": "FENGYUN 1C DEB",
+    "OBJECT_TYPE": "DEB",
+    "EPOCH": "2026-10-30T12:16:35.830848",
+    "MEAN_MOTION": 14.39596157,
+    "ECCENTRICITY": 0.00327429,
+    "INCLINATION": 98.2239,
+    "RA_OF_ASC_NODE": 311.6167,
+    "ARG_OF_PERICENTER": 63.7973,
+    "MEAN_ANOMALY": 87.3857,
+    "BSTAR": 0.00079893207,
+    "MEAN_MOTION_DOT": 2.471e-05,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 2540
+   },
+   "points": [
+    {
+     "time": "2026-10-30T12:16:35.830848+00:00",
+     "teme_km": [
+      -4533.552482,
+      4373.180432,
+      3352.761165
+     ]
+    },
+    {
+     "time": "2026-10-30T18:16:35.830848+00:00",
+     "teme_km": [
+      4658.381996,
+      -5349.852318,
+      692.49017
+     ]
+    },
+    {
+     "time": "2026-10-31T12:16:35.830848+00:00",
+     "teme_km": [
+      2395.325417,
+      -1187.17181,
+      -6642.501206
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 25933,
+    "OBJECT_NAME": "NAVSTAR 46 (USA 145)",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-30T22:04:46.653024",
+    "MEAN_MOTION": 2.00555186,
+    "ECCENTRICITY": 0.0102836,
+    "INCLINATION": 51.3422,
+    "RA_OF_ASC_NODE": 289.5141,
+    "ARG_OF_PERICENTER": 181.9383,
+    "MEAN_ANOMALY": 185.1505,
+    "BSTAR": 0.0,
+    "MEAN_MOTION_DOT": -2.7e-07,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 19830
+   },
+   "points": [
+    {
+     "time": "2026-10-30T22:04:46.653024+00:00",
+     "teme_km": [
+      10813.540855,
+      -24424.114743,
+      2548.408974
+     ]
+    },
+    {
+     "time": "2026-10-31T04:04:46.653024+00:00",
+     "teme_km": [
+      -10785.009093,
+      23815.694228,
+      -2774.681687
+     ]
+    },
+    {
+     "time": "2026-10-31T22:04:46.653024+00:00",
+     "teme_km": [
+      11295.390293,
+      -24117.035861,
+      3268.722385
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 26605,
+    "OBJECT_NAME": "NAVSTAR 49 (USA 154)",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-31T00:49:59.998944",
+    "MEAN_MOTION": 2.00559404,
+    "ECCENTRICITY": 0.0175911,
+    "INCLINATION": 55.7137,
+    "RA_OF_ASC_NODE": 89.5921,
+    "ARG_OF_PERICENTER": 267.1809,
+    "MEAN_ANOMALY": 109.5575,
+    "BSTAR": 0.0,
+    "MEAN_MOTION_DOT": 3.6e-07,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 19024
+   },
+   "points": [
+    {
+     "time": "2026-10-31T00:49:59.998944+00:00",
+     "teme_km": [
+      -4622.178834,
+      25357.000825,
+      7052.631697
+     ]
+    },
+    {
+     "time": "2026-10-31T06:49:59.998944+00:00",
+     "teme_km": [
+      3757.988201,
+      -25491.194205,
+      -5793.415514
+     ]
+    },
+    {
+     "time": "2026-11-01T00:49:59.998944+00:00",
+     "teme_km": [
+      -5107.313386,
+      25063.591696,
+      7785.634783
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 27691,
+    "OBJECT_NAME": "USA 167",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-30T21:07:14.865024",
+    "MEAN_MOTION": 1.00271864,
+    "ECCENTRICITY": 0.0004346,
+    "INCLINATION": 11.2282,
+    "RA_OF_ASC_NODE": 42.1595,
+    "ARG_OF_PERICENTER": 272.5693,
+    "MEAN_ANOMALY": 279.2296,
+    "BSTAR": 0.0,
+    "MEAN_MOTION_DOT": 4e-08,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 813
+   },
+   "points": [
+    {
+     "time": "2026-10-30T21:07:14.865024+00:00",
+     "teme_km": [
+      -24955.918455,
+      -33940.953796,
+      -1678.596022
+     ]
+    },
+    {
+     "time": "2026-10-31T03:07:14.865024+00:00",
+     "teme_km": [
+      33653.000077,
+      -24074.158376,
+      -8020.796371
+     ]
+    },
+    {
+     "time": "2026-10-31T21:07:14.865024+00:00",
+     "teme_km": [
+      -24374.24557,
+      -34353.58187,
+      -1817.366525
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 27718,
+    "OBJECT_NAME": "ASIASAT 4",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-30T17:16:15.880800",
+    "MEAN_MOTION": 1.00272557,
+    "ECCENTRICITY": 0.00029094,
+    "INCLINATION": 5.0451,
+    "RA_OF_ASC_NODE": 73.9861,
+    "ARG_OF_PERICENTER": 150.4281,
+    "MEAN_ANOMALY": 221.2775,
+    "BSTAR": 0.0,
+    "MEAN_MOTION_DOT": -2.21e-06,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 4666
+   },
+   "points": [
+    {
+     "time": "2026-10-30T17:16:15.880800+00:00",
+     "teme_km": [
+      3236.939533,
+      42042.020082,
+      751.500306
+     ]
+    },
+    {
+     "time": "2026-10-30T23:16:15.880800+00:00",
+     "teme_km": [
+      -41894.237747,
+      2978.623959,
+      3614.359527
+     ]
+    },
+    {
+     "time": "2026-10-31T17:16:15.880800+00:00",
+     "teme_km": [
+      2512.093526,
+      42090.298212,
+      814.497479
+     ]
+    }
+   ]
+  },
+  {
+   "record": {
+    "NORAD_CAT_ID": 27811,
+    "OBJECT_NAME": "HELLAS-SAT 2",
+    "OBJECT_TYPE": "PAY",
+    "EPOCH": "2026-10-31T02:47:04.793280",
+    "MEAN_MOTION": 1.00271058,
+    "ECCENTRICITY": 0.0010367,
+    "INCLINATION": 7.6881,
+    "RA_OF_ASC_NODE": 66.2133,
+    "ARG_OF_PERICENTER": 170.8018,
+    "MEAN_ANOMALY": 194.2213,
+    "BSTAR": 0.0,
+    "MEAN_MOTION_DOT": -8.5e-07,
+    "MEAN_MOTION_DDOT": 0.0,
+    "EPHEMERIS_TYPE": 0,
+    "CLASSIFICATION_TYPE": "U",
+    "ELEMENT_SET_NO": 999,
+    "REV_AT_EPOCH": 4421
+   },
+   "points": [
+    {
+     "time": "2026-10-31T02:47:04.793280+00:00",
+     "teme_km": [
+      13645.268064,
+      39937.206994,
+      495.792725
+     ]
+    },
+    {
+     "time": "2026-10-31T08:47:04.793280+00:00",
+     "teme_km": [
+      -39593.90485,
+      13331.390509,
+      5605.934726
+     ]
+    },
+    {
+     "time": "2026-11-01T02:47:04.793280+00:00",
+     "teme_km": [
+      12963.594492,
+      40162.112109,
+      592.407922
+     ]
+    }
+   ]
+  }
+ ]
+}
