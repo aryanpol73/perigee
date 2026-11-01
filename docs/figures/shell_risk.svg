@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" width="960" height="470" role="img" aria-labelledby="t d">
+<title id='t'>Shell risk index by altitude</title>
+<desc id='d'>Relative collision-rate index per 25 km band, log scale, for two catalogs. Numbers are in shell_risk.csv.</desc>
+<style>
+  .surface { fill: #fcfcfb; }
+  .ink { fill: #0b0b0b; } .ink2 { fill: #52514e; } .muted { fill: #898781; }
+  .grid { stroke: #e1e0d9; } .axis { stroke: #c3c2b7; } .earth { fill: #e1e0d9; }
+  .l0 { stroke: #2a78d6; } .l1 { stroke: #eb6834; } .f0 { fill: #2a78d6; } .f1 { fill: #eb6834; }
+  @media (prefers-color-scheme: dark) {
+    .surface { fill: #1a1a19; }
+    .ink { fill: #f0efec; } .ink2 { fill: #c3c2b7; }
+    .grid { stroke: #2c2c2a; } .axis { stroke: #383835; } .earth { fill: #2c2c2a; }
+    .l0 { stroke: #3987e5; } .l1 { stroke: #d95926; } .f0 { fill: #3987e5; } .f1 { fill: #d95926; }
+  }
+  text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .tick { font-size: 11px; font-variant-numeric: tabular-nums; }
+</style>
+<rect class="surface" width="960" height="470" rx="8"/>
+<text class="ink" x="64" y="32" font-size="17" font-weight="600">Shell risk index per 25 km band (100 = riskiest band in each catalog)</text>
+<text class="ink2" x="64" y="54" font-size="12.5">Log scale; values below 0.001 sit on the floor. A relative index from public data, not a collision probability. Data: CelesTrak; Space-Track.org (USSPACECOM).</text>
+<line class="axis" x1="64" x2="920" y1="410.0" y2="410.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="414.0" text-anchor="end">0.001</text>
+<line class="grid" x1="64" x2="920" y1="350.0" y2="350.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="354.0" text-anchor="end">0.01</text>
+<line class="grid" x1="64" x2="920" y1="290.0" y2="290.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="294.0" text-anchor="end">0.1</text>
+<line class="grid" x1="64" x2="920" y1="230.0" y2="230.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="234.0" text-anchor="end">1</text>
+<line class="grid" x1="64" x2="920" y1="170.0" y2="170.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="174.0" text-anchor="end">10</text>
+<line class="grid" x1="64" x2="920" y1="110.0" y2="110.0" stroke-width="1"/>
+<text class="muted tick" x="56" y="114.0" text-anchor="end">100</text>
+<text class="muted tick" x="64.0" y="428" text-anchor="middle">200</text>
+<text class="muted tick" x="159.1" y="428" text-anchor="middle">400</text>
+<text class="muted tick" x="254.2" y="428" text-anchor="middle">600</text>
+<text class="muted tick" x="349.3" y="428" text-anchor="middle">800</text>
+<text class="muted tick" x="444.4" y="428" text-anchor="middle">1,000</text>
+<text class="muted tick" x="539.6" y="428" text-anchor="middle">1,200</text>
+<text class="muted tick" x="634.7" y="428" text-anchor="middle">1,400</text>
+<text class="muted tick" x="729.8" y="428" text-anchor="middle">1,600</text>
+<text class="muted tick" x="824.9" y="428" text-anchor="middle">1,800</text>
+<text class="muted tick" x="920.0" y="428" text-anchor="middle">2,000</text>
+<text class="ink2" x="492.0" y="450" font-size="12" text-anchor="middle">Altitude (km)</text>
+<polyline class="l0" fill="none" stroke-width="2" stroke-linejoin="round" points="69.9,377.3 81.8,379.2 93.7,334.4 105.6,331.3 117.5,334.7 129.4,305.1 141.3,183.6 153.2,236.6 165.1,209.6 176.9,175.5 188.8,156.9 200.7,110.0 212.6,195.6 224.5,117.3 236.4,117.8 248.3,221.1 260.2,229.7 272.1,225.6 283.9,257.0 295.8,250.1 307.7,266.1 319.6,257.4 331.5,229.1 343.4,214.6 355.3,239.5 367.2,237.5 379.1,251.3 390.9,253.4 402.8,265.2 414.7,248.8 426.6,238.2 438.5,239.1 450.4,273.9 462.3,297.4 474.2,274.5 486.1,293.1 497.9,310.9 509.8,303.7 521.7,284.4 533.6,215.7 545.5,215.4 557.4,359.9 569.3,359.8 581.2,357.5 593.1,363.2 604.9,362.3 616.8,360.8 628.7,327.5 640.6,260.6 652.5,318.8 664.4,295.3 676.3,275.9 688.2,295.9 700.1,352.8 711.9,363.2 723.8,365.4 735.7,367.1 747.6,377.9 759.5,374.3 771.4,372.4 783.3,398.9 795.2,406.7 807.1,410.0 818.9,410.0 830.8,410.0 842.7,410.0 854.6,410.0 866.5,410.0 878.4,410.0 890.3,410.0 902.2,410.0 914.1,410.0"/>
+<circle cx="69.9" cy="377.3" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 200-225 km, index 0.00351, 17 objects</title></circle>
+<circle cx="81.8" cy="379.2" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 225-250 km, index 0.00326, 16 objects</title></circle>
+<circle cx="93.7" cy="334.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 250-275 km, index 0.0182, 38 objects</title></circle>
+<circle cx="105.6" cy="331.3" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 275-300 km, index 0.0205, 39 objects</title></circle>
+<circle cx="117.5" cy="334.7" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 300-325 km, index 0.018, 37 objects</title></circle>
+<circle cx="129.4" cy="305.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 325-350 km, index 0.056, 64 objects</title></circle>
+<circle cx="141.3" cy="183.6" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 350-375 km, index 5.94, 723 objects</title></circle>
+<circle cx="153.2" cy="236.6" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 375-400 km, index 0.776, 223 objects</title></circle>
+<circle cx="165.1" cy="209.6" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 400-425 km, index 2.19, 395 objects</title></circle>
+<circle cx="176.9" cy="175.5" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 425-450 km, index 8.11, 772 objects</title></circle>
+<circle cx="188.8" cy="156.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 450-475 km, index 16.5, 1,156 objects</title></circle>
+<circle cx="200.7" cy="110.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 475-500 km, index 100, 2,985 objects</title></circle>
+<circle cx="212.6" cy="195.6" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 500-525 km, index 3.75, 527 objects</title></circle>
+<circle cx="224.5" cy="117.3" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 525-550 km, index 75.7, 2,540 objects</title></circle>
+<circle cx="236.4" cy="117.8" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 550-575 km, index 74, 2,453 objects</title></circle>
+<circle cx="248.3" cy="221.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 575-600 km, index 1.41, 421 objects</title></circle>
+<circle cx="260.2" cy="229.7" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 600-625 km, index 1.01, 411 objects</title></circle>
+<circle cx="272.1" cy="225.6" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 625-650 km, index 1.18, 473 objects</title></circle>
+<circle cx="283.9" cy="257.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 650-675 km, index 0.354, 391 objects</title></circle>
+<circle cx="295.8" cy="250.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 675-700 km, index 0.462, 465 objects</title></circle>
+<circle cx="307.7" cy="266.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 700-725 km, index 0.25, 473 objects</title></circle>
+<circle cx="319.6" cy="257.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 725-750 km, index 0.349, 542 objects</title></circle>
+<circle cx="331.5" cy="229.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 750-775 km, index 1.04, 719 objects</title></circle>
+<circle cx="343.4" cy="214.6" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 775-800 km, index 1.81, 868 objects</title></circle>
+<circle cx="355.3" cy="239.5" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 800-825 km, index 0.694, 746 objects</title></circle>
+<circle cx="367.2" cy="237.5" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 825-850 km, index 0.749, 710 objects</title></circle>
+<circle cx="379.1" cy="251.3" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 850-875 km, index 0.442, 564 objects</title></circle>
+<circle cx="390.9" cy="253.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 875-900 km, index 0.407, 489 objects</title></circle>
+<circle cx="402.8" cy="265.2" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 900-925 km, index 0.259, 406 objects</title></circle>
+<circle cx="414.7" cy="248.8" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 925-950 km, index 0.486, 391 objects</title></circle>
+<circle cx="426.6" cy="238.2" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 950-975 km, index 0.731, 401 objects</title></circle>
+<circle cx="438.5" cy="239.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 975-1000 km, index 0.706, 377 objects</title></circle>
+<circle cx="450.4" cy="273.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1000-1025 km, index 0.186, 241 objects</title></circle>
+<circle cx="462.3" cy="297.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1025-1050 km, index 0.0751, 199 objects</title></circle>
+<circle cx="474.2" cy="274.5" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1050-1075 km, index 0.181, 229 objects</title></circle>
+<circle cx="486.1" cy="293.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1075-1100 km, index 0.0887, 191 objects</title></circle>
+<circle cx="497.9" cy="310.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1100-1125 km, index 0.0448, 145 objects</title></circle>
+<circle cx="509.8" cy="303.7" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1125-1150 km, index 0.0592, 132 objects</title></circle>
+<circle cx="521.7" cy="284.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1150-1175 km, index 0.124, 155 objects</title></circle>
+<circle cx="533.6" cy="215.7" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1175-1200 km, index 1.73, 427 objects</title></circle>
+<circle cx="545.5" cy="215.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1200-1225 km, index 1.75, 421 objects</title></circle>
+<circle cx="557.4" cy="359.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1225-1250 km, index 0.00683, 83 objects</title></circle>
+<circle cx="569.3" cy="359.8" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1250-1275 km, index 0.00687, 116 objects</title></circle>
+<circle cx="581.2" cy="357.5" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1275-1300 km, index 0.00751, 107 objects</title></circle>
+<circle cx="593.1" cy="363.2" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1300-1325 km, index 0.00603, 66 objects</title></circle>
+<circle cx="604.9" cy="362.3" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1325-1350 km, index 0.00625, 60 objects</title></circle>
+<circle cx="616.8" cy="360.8" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1350-1375 km, index 0.00661, 68 objects</title></circle>
+<circle cx="628.7" cy="327.5" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1375-1400 km, index 0.0237, 100 objects</title></circle>
+<circle cx="640.6" cy="260.6" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1400-1425 km, index 0.309, 252 objects</title></circle>
+<circle cx="652.5" cy="318.8" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1425-1450 km, index 0.0331, 154 objects</title></circle>
+<circle cx="664.4" cy="295.3" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1450-1475 km, index 0.0815, 256 objects</title></circle>
+<circle cx="676.3" cy="275.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1475-1500 km, index 0.172, 265 objects</title></circle>
+<circle cx="688.2" cy="295.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1500-1525 km, index 0.0799, 177 objects</title></circle>
+<circle cx="700.1" cy="352.8" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1525-1550 km, index 0.00898, 81 objects</title></circle>
+<circle cx="711.9" cy="363.2" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1550-1575 km, index 0.00602, 64 objects</title></circle>
+<circle cx="723.8" cy="365.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1575-1600 km, index 0.00554, 55 objects</title></circle>
+<circle cx="735.7" cy="367.1" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1600-1625 km, index 0.00519, 51 objects</title></circle>
+<circle cx="747.6" cy="377.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1625-1650 km, index 0.00343, 47 objects</title></circle>
+<circle cx="759.5" cy="374.3" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1650-1675 km, index 0.00394, 48 objects</title></circle>
+<circle cx="771.4" cy="372.4" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1675-1700 km, index 0.00423, 43 objects</title></circle>
+<circle cx="783.3" cy="398.9" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1700-1725 km, index 0.00153, 30 objects</title></circle>
+<circle cx="795.2" cy="406.7" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1725-1750 km, index 0.00114, 24 objects</title></circle>
+<circle cx="807.1" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1750-1775 km, index 0.000356, 17 objects</title></circle>
+<circle cx="818.9" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1775-1800 km, index 0.000407, 15 objects</title></circle>
+<circle cx="830.8" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1800-1825 km, index 0.000138, 13 objects</title></circle>
+<circle cx="842.7" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1825-1850 km, index 0.000405, 15 objects</title></circle>
+<circle cx="854.6" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1850-1875 km, index 0.000456, 17 objects</title></circle>
+<circle cx="866.5" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1875-1900 km, index 0.000265, 14 objects</title></circle>
+<circle cx="878.4" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1900-1925 km, index 0.000201, 12 objects</title></circle>
+<circle cx="890.3" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1925-1950 km, index 0.000154, 11 objects</title></circle>
+<circle cx="902.2" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1950-1975 km, index 0.000311, 13 objects</title></circle>
+<circle cx="914.1" cy="410.0" r="6" fill="transparent"><title>2025-12-31, Space-Track history (29,421 objects): 1975-2000 km, index 0.000341, 13 objects</title></circle>
+<line class="l0" x1="64" x2="82" y1="74" y2="74" stroke-width="2"/>
+<text class="ink2" x="88" y="78" font-size="12">2025-12-31, Space-Track history (29,421 objects)</text>
+<text class="ink2" x="758.3" y="368.3" font-size="11">2025-12-31</text>
+<polyline class="l1" fill="none" stroke-width="2" stroke-linejoin="round" points="69.9,410.0 81.8,410.0 93.7,360.1 105.6,367.8 117.5,336.4 129.4,313.1 141.3,224.4 153.2,308.0 165.1,277.1 176.9,253.0 188.8,110.0 200.7,142.5 212.6,229.0 224.5,269.5 236.4,249.9 248.3,257.4 260.2,295.2 272.1,244.6 283.9,340.7 295.8,321.7 307.7,359.0 319.6,354.3 331.5,344.8 343.4,295.2 355.3,328.4 367.2,336.7 379.1,357.4 390.9,348.9 402.8,347.1 414.7,320.3 426.6,329.6 438.5,378.8 450.4,407.9 462.3,379.8 474.2,290.8 486.1,384.4 497.9,405.2 509.8,319.2 521.7,337.9 533.6,268.6 545.5,265.0 557.4,410.0 569.3,410.0 581.2,410.0 593.1,410.0 604.9,410.0 616.8,410.0 628.7,410.0 640.6,396.5 652.5,410.0 664.4,410.0 676.3,382.9 688.2,410.0 700.1,410.0 711.9,410.0 723.8,410.0 735.7,410.0 747.6,410.0 759.5,410.0 771.4,410.0 783.3,410.0 795.2,410.0 807.1,410.0 818.9,410.0 830.8,410.0 842.7,410.0 854.6,410.0 866.5,410.0 878.4,410.0 890.3,410.0 902.2,410.0 914.1,410.0"/>
+<circle cx="69.9" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 200-225 km, index 6.04e-05, 4 objects</title></circle>
+<circle cx="81.8" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 225-250 km, index 0.00035, 11 objects</title></circle>
+<circle cx="93.7" cy="360.1" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 250-275 km, index 0.00678, 48 objects</title></circle>
+<circle cx="105.6" cy="367.8" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 275-300 km, index 0.00506, 41 objects</title></circle>
+<circle cx="117.5" cy="336.4" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 300-325 km, index 0.0168, 73 objects</title></circle>
+<circle cx="129.4" cy="313.1" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 325-350 km, index 0.0412, 115 objects</title></circle>
+<circle cx="141.3" cy="224.4" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 350-375 km, index 1.24, 768 objects</title></circle>
+<circle cx="153.2" cy="308.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 375-400 km, index 0.0502, 131 objects</title></circle>
+<circle cx="165.1" cy="277.1" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 400-425 km, index 0.164, 238 objects</title></circle>
+<circle cx="176.9" cy="253.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 425-450 km, index 0.414, 380 objects</title></circle>
+<circle cx="188.8" cy="110.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 450-475 km, index 100, 6,224 objects</title></circle>
+<circle cx="200.7" cy="142.5" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 475-500 km, index 28.7, 3,929 objects</title></circle>
+<circle cx="212.6" cy="229.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 500-525 km, index 1.04, 606 objects</title></circle>
+<circle cx="224.5" cy="269.5" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 525-550 km, index 0.22, 291 objects</title></circle>
+<circle cx="236.4" cy="249.9" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 550-575 km, index 0.466, 424 objects</title></circle>
+<circle cx="248.3" cy="257.4" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 575-600 km, index 0.349, 396 objects</title></circle>
+<circle cx="260.2" cy="295.2" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 600-625 km, index 0.0821, 234 objects</title></circle>
+<circle cx="272.1" cy="244.6" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 625-650 km, index 0.571, 564 objects</title></circle>
+<circle cx="283.9" cy="340.7" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 650-675 km, index 0.0143, 175 objects</title></circle>
+<circle cx="295.8" cy="321.7" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 675-700 km, index 0.0296, 224 objects</title></circle>
+<circle cx="307.7" cy="359.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 700-725 km, index 0.00708, 207 objects</title></circle>
+<circle cx="319.6" cy="354.3" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 725-750 km, index 0.00849, 238 objects</title></circle>
+<circle cx="331.5" cy="344.8" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 750-775 km, index 0.0122, 290 objects</title></circle>
+<circle cx="343.4" cy="295.2" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 775-800 km, index 0.082, 372 objects</title></circle>
+<circle cx="355.3" cy="328.4" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 800-825 km, index 0.0229, 294 objects</title></circle>
+<circle cx="367.2" cy="336.7" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 825-850 km, index 0.0166, 296 objects</title></circle>
+<circle cx="379.1" cy="357.4" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 850-875 km, index 0.00754, 233 objects</title></circle>
+<circle cx="390.9" cy="348.9" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 875-900 km, index 0.0104, 184 objects</title></circle>
+<circle cx="402.8" cy="347.1" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 900-925 km, index 0.0112, 151 objects</title></circle>
+<circle cx="414.7" cy="320.3" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 925-950 km, index 0.0312, 166 objects</title></circle>
+<circle cx="426.6" cy="329.6" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 950-975 km, index 0.0219, 138 objects</title></circle>
+<circle cx="438.5" cy="378.8" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 975-1000 km, index 0.00331, 75 objects</title></circle>
+<circle cx="450.4" cy="407.9" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1000-1025 km, index 0.00108, 52 objects</title></circle>
+<circle cx="462.3" cy="379.8" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1025-1050 km, index 0.00318, 62 objects</title></circle>
+<circle cx="474.2" cy="290.8" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1050-1075 km, index 0.0968, 220 objects</title></circle>
+<circle cx="486.1" cy="384.4" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1075-1100 km, index 0.00267, 51 objects</title></circle>
+<circle cx="497.9" cy="405.2" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1100-1125 km, index 0.0012, 37 objects</title></circle>
+<circle cx="509.8" cy="319.2" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1125-1150 km, index 0.0326, 157 objects</title></circle>
+<circle cx="521.7" cy="337.9" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1150-1175 km, index 0.0159, 93 objects</title></circle>
+<circle cx="533.6" cy="268.6" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1175-1200 km, index 0.227, 334 objects</title></circle>
+<circle cx="545.5" cy="265.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1200-1225 km, index 0.261, 355 objects</title></circle>
+<circle cx="557.4" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1225-1250 km, index 0.00022, 29 objects</title></circle>
+<circle cx="569.3" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1250-1275 km, index 0.000356, 45 objects</title></circle>
+<circle cx="581.2" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1275-1300 km, index 0.00023, 36 objects</title></circle>
+<circle cx="593.1" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1300-1325 km, index 9.72e-05, 19 objects</title></circle>
+<circle cx="604.9" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1325-1350 km, index 5.99e-05, 11 objects</title></circle>
+<circle cx="616.8" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1350-1375 km, index 2.92e-05, 11 objects</title></circle>
+<circle cx="628.7" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1375-1400 km, index 2.48e-05, 10 objects</title></circle>
+<circle cx="640.6" cy="396.5" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1400-1425 km, index 0.00168, 39 objects</title></circle>
+<circle cx="652.5" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1425-1450 km, index 4.39e-05, 13 objects</title></circle>
+<circle cx="664.4" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1450-1475 km, index 5.9e-05, 15 objects</title></circle>
+<circle cx="676.3" cy="382.9" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1475-1500 km, index 0.00283, 48 objects</title></circle>
+<circle cx="688.2" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1500-1525 km, index 0.000869, 29 objects</title></circle>
+<circle cx="700.1" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1525-1550 km, index 1.45e-05, 7 objects</title></circle>
+<circle cx="711.9" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1550-1575 km, index 7.43e-06, 6 objects</title></circle>
+<circle cx="723.8" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1575-1600 km, index 1.42e-05, 6 objects</title></circle>
+<circle cx="735.7" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1600-1625 km, index 3.23e-06, 4 objects</title></circle>
+<circle cx="747.6" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1625-1650 km, index 2.29e-06, 4 objects</title></circle>
+<circle cx="759.5" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1650-1675 km, index 2.65e-06, 4 objects</title></circle>
+<circle cx="771.4" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1675-1700 km, index 3.37e-06, 4 objects</title></circle>
+<circle cx="783.3" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1700-1725 km, index 7.91e-06, 4 objects</title></circle>
+<circle cx="795.2" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1725-1750 km, index 5.24e-07, 2 objects</title></circle>
+<circle cx="807.1" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1750-1775 km, index 5.56e-07, 2 objects</title></circle>
+<circle cx="818.9" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1775-1800 km, index 3.73e-07, 1 objects</title></circle>
+<circle cx="830.8" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1800-1825 km, index 4.81e-07, 2 objects</title></circle>
+<circle cx="842.7" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1825-1850 km, index 4.53e-06, 2 objects</title></circle>
+<circle cx="854.6" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1850-1875 km, index 3.1e-07, 2 objects</title></circle>
+<circle cx="866.5" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1875-1900 km, index 3.4e-07, 2 objects</title></circle>
+<circle cx="878.4" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1900-1925 km, index 1.72e-07, 1 objects</title></circle>
+<circle cx="890.3" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1925-1950 km, index 1.96e-07, 1 objects</title></circle>
+<circle cx="902.2" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1950-1975 km, index 2.22e-07, 1 objects</title></circle>
+<circle cx="914.1" cy="410.0" r="6" fill="transparent"><title>2026-10-31 14:49 UTC, CelesTrak (20,087 objects): 1975-2000 km, index 1.71e-07, 1 objects</title></circle>
+<line class="l1" x1="64" x2="82" y1="92" y2="92" stroke-width="2"/>
+<text class="ink2" x="88" y="96" font-size="12">2026-10-31 14:49 UTC, CelesTrak (20,087 objects)</text>
+<text class="ink2" x="758.3" y="408.0" font-size="11">2026-10-31 14:49 UTC</text>
+</svg>
