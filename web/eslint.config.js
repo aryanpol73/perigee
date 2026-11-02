@@ -6,7 +6,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", "test-results", "playwright-report", "src/api-types.ts"] },
+  { ignores: ["dist", "node_modules", "public/pyodide", "test-results", "playwright-report", "src/api-types.ts"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

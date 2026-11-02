@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { apiUrl, get, useApi, type Health, type Meta } from "./api";
+import { fetchHealth, get, useApi, type Health, type Meta } from "./api";
 import { ConjunctionsView } from "./views/ConjunctionsView";
 import { MethodView } from "./views/MethodView";
 import { ObjectView } from "./views/ObjectView";
@@ -45,8 +45,7 @@ export default function App() {
   useEffect(() => {
     // Free hosts sleep; say so if the first answer is slow.
     const timer = setTimeout(() => setSlow(true), 3000);
-    fetch(apiUrl("/v1/health"))
-      .then((r) => r.json())
+    fetchHealth()
       .then((h: Health) => setHealth(h))
       .catch(() => setHealth(null))
       .finally(() => {

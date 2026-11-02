@@ -1,7 +1,7 @@
 // Breakup simulator controls. Fragments are drawn on the globe; the label that this
 // is illustrative stays on screen whenever a simulation is shown.
 import { useEffect, useState } from "react";
-import { post, type SimulateRequest, type SimulateResponse } from "../api";
+import { post, prepareSimulator, type SimulateRequest, type SimulateResponse } from "../api";
 import { prefersReducedMotion, setState, useStore } from "../store";
 
 const PRESETS = {
@@ -28,6 +28,7 @@ export function SimulatorView() {
   const [auto, setAuto] = useState(!prefersReducedMotion);
 
   useEffect(() => () => setState({ sim: null }), []); // leaving the view removes the overlay
+  useEffect(prepareSimulator, []); // static site: load the browser simulator while the form is read
 
   useEffect(() => {
     if (!sim || !auto) return;

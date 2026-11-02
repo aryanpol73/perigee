@@ -266,12 +266,34 @@ def test_cached_responses_are_identical_with_and_without_gzip(client):
     assert misses == sorted(misses)
 
 
-def test_code_commit_reads_the_deploy_build_info(tmp_path):
+def test_code_commit_reads_the_deploy_build_info(tmp_path, monkeypatch):
     from src.api.app import code_commit
 
+    monkeypatch.delenv("RENDER_GIT_COMMIT", raising=False)
+    monkeypatch.delenv("PERIGEE_CODE_COMMIT", raising=False)
     info = tmp_path / "build_info.json"
     assert code_commit(info) is None
     info.write_text('{"commit": "abc1234"}')
     assert code_commit(info) == "abc1234"
     info.write_text("not json")
     assert code_commit(info) is None
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "def5678")  # the host's own variable wins
+    assert code_commit(info) == "def5678"
+
+
+def test_every_object_detail_loads():
+    """Objects without a SATCAT record (no international designator) once failed with a 500."""
+    from dataclasses import replace
+
+    from fastapi.testclient import TestClient
+
+    from src.api.app import create_app
+    from src.api.data import ResultsStore
+    from src.config import Settings
+    from src.results import FIXTURE_DIR
+
+    settings = replace(Settings.from_env(), api_max_data_age_h=float("inf"), api_rate_limit_per_min=1_000_000)
+    unlimited = TestClient(create_app(settings, FIXTURE_DIR))
+    st = ResultsStore.load(FIXTURE_DIR)
+    bad = [n for n in st.objects.index if unlimited.get(f"/v1/objects/{n}").status_code != 200]
+    assert bad == []

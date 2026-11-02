@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import time
 import uuid
 from collections import OrderedDict, defaultdict, deque
@@ -29,25 +30,29 @@ from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.api import schemas as s
+from src.api import views
 from src.api.data import NoResults, ResultsStore
 from src.config import Settings
-from src.orbits.frames import ecef_to_geodetic, gmst_rad, julian_dates
-from src.risk.shells import ShellConfig, shell_index
-from src.sim.breakup import Collision, as_catalog_objects, positions_at, simulate, spread
+from src.sim import service as simulator
 
 log = logging.getLogger("perigee.api")
 
-# Written into the image by the deploy job, so a smoke test can tell which code runs.
+# Which code is running, so a deploy's smoke test can tell the new build from the old:
+# Render sets RENDER_GIT_COMMIT; other hosts can set PERIGEE_CODE_COMMIT or ship a
+# build_info.json next to src/.
 BUILD_INFO = Path(__file__).resolve().parents[1] / "build_info.json"
 
 
 def code_commit(path: Path = BUILD_INFO) -> str | None:
+    for var in ("RENDER_GIT_COMMIT", "PERIGEE_CODE_COMMIT"):
+        if value := os.environ.get(var, "").strip():
+            return value
     try:
         return str(json.loads(path.read_text())["commit"])
     except (OSError, ValueError, KeyError):
         return None
 
-MAX_LIMIT = 500
+MAX_LIMIT = views.MAX_LIMIT
 SIMULATE_TIMEOUT_S = 15.0
 CACHE_ENTRIES = 4_096
 CACHE_SECONDS = 300
@@ -134,10 +139,6 @@ def _error(status: int, code: str, message: str, request: Request) -> JSONRespon
     return JSONResponse(body.model_dump(), status_code=status, headers={"X-Request-ID": rid})
 
 
-def _num(x) -> float | None:
-    return None if x is None or (isinstance(x, float) and np.isnan(x)) or pd.isna(x) else float(x)
-
-
 def _utc(t: datetime) -> pd.Timestamp:
     ts = pd.Timestamp(t)
     return ts.tz_convert("UTC") if ts.tzinfo else ts.tz_localize("UTC")
@@ -168,7 +169,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
     except NoResults as exc:
         log.warning("no results bundle", extra={"reason": str(exc)})
         app.state.store = None
-    app.state.shell_base = None
+    app.state.catalog = None
 
     sim_slots = anyio.CapacityLimiter(1)  # one simulation at a time, so reads are not starved
     app.add_middleware(ResponseCache)
@@ -228,14 +229,6 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
             raise HTTPException(503, "No results published yet.")
         return app.state.store
 
-    def source(st: ResultsStore) -> s.Source:
-        return s.Source(
-            snapshot_id=st.meta["snapshot_id"],
-            generated_at=st.meta["generated_at"],
-            model_version=st.meta["model_version"],
-            history_complete=bool(st.meta.get("history_complete", False)),
-        )
-
     def respond(request: Request, model: BaseModel) -> Response:
         """JSON with an ETag and cache headers; 304 when the client already has it."""
         st = app.state.store
@@ -245,39 +238,6 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         if request.headers.get("if-none-match") == etag:
             return Response(status_code=304, headers=headers)
         return Response(model.model_dump_json(), media_type="application/json", headers=headers)
-
-    def obj_summary(row: pd.Series) -> s.ObjectSummary:
-        return s.ObjectSummary(
-            norad_id=int(row["norad_id"]),
-            name=row["name"],
-            object_type=row["object_type"],
-            rcs_size=row["rcs_size"] if isinstance(row["rcs_size"], str) else None,
-            owner=row["owner"] if isinstance(row["owner"], str) else None,
-            regime=row["regime"] if isinstance(row["regime"], str) else None,
-            perigee_km=float(row["perigee_km"]),
-            apogee_km=float(row["apogee_km"]),
-            inclination_deg=float(row["inclination_deg"]),
-            epoch_age_days=float(row["epoch_age_h"]) / 24,
-        )
-
-    def conj_model(row: pd.Series, st: ResultsStore) -> s.Conjunction:
-        p = _num(row["risk_probability_estimate"])
-        op = st.meta.get("operating_probability")
-        return s.Conjunction(
-            id=row["id"],
-            tca=row["tca"],
-            hours_to_tca=float(row["hours_to_tca"]),
-            miss_distance_km=float(row["miss_distance_km"]),
-            relative_speed_kms=float(row["relative_speed_kms"]),
-            risk_probability_estimate=p,
-            in_model_scope=bool(row["in_model_scope"]),
-            above_operating_point=None if p is None or op is None else p >= op,
-            estimate_status="none" if p is None else "standard" if st.meta.get("history_complete", False) else "provisional",
-            objects=[
-                s.OrbitedObject(norad_id=int(row["norad_a"]), name=row["name_a"], object_type=row["type_a"], epoch_age_days=float(row["epoch_age_a_days"])),
-                s.OrbitedObject(norad_id=int(row["norad_b"]), name=row["name_b"], object_type=row["type_b"], epoch_age_days=float(row["epoch_age_b_days"])),
-            ],
-        )
 
     # --- Routes -------------------------------------------------------------------
 
@@ -299,28 +259,7 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
 
     @app.get("/v1/meta", response_model=s.Meta)
     def meta(request: Request):
-        st = store()
-        m = st.meta
-        return respond(
-            request,
-            s.Meta(
-                snapshot_id=m["snapshot_id"],
-                snapshot_time=m["snapshot_time"],
-                generated_at=m["generated_at"],
-                commit=m["commit"],
-                object_count=m["object_count"],
-                conjunction_count=m["conjunction_count"],
-                scored_conjunctions=m["scored_conjunctions"],
-                same_constellation_left_out=m["conjunction_counts"]["same_constellation_left_out"],
-                model_version=m["model_version"],
-                operating_probability=m["operating_probability"],
-                history_complete=m["history_complete"],
-                history_days_for_features=m["history_days_for_features"],
-                orbit_file_url=f"/v1/orbits/{m['orbit_file']}",
-                disclaimer=m["disclaimer"],
-                sources=m["sources"],
-            ),
-        )
+        return respond(request, views.meta(store()))
 
     @app.get("/v1/orbits/{name}", include_in_schema=False)
     def orbits(name: str):
@@ -357,32 +296,15 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
             mask &= (o["norad_id"].astype(str) == q.strip()) | o["name"].fillna("").str.contains(q.strip(), case=False, regex=False)
         hits = o[mask]  # objects are sorted by norad_id at load
         page = hits.iloc[offset : offset + limit]
-        return respond(request, s.ObjectPage(source=source(st), total=len(hits), limit=limit, offset=offset,
-                                             items=[obj_summary(r) for _, r in page.iterrows()]))
+        return respond(request, s.ObjectPage(source=views.source(st), total=len(hits), limit=limit, offset=offset,
+                                             items=[views.object_summary(r) for _, r in page.iterrows()]))
 
     @app.get("/v1/objects/{norad_id}", response_model=s.ObjectDetail)
     def object_detail(request: Request, norad_id: int):
         st = store()
         if norad_id not in st.objects.index:
             raise HTTPException(404, f"No object {norad_id} in this snapshot.")
-        row = st.objects.loc[norad_id]
-        c = st.conjunctions
-        mine = c[(c["norad_a"] == norad_id) | (c["norad_b"] == norad_id)].sort_values("tca").head(MAX_LIMIT)
-        base = obj_summary(row).model_dump()
-        return respond(
-            request,
-            s.ObjectDetail(
-                **base,
-                source=source(st),
-                object_id=row["object_id"],
-                launch_date=None if pd.isna(row["launch_date"]) else row["launch_date"],
-                ops_status_code=row["ops_status_code"] if isinstance(row["ops_status_code"], str) else None,
-                period_min=float(row["period_min"]),
-                eccentricity=float(row["eccentricity"]),
-                epoch=row["epoch"],
-                conjunctions=[conj_model(r, st) for _, r in mine.iterrows()],
-            ),
-        )
+        return respond(request, views.object_detail(norad_id, st))
 
     @app.get("/v1/conjunctions", response_model=s.ConjunctionPage)
     def conjunctions(
@@ -418,65 +340,30 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
         order = st.orders[sort]
         selected = order[mask[order]]
         page = c.iloc[selected[offset : offset + limit]]
-        return respond(request, s.ConjunctionPage(source=source(st), total=len(selected), limit=limit, offset=offset,
-                                                  items=[conj_model(r, st) for _, r in page.iterrows()]))
+        return respond(request, s.ConjunctionPage(source=views.source(st), total=len(selected), limit=limit, offset=offset,
+                                                  items=[views.conjunction(r, st) for _, r in page.iterrows()]))
 
     @app.get("/v1/conjunctions/{conjunction_id}", response_model=s.ConjunctionDetail)
     def conjunction_detail(request: Request, conjunction_id: str):
         st = store()
         if conjunction_id not in st.conjunctions.index:
             raise HTTPException(404, "No such conjunction in the latest run.")
-        row = st.conjunctions.loc[conjunction_id]
-        base = conj_model(row, st)
-        reasons = json.loads(row["top_reasons"]) if isinstance(row["top_reasons"], str) else []
-        ages = sorted([row["epoch_age_a_days"], row["epoch_age_b_days"]])
-        note = (
-            f"Orbit data for the two objects is {ages[0]:.1f} and {ages[1]:.1f} days old at the snapshot. Public orbit "
-            f"data is accurate to roughly a kilometre and the error grows with age, so a predicted "
-            f"{row['miss_distance_km']:.2f} km miss could easily be several kilometres either way."
-        )
-        if not base.in_model_scope:
-            note += " This approach is outside the model's scope (more than 3 days ahead), so it has no estimate."
-        elif not st.meta.get("history_complete", False):
-            note += " " + s.PROVISIONAL_NOTE
-        objs = [obj_summary(st.objects.loc[int(n)]) for n in (row["norad_a"], row["norad_b"])]
-        return respond(
-            request,
-            s.ConjunctionDetail(**base.model_dump(), source=source(st), object_details=objs,
-                                top_reasons=[s.Reason(**r) for r in reasons], confidence_note=note),
-        )
+        return respond(request, views.conjunction_detail(st.conjunctions.loc[conjunction_id], st))
 
     @app.get("/v1/shells", response_model=s.Shells)
     def shells(request: Request):
-        st = store()
-        bands = [
-            s.ShellBand(
-                alt_lo_km=r.alt_lo_km, alt_hi_km=r.alt_hi_km, objects=r.objects, density_per_km3=r.density_per_km3,
-                mean_rel_speed_km_s=_num(r.mean_rel_speed_km_s), risk_index=r.risk_index, risk_index_weighted=r.risk_index_weighted,
-            )
-            for r in st.shells.itertuples()
-        ]
-        return respond(request, s.Shells(source=source(st), bands=bands))
+        return respond(request, views.shells(store()))
 
     @app.get("/v1/shells/history", response_model=s.ShellHistory)
     def shells_history(request: Request):
-        st = store()
-        runs = [
-            s.ShellRun(
-                run_id=str(run_id),
-                source=str(g["source"].iloc[0]),
-                bands=[{"alt_lo_km": float(r.alt_lo_km), "risk_index": float(r.risk_index), "risk_index_weighted": float(r.risk_index_weighted)} for r in g.itertuples()],
-            )
-            for run_id, g in st.shells_history.groupby("run_id", sort=True)
-        ]
-        return respond(request, s.ShellHistory(runs=runs))
+        return respond(request, views.shells_history(store()))
 
     @app.get("/v1/model", response_model=s.ModelSummary)
     def model(request: Request):
-        st = store()
-        if not st.model:
+        summary = views.model_summary(store())
+        if summary is None:
             raise HTTPException(404, "No model was trained for this run; conjunctions are shown without estimates.")
-        return respond(request, s.ModelSummary(**st.model))
+        return respond(request, summary)
 
     @app.post("/v1/simulate", response_model=s.SimulateResponse)
     async def simulate_endpoint(req: s.SimulateRequest):
@@ -488,67 +375,12 @@ def create_app(settings: Settings | None = None, results_dir: Path | None = None
             raise HTTPException(503, "The simulation took too long; try fewer points or times.") from exc
 
     def _run_simulation(req: s.SimulateRequest, st: ResultsStore) -> s.SimulateResponse:
-        if any(t < 0 or t > 8_760 for t in req.times_h):
-            raise HTTPException(422, "times_h values must be between 0 and 8760 hours.")
-        collision = Collision(
-            altitude_km=req.altitude_km, inclination_deg=req.inclination_deg, target_mass_kg=req.target_mass_kg,
-            impactor_mass_kg=req.impactor_mass_kg, rel_speed_km_s=req.rel_speed_km_s, target_kind=req.target_kind,
-            impactor_kind=req.impactor_kind, seed=req.seed, max_fragments=5_000,
-        )
-        b = simulate(collision)
-        frags = b.fragments
-        rng = np.random.default_rng(req.seed)
-        pick = rng.choice(len(frags), min(req.max_points, len(frags)), replace=False) if len(frags) else np.array([], int)
-        sub = frags.iloc[np.sort(pick)]
-        t0 = st.snapshot_time
-        frames = []
-        for hours in sorted(req.times_h):
-            r = positions_at(sub, hours) if len(sub) else np.zeros((0, 3))
-            jd, fr = julian_dates([t0 + pd.Timedelta(hours=hours)])
-            g = float(gmst_rad(jd, fr)[0])
-            rot = np.array([[np.cos(g), np.sin(g), 0], [-np.sin(g), np.cos(g), 0], [0, 0, 1]])
-            lat, lon, alt = ecef_to_geodetic(r @ rot.T) if len(r) else (np.array([]),) * 3
-            spr = spread(frags, hours) if len(frags) else {"along_track_coverage": 0.0, "node_coverage": 0.0}
-            frames.append(
-                s.SimFrame(
-                    hours=hours,
-                    along_track_coverage=spr["along_track_coverage"],
-                    node_coverage=spr["node_coverage"],
-                    points=[(round(float(a), 3), round(float(o), 3), round(float(h), 1)) for a, o, h in zip(lat, lon, alt, strict=True)],
-                )
-            )
-        if app.state.shell_base is None:
-            app.state.shell_base = shell_index(st.shell_objects(), ShellConfig())
-        base = app.state.shell_base
-        after = shell_index(
-            pd.concat([st.shell_objects(), as_catalog_objects(frags)], ignore_index=True),
-            ShellConfig(),
-            base["mean_rel_speed_km_s"].to_numpy(),
-        )
-        top = base["rate_per_year"].max()
-        after_idx = 100 * after["rate_per_year"] / top if top > 0 else after["rate_per_year"] * 0
-        # The bands whose index rises most relative to their own level (near-empty bands left out).
-        populated = base["risk_index"] > 0.01
-        change = (after_idx / base["risk_index"].where(populated) - 1).fillna(-np.inf)
-        rows = change.nlargest(8).index.sort_values()
-        summary = b.summary()
-        return s.SimulateResponse(
-            catastrophic=b.catastrophic,
-            specific_energy_j_per_g=summary["specific_energy_j_per_g"],
-            modelled_fragments=summary["modelled_fragments_over_min_lc"],
-            simulated_fragments=len(frags),
-            points_returned=len(sub),
-            input_mass_kg=b.input_mass_kg,
-            fragment_mass_kg=summary["fragment_mass_kg"],
-            unresolved_mass_kg=b.unresolved_mass_kg,
-            collision_time=t0.to_pydatetime(),
-            frames=frames,
-            what_if=[
-                s.WhatIfBand(alt_lo_km=float(base.loc[i, "alt_lo_km"]), alt_hi_km=float(base.loc[i, "alt_hi_km"]),
-                             risk_index_before=float(base.loc[i, "risk_index"]), risk_index_after=float(after_idx[i]))
-                for i in rows
-            ],
-        )
+        if app.state.catalog is None:
+            app.state.catalog = simulator.Catalog(st.shell_objects(), st.snapshot_time)
+        try:
+            return s.SimulateResponse(**simulator.run(req.model_dump(), app.state.catalog))
+        except simulator.SimulationInputError as exc:
+            raise HTTPException(422, str(exc)) from exc
 
     return app
 

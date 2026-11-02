@@ -12,6 +12,11 @@ const required = [
   "dist/cesium/Workers",
   "dist/cesium/ThirdParty",
 ];
+// The static site (scripts/build-site.mjs) also carries its data and the simulator's Python.
+if (process.argv.includes("--static")) {
+  required.push("dist/_headers", "dist/data/index.json", "dist/data/meta.json", "dist/data/conjunctions.json",
+    "dist/pyodide/pyodide.mjs", "dist/pyodide/pyodide.asm.wasm", "dist/pyodide/python_stdlib.zip");
+}
 const missing = required.filter((p) => !existsSync(p));
 if (missing.length) {
   console.error(`Build is missing files the app loads:\n  ${missing.join("\n  ")}`);

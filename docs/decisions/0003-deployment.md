@@ -1,45 +1,54 @@
-# ADR 0003: Deployment: code and data ship separately; results download at startup
+# ADR 0003: Deployment: a static site; computing happens in GitHub Actions and the browser
 
-Status: accepted, 2026-11-01.
+Status: accepted, 2026-11-02. Supersedes the first version of this ADR (2026-11-01),
+which put the API on a Hugging Face Docker Space and then on Render.
 
 ## Context
 
-The guide (sections 12-14) asks for automatic deployment on a push to main, a
-daily data refresh that needs no code release, free hosting, least-privilege
-secrets, and a choice between three ways for the API to get fresh results
-(13.3): baked into the image, downloaded at startup, or a persistent volume.
+The guide (sections 12-14) asks for automatic deployment on a push to main, a daily
+data refresh that needs no code release, free hosting and least-privilege secrets.
+Free API hosts turned out poor: Hugging Face Docker Spaces now need a paid plan; Google
+Cloud Run and Oracle need a payment method; Render's free plan has about a tenth of a
+CPU, sleeps after 15 minutes and takes a minute to wake, which would push the
+simulator (1.8 s on a laptop) past its 15 s limit.
+
+What the API does at request time is small: it serves results computed once a day,
+filters and sorts them, and runs the breakup simulator.
 
 ## Decisions
 
-1. **Hosts.** The API runs as a Docker Space on Hugging Face (free CPU tier, port
-   7860). The web app is static on Cloudflare Pages. Results and the raw archive
-   live in Hugging Face datasets.
-2. **Results download at startup (option B).** The image holds code only. On boot
-   `python -m src.main api` downloads the bundle `LATEST.json` names from the
-   public results dataset (`PERIGEE_RESULTS_REPO`, about 9 MB) over HTTPS without
-   a token, then serves it from memory. If the download fails it serves the last
-   bundle on disk, or 503s with a clear message. A data refresh is a restart
-   (`publish.yml` calls `restart_space`), never a rebuild. Option A would rebuild
-   the image every day; option C (a volume) is not free on Spaces.
-3. **Two datasets, two tokens.** The raw archive (CelesTrak snapshots, models
-   trained on Space-Track history) stays in a private dataset; the code refuses
-   to use a public one. The results dataset is public and receives only the
-   whitelisted bundle files (`src/results/remote.py`). `HF_TOKEN` can write only
-   the private archive; `HF_DEPLOY_TOKEN` can write only the results dataset and
-   the Space. The deploy job never sees `HF_TOKEN`.
-4. **Code deploys after CI.** `deploy.yml` runs on a successful `ci` run for a
-   push to main (never for forks), pushes `src/`, the Dockerfile and the Space card
-   to the Space, waits until `/v1/health` reports the new `code_commit`, then
-   builds the site with the API's address baked in and publishes it with
-   Wrangler. Rolling back is the same workflow run by hand with an earlier commit.
-5. **The orbit file stays on the API** (`/v1/orbits/<hash>`, immutable, cached for
-   a year by browsers) rather than on Pages, so the site never needs a redeploy
-   when data changes.
+1. **No server in production.** The daily job exports the results bundle as static
+   files (`python -m src.main export-static`, `src/results/static_site.py`), and the
+   site and its data are one Cloudflare Pages deployment (free, no card, unlimited
+   bandwidth, a global CDN, nothing to sleep).
+2. **The browser answers the API's questions.** `web/src/static-api.ts` gives every
+   GET the API's body, filtering, sorting and paging in the browser with the API's
+   rules. The values come from the same Python builders as the API
+   (`src/api/views.py`); a parity test replays 345 recorded API answers against the
+   static site (`tests/test_static_site.py`, `web/src/static-api.test.ts`).
+3. **The simulator runs in the browser** with Pyodide, executing the same Python files
+   as the API (`src/sim/service.py`). Measured: 0.9 s per simulation once loaded (1.8 s
+   natively), with identical results (`web/src/sim-python.test.ts` compares three
+   simulations with the API to 1e-9). Pyodide and its numpy and pandas (about 13 MB
+   compressed, checksummed against Pyodide's lock file) are served by the site itself
+   and load only when the simulator page opens.
+4. **Two kinds of deploy.** `publish.yml` computes and publishes data with the current
+   code; `deploy.yml` publishes new code with the data the live site already serves
+   (`static_site fetch`). Both build with `web/scripts/build-site.mjs` and are smoke
+   tested (`scripts/smoke_site.sh`). Cloudflare keeps every deployment, so rolling
+   back code or data is one click.
+5. **Secrets.** `HF_TOKEN` (private archive: raw data and models) never reaches a
+   deploy step; the deploy jobs hold only the Cloudflare token. Nothing derived from
+   Space-Track goes public except the derived results, as before.
+6. **The API stays** for local development (`python -m src.main dev`) and as a
+   self-hostable container (`Dockerfile`, built and started in CI).
 
 ## Consequences
 
-- Cold start after a Space sleeps: container start plus a ~9 MB download, measured
-  in the runbook once deployed. The site says so if the first answer is slow.
-- The API can serve data up to a day old by design; the watchdog alarms at 36 h.
-- Every configuration value is a GitHub variable or secret; the Space's variables
-  are overwritten from them on each deploy, so GitHub is the single source.
+- Faster than any free API host: data comes from the CDN, filters apply instantly,
+  there is no cold start. The first simulation of a visit waits for Python to load
+  (a few seconds; it starts loading when the simulator page opens).
+- The close-approach list downloads once per visit (about 2.8 MB compressed for 92,000
+  approaches) instead of a page at a time.
+- Any change to an API route must be mirrored in `static-api.ts`; the parity test
+  fails until it is.
