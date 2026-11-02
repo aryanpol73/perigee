@@ -10,16 +10,21 @@ Phase gates follow the build guide. Versions are tagged on main once each phase'
   Playwright browser tests, the API image built and started, pip-audit, npm audit,
   gitleaks. Third-party Actions pinned to commit hashes; Dependabot for pip, npm,
   Actions and the base image.
-- API container (slim, non-root, pinned by digest, health check) deployed to a
-  free Render web service after CI passes on main (Hugging Face Docker Spaces now
-  need a paid plan); the site to Cloudflare Pages with a
-  content security policy and cache headers. Smoke tests check the deployed
-  commit, CORS and the headers. Rollback by redeploying an earlier commit.
-- Daily `publish` job: a month of snapshots and the model from the private
-  archive, screen, score, shell index, results to a public dataset, API redeploy.
-  `watchdog` every 3 h for freshness and stopped jobs. `/v1/health` reports the
-  deployed `code_commit`.
-- Optional Sentry error tracking for the API and the site.
+- Production is one static site on Cloudflare Pages, no server (ADR 0003): the daily
+  job exports the results as data files (`export-static`), the browser answers every
+  API query from them with the API's rules, and the breakup simulator runs in the
+  browser with Pyodide, executing the same Python as the API. Parity tests replay
+  345 recorded API answers and three simulations against the static site; the
+  browser tests also run on the production build, served with its real headers.
+- `deploy` (after CI on main: new code, current data) and `publish` (daily: new
+  data) both build the site with `web/scripts/build-site.mjs` and smoke-test it.
+  Rollback in one click from Cloudflare's deployment history. `watchdog` every 3 h
+  for site, data freshness and stopped jobs.
+- The API (now built from `src/api/views.py`, shared with the export) stays for
+  local development and as a self-hostable container (slim, non-root, pinned by
+  digest, health check, built and started in CI).
+- Optional Sentry error tracking for the site.
+- Fixed: object details failed (500) for objects without a SATCAT record.
 - Fixed: production builds put Cesium's files under `cesium/node_modules/...`, so
   a deployed globe could not start. The app's health check ignored `VITE_API_BASE`.
 - Docs: deployment setup, runbook, threat model, ADR 0003. MIT licence.

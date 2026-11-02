@@ -45,7 +45,7 @@ jobs:
 
   web:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: web
@@ -81,6 +81,11 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm run e2e
+      - name: Browser tests on the production static site (no API, simulator in the browser)
+        env:
+          PW_CHANNEL: ""
+          PW_MODE: static
+        run: npm run e2e
       - name: Upload browser test traces
         if: failure()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

@@ -1,7 +1,7 @@
-# The read-only API (Render free web service, render.yaml). The image holds code
-# only: at startup the API downloads the newest results bundle from the public
-# results dataset (PERIGEE_RESULTS_REPO), so a data refresh is a redeploy of the
-# same code, not a code change (docs/decisions/0003-deployment.md).
+# The read-only API as a container, for self-hosting (production itself is a static
+# site with no server: docs/decisions/0003-deployment.md). The image holds code only:
+# it serves the bundle in /app/data/results, or downloads the newest one at startup
+# from a public results dataset (PERIGEE_RESULTS_REPO). CI builds and starts it.
 #
 # Build:  docker build -t perigee-api .
 # Run:    docker run -p 7860:7860 -e PERIGEE_RESULTS_REPO=owner/perigee-results perigee-api

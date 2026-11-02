@@ -27,6 +27,8 @@ export default defineConfig(({ command }) => ({
   server: {
     port: 5173,
     strictPort: true,
+    // The browser simulator imports the Python sources (../src) as text; tests read fixtures.
+    fs: { allow: [".", "../src", "../tests/fixtures"] },
     proxy: { "/v1": apiTarget },
   },
   build: {

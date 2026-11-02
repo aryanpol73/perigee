@@ -1,44 +1,44 @@
 # Runbook
 
-Where things run: docs/deployment.md. Data job details: docs/data-job.md.
+Where things run: docs/deployment.md (a static site on Cloudflare Pages; computing in
+GitHub Actions). Data job details: docs/data-job.md.
 
 ## Service objectives
 
 | Objective | Target | Watched by |
 |---|---|---|
 | Site available | 99% | UptimeRobot (5 min) |
-| API available while awake | 99%; a cold start after sleep (about a minute on free Render) is not an outage | UptimeRobot on `/v1/health` |
-| Orbit snapshots | newest under 24 h old; the hourly job succeeded in the last 12 h (GitHub runs it every 4-8 h in practice) | `watchdog` |
-| Conjunction run served | under 36 h old | `watchdog`, `/v1/health` (503 when stale) |
-| API latency | p95 under 200 ms for read endpoints | docs/api-performance.md (measured locally) |
+| Orbit snapshots | the hourly job succeeded in the last 12 h (GitHub runs it every 4-8 h in practice) | `watchdog` |
+| Results the site serves | under 36 h old | `watchdog` |
 | Page load | under 5 s on a typical mobile connection | Lighthouse, before releases |
+| Simulator | first run of a visit within ~10 s on a laptop (Python loads), then about a second | `web/e2e` (static mode) |
 
 ## When something is wrong
 
 | Symptom | First checks | Usual fix |
 |---|---|---|
-| Site loads but shows no data | `/v1/health` in a browser; the console's network tab | API asleep (free Render sleeps after 15 idle minutes): wait a minute (the site says so). A CORS error: Render's `PERIGEE_API_CORS_ORIGINS` must equal the site's origin exactly (no trailing slash); change it in the Render dashboard (it redeploys). |
+| Site down | Cloudflare status page; *Workers & Pages* → the project → *Deployments* | Roll back to the previous deployment (below) if the newest is broken. |
+| Site loads but shows no data | Browser console, network tab: does `/data/index.json` load? | A deploy without data: run `publish`, or roll back. |
 | "Data too old" on the site; `watchdog` red | *Actions*: the last `publish` and `data-refresh` runs | Re-run the failed workflow. A `data-refresh` exit 2 means CelesTrak refused a request: follow docs/data-job.md, never delete the STOP file without reading why it is there. |
-| `publish` fails at *Screen* or runs out of time | Job log: step durations and memory | Rerun once (runners vary). If it repeats, screen fewer days (`--days 5`) and record it. |
-| `publish` fails at *Check the API serves the new run* | Render service → *Logs* | The API could not download the bundle (Hub outage) or crashed. *Manual Deploy → Deploy latest commit* on Render, or re-run `publish`. |
-| `deploy` fails waiting for the new build | Render service → *Events* (build log) | A dependency did not install, or the image failed its health check. Fix, push; or roll back (below). |
+| `publish` fails at *Screen* or runs out of time | Job log: step durations | Rerun once (runners vary). |
+| `publish` or `deploy` fails at *Smoke test* | The step's error line | The deployment is live but incomplete: roll back, then fix and redeploy. |
+| `deploy` warns "the site has no data yet" | | The first run: run `publish`. |
+| Simulator says it could not start | Browser console | Old browser without WebAssembly support, or `/pyodide/` files missing from the deployment (`scripts/check-build.mjs --static` should have caught it). |
 | Object count dropped sharply | `data-refresh` log: `rejected_by_reason` | The validator rejects a partial download and keeps the last good data; the next run retries. |
-| API crashes at startup | Render *Logs*; memory (free plan: 512 MB; the API peaks at ~270 MB) | Suspect a bad bundle first: point `LATEST.json` at the previous run (*Bad results* below). |
 | Globe janky on a phone | Object count, filters, quality | The legend's *Quality* switch (battery saver); phones default to a smaller object set. |
 | Scheduled workflows stopped running | *Actions*: a banner says the workflow is disabled | GitHub disables schedules in public repositories after 60 days without commits. Enable each workflow again (*Actions → workflow → Enable*) and push any commit. |
 
 ## Rollback
 
-**Code.** *Actions → deploy → Run workflow*, `ref` = the last good commit (or tag).
-It redeploys that commit's API on Render and that commit's site to Pages, with
-the same smoke tests. Then revert the bad commit on main with a pull request, so
-the next push does not redeploy it.
+Cloudflare keeps every deployment, each with its code and its data.
 
-**Bad results.** Results are kept for the last 7 runs in the results dataset. To
-serve an earlier one: in the dataset's *Files* tab, edit `LATEST.json` to the
-earlier run's folder name (`{"run_id": "...", "path": "..."}`), then on Render
-*Manual Deploy → Deploy latest commit* (it downloads at startup). The next daily `publish` replaces it again; pause `publish` (*Disable
-workflow*) if the problem is in the pipeline.
+- **Fastest:** *Workers & Pages* → `perigee` → *Deployments* → the last good one →
+  *⋯* → *Rollback to this deployment*. Instant.
+- **From GitHub:** *Actions → deploy → Run workflow*, `ref` = the last good commit. It
+  rebuilds that code with the data the site serves now.
+
+Then revert the bad commit on main with a pull request, so the next push does not
+redeploy it. Pause `publish` (*Disable workflow*) if the problem is in the data.
 
 **Practised:** record the date of the first rollback drill here once done.
 
@@ -52,6 +52,8 @@ python -m src.main rebuild
 python -m src.main screen
 python -m src.main shells
 python -m src.main publish
+python -m src.main export-static --out site-data
+cd web && node scripts/build-site.mjs --data ../site-data          # the site, in web/dist
 ```
 
 **Measured:** record the wall time of the first full rebuild here.
@@ -61,4 +63,5 @@ python -m src.main publish
 - Raw archive: the private Hugging Face dataset is the primary copy; a laptop copy
   under `data/raw/` (pulled with `archive_sync pull --history-days 3650`) is the
   second. Space-Track yearly zips are kept as downloaded, never committed.
-- Results and processed tables need no backup: they are rebuilt from raw.
+- Results and the site need no backup: they are rebuilt from raw, and Cloudflare keeps
+  every past deployment.

@@ -64,6 +64,9 @@ def main(argv: list[str] | None = None) -> int:
     pub = commands.add_parser("publish", help="score the latest screen and publish the results bundle the API serves")
     pub.add_argument("--model", help="model version under data/models (default: newest)")
     pub.add_argument("--fixture", action="store_true", help="write the small committed fixture bundle instead")
+    exp = commands.add_parser("export-static", help="write the published results as static files for the site")
+    exp.add_argument("--out", type=Path, required=True, help="directory to write (replaced), e.g. web/dist/data")
+    exp.add_argument("--fixture", action="store_true", help="export the committed fixture bundle")
     api = commands.add_parser("api", help="serve the read-only API")
     api.add_argument("--host", default=os.environ.get("PERIGEE_API_HOST", "127.0.0.1"))
     api.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
@@ -167,6 +170,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         if not m["history_complete"]:
             print(f"Note: only {m['history_days_for_features']} days of update history before the snapshot; scores are flagged.")
+        return exit_code
+    elif args.command == "export-static":
+        from src.api.data import ResultsStore
+        from src.results import FIXTURE_DIR
+        from src.results.static_site import export
+
+        st = ResultsStore.load(FIXTURE_DIR if args.fixture else settings.results_dir)
+        index = export(st, args.out, float("inf") if args.fixture else settings.api_max_data_age_h)
+        print(f"Exported run {index['run_id']} to {args.out}")
         return exit_code
     elif args.command == "api":
         import uvicorn

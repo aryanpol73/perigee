@@ -3,6 +3,8 @@
 // risk dashboard and simulator run, and an API failure is shown, not hidden.
 import { expect, test, type Page } from "@playwright/test";
 
+// PW_MODE=static runs these against the production static site (no API server).
+const STATIC = process.env.PW_MODE === "static";
 const errors: string[] = [];
 
 test.beforeEach(async ({ page }) => {
@@ -25,6 +27,14 @@ async function globeReady(page: Page) {
 }
 
 test("API health answers through the web app", async ({ request }) => {
+  if (STATIC) {
+    // No API: the site's data files answer, with the security headers Pages sends.
+    const r = await request.get("/data/index.json");
+    expect(r.status()).toBe(200);
+    expect((await r.json()).format).toBe(1);
+    expect((await request.get("/")).headers()["content-security-policy"]).toContain("'wasm-unsafe-eval'");
+    return;
+  }
   const r = await request.get("/v1/health");
   expect(r.status()).toBe(200);
   expect((await r.json()).status).toBe("ok");
@@ -202,11 +212,14 @@ test("risk dashboard draws the index and its table", async ({ page }) => {
 });
 
 test("simulator runs and keeps its label on screen", async ({ page }) => {
+  test.setTimeout(STATIC ? 200_000 : 90_000);
   await page.goto(at("/#/simulator"));
   await globeReady(page);
   await expect(page.locator(".limits")).toContainText("No air drag");
   await page.getByRole("button", { name: "Simulate collision" }).click();
-  await expect(page.locator(".detail h3")).toHaveText(/breakup/);
+  // The static site runs the simulator in the browser; its first run starts Python,
+  // which a GPU-less CI runner (also drawing the globe in software) takes a while to do.
+  await expect(page.locator(".detail h3")).toHaveText(/breakup/, { timeout: STATIC ? 150_000 : 30_000 });
   await expect(page.locator(".sim-label")).toHaveText("Illustrative, simplified; not a prediction.");
   await page.getByLabel("Time after the collision").fill("3");
   await expect(page.locator(".detail")).toContainText("of the way around its orbits");
@@ -215,7 +228,7 @@ test("simulator runs and keeps its label on screen", async ({ page }) => {
 });
 
 test("an API failure is shown, not hidden", async ({ page }) => {
-  await page.route("**/v1/meta", (route) =>
+  await page.route(STATIC ? "**/data/meta.json" : "**/v1/meta", (route) =>
     route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: { code: "internal_error", message: "boom", request_id: "x" } }) }),
   );
   await page.goto(at("/"));

@@ -4,10 +4,15 @@
   "description": "Perigee browser app: globe, close approaches, shell risk, breakup simulator.",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/vendor-pyodide.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/vendor-pyodide.mjs",
     "build": "tsc --noEmit && vite build && node scripts/check-build.mjs",
+    "build:site": "node scripts/build-site.mjs",
     "preview": "vite preview",
+    "pretest": "node scripts/vendor-pyodide.mjs",
     "test": "vitest run",
+    "pree2e": "node scripts/vendor-pyodide.mjs",
     "e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
@@ -16,6 +21,7 @@
   "dependencies": {
     "@sentry/browser": "11.7.0",
     "cesium": "1.146.0",
+    "pyodide": "314.0.7",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "satellite.js": "7.1.0"

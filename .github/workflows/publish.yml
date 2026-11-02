@@ -1,11 +1,11 @@
 # Daily compute: rebuild the last month of snapshots from the private archive,
-# screen 7 days ahead, score, compute the shell index, publish the results bundle
-# to the public results dataset and redeploy the API (same code) so it downloads it.
-# No code changes ship here (that is deploy.yml).
+# screen 7 days ahead, score, compute the shell index, export the results as the
+# static site's data, and publish the site (current main's code) with it to
+# Cloudflare Pages. No code changes ship here (that is deploy.yml).
 #
-# Setup: docs/deployment.md. Secrets HF_TOKEN (reads the private archive) and
-# HF_DEPLOY_TOKEN (writes the public results dataset only), RENDER_DEPLOY_HOOK;
-# variables PERIGEE_HF_DATASET, PERIGEE_RESULTS_REPO, PERIGEE_API_URL.
+# Setup: docs/deployment.md. Secrets HF_TOKEN (reads the private archive),
+# CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID; variables PERIGEE_HF_DATASET,
+# CF_PAGES_PROJECT, PERIGEE_WEB_URL.
 name: publish
 
 on:
@@ -21,22 +21,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
+  compute:
     runs-on: ubuntu-24.04
     timeout-minutes: 75
+    outputs:
+      run_id: ${{ steps.export.outputs.run_id }}
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_DEPLOY_TOKEN: ${{ secrets.HF_DEPLOY_TOKEN }}
       PERIGEE_HF_DATASET: ${{ vars.PERIGEE_HF_DATASET }}
-      PERIGEE_RESULTS_REPO: ${{ vars.PERIGEE_RESULTS_REPO }}
-      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-      PERIGEE_API_URL: ${{ vars.PERIGEE_API_URL }}
       PERIGEE_DATA_DIR: data
     steps:
       - name: Check configuration
         run: |
           missing=0
-          for v in HF_TOKEN HF_DEPLOY_TOKEN PERIGEE_HF_DATASET PERIGEE_RESULTS_REPO RENDER_DEPLOY_HOOK PERIGEE_API_URL; do
+          for v in HF_TOKEN PERIGEE_HF_DATASET; do
             if [ -z "${!v}" ]; then echo "::error::Missing $v (see docs/deployment.md)"; missing=1; fi
           done
           exit $missing
@@ -65,27 +63,17 @@ jobs:
       - name: Score and build the results bundle (validated, switched atomically)
         run: python -m src.main publish
 
-      - name: Upload the bundle to the public results dataset
-        run: HF_TOKEN="$HF_DEPLOY_TOKEN" python -m src.results.remote push
-
-      - name: Redeploy the API (same code) so it downloads the new bundle
+      - name: Export the results as the site's data
+        id: export
         run: |
-          # The commit the API runs now, so a data refresh never ships untested code.
-          running=$(curl -sS --max-time 90 "$PERIGEE_API_URL/v1/health" | python -c "import sys, json; print(json.load(sys.stdin).get('code_commit') or '')" 2>/dev/null || true)
-          code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${RENDER_DEPLOY_HOOK}${running:+&ref=$running}")
-          [ "$code" -ge 200 ] && [ "$code" -lt 300 ] || { echo "::error::Render refused the deploy (HTTP $code)"; exit 1; }
-          echo "Redeploying ${running:-the branch head} to load the new results"
+          python -m src.main export-static --out site-data
+          echo "run_id=$(python -c "import json; print(json.load(open('site-data/index.json'))['run_id'])")" >> "$GITHUB_OUTPUT"
 
-      - name: Check the API serves the new run
-        run: |
-          want=$(python -c "import json; print(json.load(open('data/results/LATEST.json'))['run_id'])")
-          for i in $(seq 1 60); do
-            got=$(curl -fsS --max-time 90 "$PERIGEE_API_URL/v1/health" | python -c "import sys, json; print(json.load(sys.stdin)['snapshot_id'])" 2>/dev/null || true)
-            [ "$got" = "$want" ] && { echo "API serves $got"; exit 0; }
-            sleep 15
-          done
-          echo "::error::The API did not start serving run $want within 15 minutes (last answer: ${got:-none})"
-          exit 1
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: site-data
+          path: site-data
+          retention-days: 7
 
       - name: Summary
         if: always()
@@ -106,3 +94,49 @@ jobs:
               echo "No bundle was built."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+  site:
+    needs: compute
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: production
+    # One site upload at a time, whichever workflow starts it.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_PAGES_PROJECT: ${{ vars.CF_PAGES_PROJECT }}
+      PERIGEE_WEB_URL: ${{ vars.PERIGEE_WEB_URL }}
+      VITE_SENTRY_DSN: ${{ vars.SENTRY_DSN_WEB }}
+    steps:
+      - name: Check configuration
+        run: |
+          missing=0
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CF_PAGES_PROJECT PERIGEE_WEB_URL; do
+            if [ -z "${!v}" ]; then echo "::error::Missing $v (see docs/deployment.md)"; missing=1; fi
+          done
+          exit $missing
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: site-data
+          path: site-data
+      - name: Build the site (current main's code, the new data)
+        working-directory: web
+        env:
+          VITE_COMMIT: ${{ github.sha }}
+        run: |
+          npm ci
+          node scripts/build-site.mjs --data ../site-data
+      - name: Publish to Cloudflare Pages
+        working-directory: web
+        run: npx --yes wrangler@4.151.1 pages deploy dist --project-name "$CF_PAGES_PROJECT" --branch main --commit-hash "$GITHUB_SHA" --commit-message "Data ${{ needs.compute.outputs.run_id }}"
+      - name: Smoke test
+        run: bash scripts/smoke_site.sh "$PERIGEE_WEB_URL" "${{ needs.compute.outputs.run_id }}"
