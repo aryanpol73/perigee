@@ -12,9 +12,9 @@ const port = Number(process.argv[2] ?? 4180);
 const TYPES = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".mjs": "text/javascript", ".css": "text/css",
   ".json": "application/json", ".wasm": "application/wasm", ".zip": "application/zip", ".whl": "application/zip",
-  ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".xml": "application/xml", ".txt": "text/plain",
+  ".webmanifest": "application/manifest+json", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml", ".xml": "application/xml", ".txt": "text/plain",
 };
-const COMPRESS = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg", ".xml", ".txt", ".wasm"]);
+const COMPRESS = new Set([".webmanifest", ".html", ".js", ".mjs", ".css", ".json", ".svg", ".xml", ".txt", ".wasm"]);
 
 // _headers: blocks of "path pattern" then indented "Name: value" lines.
 const rules = [];

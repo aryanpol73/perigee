@@ -11,6 +11,7 @@ There is no server to host, wake or scale. GitHub Actions does all the computing
 | `data-refresh.yml` | hourly (GitHub runs it every 4-8 h) | CelesTrak snapshots into the private archive (docs/data-job.md) |
 | `publish.yml` | daily 04:41 UTC | rebuild, screen, score, risk index, export the data, publish the site with it, smoke test |
 | `watchdog.yml` | every 3 h | site up, its results under 36 h old, scheduled jobs still succeeding |
+| `android.yml` | by hand | the Android app: build, sign, check against the site's asset links, GitHub release (docs/mobile-app.md) |
 
 Why it is built this way: docs/decisions/0003-deployment.md. When something
 breaks: docs/runbook.md. The FastAPI server (`python -m src.main api`, the

@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.aryanpol73.perigee",
+      "sha256_cert_fingerprints": ["DA:50:8A:74:35:CE:6E:61:1A:4E:CF:57:F2:E4:B4:A2:E8:A9:12:EC:B7:69:FD:A1:44:AD:AC:40:B1:80:45:C2"]
+    }
+  }
+]

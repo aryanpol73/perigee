@@ -1,6 +1,7 @@
 // Writes dist/_headers for Cloudflare Pages: security headers (a content security
 // policy that allows only this site, the API, NASA's imagery tiles and, if set,
-// Sentry) and cache lifetimes (hashed assets for a year, index.html never).
+// Sentry) and cache lifetimes (hashed assets for a year; index.html, the service
+// worker and the app manifest always revalidated, so app updates arrive at once).
 // Run after `vite build`, with the same VITE_API_BASE the build used:
 //   VITE_API_BASE=https://owner-perigee.hf.space node scripts/write-headers.mjs
 import { writeFileSync } from "node:fs";
@@ -53,6 +54,16 @@ export function headersFile(options) {
 
 /index.html
   Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Access-Control-Allow-Origin: *
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

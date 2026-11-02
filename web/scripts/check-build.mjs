@@ -5,6 +5,13 @@ import { existsSync } from "node:fs";
 
 const required = [
   "dist/index.html",
+  // The installable app: manifest, service worker, icons.
+  "dist/manifest.webmanifest",
+  "dist/sw.js",
+  "dist/icons/icon-192.png",
+  "dist/icons/icon-512.png",
+  "dist/icons/maskable-512.png",
+  "dist/icons/apple-touch-icon.png",
   "dist/cesium/Assets/approximateTerrainHeights.json",
   "dist/cesium/Assets/Textures/NaturalEarthII/tilemapresource.xml",
   "dist/cesium/Assets/Textures/SkyBox/tycho2t3_80_px.jpg",

@@ -34,6 +34,9 @@ export default defineConfig({
     // Cesium needs WebGL; headless browsers get it from the SwiftShader software renderer.
     launchOptions: { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
     trace: "retain-on-failure",
+    // The production build registers a service worker (offline app); tests get fresh
+    // network answers unless one asks for it (e2e/mobile.spec.ts).
+    serviceWorkers: "block",
   },
   webServer: STATIC
     ? [

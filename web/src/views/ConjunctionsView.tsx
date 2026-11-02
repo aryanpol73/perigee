@@ -157,7 +157,7 @@ export function Risk({
   );
 }
 
-function Detail({ id, operating }: { id: string; operating: number | null }) {
+export function Detail({ id, operating }: { id: string; operating: number | null }) {
   const d = useApi<ConjunctionDetail>(`/v1/conjunctions/${encodeURIComponent(id)}`);
   if (d.loading) return <p>Loading the approach…</p>;
   if (d.error || !d.data) return <p className="error">Could not load this approach.</p>;

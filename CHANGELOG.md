@@ -3,6 +3,23 @@
 Phase gates follow the build guide. Versions are tagged on main once each phase's
 "Done when" is met (v1.0 at launch).
 
+## Unreleased: the mobile app
+
+- Installable app (PWA on Android and iPhone) and an Android APK (a Trusted Web
+  Activity, `android/`), with the new Perigee icon. The installed app has its own
+  phone layout (`web/src/mobile/`): the globe full screen, bottom navigation (Globe,
+  Approaches, Search, Risk, Settings), approach cards with a detail sheet, search as
+  you type, object pages, the simulator's debris on the globe, and settings for Earth
+  quality, globe layers, UTC or local times and notifications. The website keeps the
+  dashboard, unchanged.
+- Works offline with the last data it saw (service worker); new data is offered with
+  *Refresh*; pull down to check.
+- Watched objects and notifications without a server: new data each day, and close
+  approaches of watched objects (within 72 h, closer than 1 km or elevated).
+- The globe stops drawing while the app shows another screen (battery, smooth lists).
+- `android` workflow: builds, signs and checks the APK against the site's asset links,
+  and publishes a GitHub release. Docs: docs/mobile-app.md.
+
 ## Unreleased: Phase 7, production hardening and deployment
 
 - CI on every push and pull request: ruff, mypy, pytest with an 80% coverage gate,

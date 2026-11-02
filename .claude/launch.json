@@ -4,20 +4,49 @@
     {
       "name": "figures",
       "runtimeExecutable": ".venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "http.server", "8765", "--bind", "127.0.0.1", "--directory", "docs/figures"],
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8765",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "docs/figures"
+      ],
       "port": 8765
     },
     {
       "name": "app",
       "runtimeExecutable": ".venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "src.main", "dev"],
+      "runtimeArgs": [
+        "-m",
+        "src.main",
+        "dev"
+      ],
       "port": 5173
     },
     {
       "name": "app-alt",
       "runtimeExecutable": ".venv/Scripts/python.exe",
-      "runtimeArgs": ["-m", "src.main", "dev", "--api-port", "8020", "--web-port", "5190"],
+      "runtimeArgs": [
+        "-m",
+        "src.main",
+        "dev",
+        "--api-port",
+        "8020",
+        "--web-port",
+        "5190"
+      ],
       "port": 5190
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "-e",
+        "process.chdir('web');import(require('url').pathToFileURL(require('path').resolve('scripts/serve-dist.mjs')))"
+      ],
+      "port": 4180
     }
   ]
 }

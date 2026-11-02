@@ -22,6 +22,16 @@ export interface State {
   quality: Quality;
   riskNorads: Set<number>; // objects in approaches above the operating point
   sim: { response: SimulateResponse; frame: number } | null;
+  globePaused: boolean; // the mobile app covers the globe with another screen: stop drawing it
+  camera: CameraRequest | null; // a camera move asked for by the mobile app
+}
+
+/** A camera move; `seq` makes a repeated request (the same object twice) a new one. */
+export type CameraRequest = { seq: number } & ({ kind: "home" } | { kind: "object"; norad: number });
+
+let cameraSeq = 0;
+export function moveCamera(request: { kind: "home" } | { kind: "object"; norad: number }): void {
+  setState({ camera: { ...request, seq: ++cameraSeq } });
 }
 
 const isPhone = typeof window !== "undefined" && window.matchMedia?.("(max-width: 700px)").matches;
@@ -64,6 +74,8 @@ let state: State = {
   quality: typeof window === "undefined" ? "balanced" : initialQuality(),
   riskNorads: new Set(),
   sim: null,
+  globePaused: false,
+  camera: null,
 };
 const listeners = new Set<() => void>();
 
