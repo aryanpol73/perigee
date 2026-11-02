@@ -1,0 +1,50 @@
+{
+  "packageId": "io.github.aryanpol73.perigee",
+  "host": "perigee-space.pages.dev",
+  "name": "Perigee: orbital debris risk",
+  "launcherName": "Perigee",
+  "display": "standalone",
+  "themeColor": "#0D2757",
+  "themeColorDark": "#0D2757",
+  "navigationColor": "#0D2757",
+  "navigationColorDark": "#0D2757",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#0A1F4A",
+  "enableNotifications": true,
+  "startUrl": "/?app=1",
+  "iconUrl": "https://perigee-space.pages.dev/icons/icon-512.png",
+  "maskableIconUrl": "https://perigee-space.pages.dev/icons/maskable-512.png",
+  "monochromeIconUrl": "https://perigee-space.pages.dev/icons/badge-96.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./perigee-release.jks",
+    "alias": "perigee"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-core",
+  "webManifestUrl": "https://perigee-space.pages.dev/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://perigee-space.pages.dev/",
+  "minSdkVersion": 24,
+  "orientation": "default",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [
+    "standalone"
+  ],
+  "appVersion": "1.0.0"
+}

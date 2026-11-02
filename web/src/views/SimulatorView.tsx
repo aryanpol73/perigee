@@ -11,7 +11,7 @@ const PRESETS = {
 };
 type Preset = keyof typeof PRESETS;
 
-function frameLabel(h: number): string {
+export function frameLabel(h: number): string {
   if (h < 1) return `${Math.round(h * 60)} min`;
   if (h < 48) return `${h.toFixed(0)} h`;
   if (h < 24 * 60) return `${(h / 24).toFixed(0)} days`;

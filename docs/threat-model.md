@@ -10,6 +10,7 @@ deployments; the honesty of what the site says; and the free services' quotas.
 |---|---|---|
 | `HF_TOKEN` | GitHub secret | Writes the private raw archive (CelesTrak snapshots, models trained on Space-Track history) |
 | `CLOUDFLARE_API_TOKEN` | GitHub secret | Publishes the site (code and data): whoever has it controls what the site shows. Scoped to Cloudflare Pages only. |
+| Android signing key | `%USERPROFILE%\.perigee-android` on the development machine (backed up by the owner); optionally the `ANDROID_KEYSTORE_*` GitHub secrets | Whoever has it can ship an "update" that installed apps accept; losing it means the app can never be updated |
 | Raw archive | private Hugging Face dataset | Space-Track data must not be redistributed; CelesTrak history cannot be downloaded again |
 | CelesTrak access | the fetch log and STOP file | Polling too often gets the project's IP blocked |
 | The results | the site's `/data` files | People may take them as more than estimates |
@@ -26,6 +27,7 @@ deployments; the honesty of what the site says; and the free services' quotas.
 | A mistake (or a bad merge) | Publish raw Space-Track data | The site's data is exported only from the derived results bundle (`src/results/static_site.py`); models and raw data stay in the private archive, and the archive code refuses a public dataset. |
 | A bug in our job | Hammer CelesTrak | The fetch log enforces CelesTrak's intervals; any refusal writes a STOP file that halts all requests until a human removes it. |
 | A third-party script on the site | Exfiltrate or deface | No third-party scripts: the content security policy allows scripts only from the site itself, and connections only to the site itself, NASA's imagery tiles and (if set) Sentry; the simulator's Python runtime is served by the site, not a CDN. `frame-ancestors 'none'` prevents framing. |
+| A stale or tampered offline copy | Show old data as current, or keep running old code | The service worker fetches pages and data network first, keeps only this site's files and NASA's tiles, and `sw.js` is never cached by the CDN; the app shows the snapshot time and the LIVE / DATA TOO OLD badge as always. The APK only opens the site whose `assetlinks.json` names its key; the `android` workflow refuses an APK signed with another key. |
 | Over-trust in the output | Treat a risk estimate as a collision warning | Wording never says "collision prediction"; every page, API response and the model card say estimates from public data, not for operational use; provisional scores are flagged. |
 
 ## Browser policy notes

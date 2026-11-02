@@ -50,7 +50,8 @@ interface Perf {
   workers: number;
 }
 
-export default function Globe({ meta }: { meta: Meta }) {
+// "app": the installed mobile app, which draws its own time bar and controls over the globe.
+export default function Globe({ meta, variant = "dashboard" }: { meta: Meta; variant?: "dashboard" | "app" }) {
   const container = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState("Loading orbit data…");
@@ -73,7 +74,7 @@ export default function Globe({ meta }: { meta: Meta }) {
         ),
         baseLayerPicker: false,
         geocoder: false,
-        homeButton: true,
+        homeButton: variant === "dashboard",
         sceneModePicker: false,
         navigationHelpButton: false,
         animation: false,
@@ -110,7 +111,11 @@ export default function Globe({ meta }: { meta: Meta }) {
       scene.backgroundColor = Cesium.Color.BLACK;
       if (scene.sun) scene.sun.show = true;
       if (scene.moon) scene.moon.show = true;
-      viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(20, 15, 2.6e7) });
+      // A phone held upright is narrow: start further out so the whole Earth fits.
+      const home = () => Cesium.Cartesian3.fromDegrees(20, 15, variant === "app" && container.current!.clientWidth < container.current!.clientHeight ? 3.6e7 : 2.6e7);
+      viewer.camera.setView({ destination: home() });
+      // Covered by another screen of the mobile app: draw nothing until it shows again.
+      viewer.useDefaultRenderLoop = !getState().globePaused;
 
       const points = scene.primitives.add(new Cesium.PointPrimitiveCollection()) as InstanceType<typeof Cesium.PointPrimitiveCollection>;
       const fragments = scene.primitives.add(new Cesium.PointPrimitiveCollection()) as InstanceType<typeof Cesium.PointPrimitiveCollection>;
@@ -397,7 +402,7 @@ export default function Globe({ meta }: { meta: Meta }) {
       // While time moves, render every frame; when it stands still, only on change (battery).
       let raf = 0;
       const loop = () => {
-        if (getState().clock.playing) scene.requestRender();
+        if (getState().clock.playing && !getState().globePaused) scene.requestRender();
         raf = window.requestAnimationFrame(loop);
       };
       raf = window.requestAnimationFrame(loop);
@@ -415,6 +420,27 @@ export default function Globe({ meta }: { meta: Meta }) {
       const unsubscribe = subscribe(() => {
         const s = getState();
         if (s.quality !== prev.quality) applyQuality(s.quality);
+        if (s.globePaused !== prev.globePaused) {
+          viewer.useDefaultRenderLoop = !s.globePaused;
+          lastShownTime = Number.NaN;
+          scene.requestRender();
+        }
+        if (s.camera && s.camera !== prev.camera) {
+          const request = s.camera;
+          if (request.kind === "home") viewer.camera.flyTo({ destination: home(), duration: prefersReducedMotion ? 0 : 1.2 });
+          else {
+            // Positions for the shown time may still be on their way from the workers.
+            window.setTimeout(() => {
+              const i = byNorad.get(request.norad);
+              if (i === undefined || Number.isNaN(positions[i * 3])) return;
+              const carto = Cesium.Cartographic.fromCartesian(new Cesium.Cartesian3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]));
+              viewer.camera.flyTo({
+                destination: Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, carto.height + 4e6),
+                duration: prefersReducedMotion ? 0 : 1.5,
+              });
+            }, 400);
+          }
+        }
         if (
           s.filters !== prev.filters ||
           s.colorMode !== prev.colorMode ||
@@ -486,6 +512,8 @@ export default function Globe({ meta }: { meta: Meta }) {
       disposed = true;
       cleanup();
     };
+    // The variant is fixed for the page's life (chosen at load).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meta.orbit_file_url]);
 
   return (
@@ -493,9 +521,13 @@ export default function Globe({ meta }: { meta: Meta }) {
       <div ref={container} className="globe-canvas" />
       {status && <div className="globe-status" role="status">{status}</div>}
       {simActive && <div className="sim-label" role="note">Illustrative, simplified; not a prediction.</div>}
-      <TimeBar snapshot={meta.snapshot_time} objects={objects} />
-      <Legend provisional={!meta.history_complete} />
-      <FullscreenButton target={root} />
+      {variant === "dashboard" && (
+        <>
+          <TimeBar snapshot={meta.snapshot_time} objects={objects} />
+          <Legend provisional={!meta.history_complete} />
+          <FullscreenButton target={root} />
+        </>
+      )}
     </div>
   );
 }
