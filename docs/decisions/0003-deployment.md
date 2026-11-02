@@ -34,7 +34,7 @@ filters and sorts them, and runs the breakup simulator.
    and load only when the simulator page opens.
 4. **Two kinds of deploy.** `publish.yml` computes and publishes data with the current
    code; `deploy.yml` publishes new code with the data the live site already serves
-   (`static_site fetch`). Both build with `web/scripts/build-site.mjs` and are smoke
+   (`src/results/site_fetch.py`). Both build with `web/scripts/build-site.mjs` and are smoke
    tested (`scripts/smoke_site.sh`). Cloudflare keeps every deployment, so rolling
    back code or data is one click.
 5. **Secrets.** `HF_TOKEN` (private archive: raw data and models) never reaches a

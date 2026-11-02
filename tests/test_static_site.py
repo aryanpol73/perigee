@@ -28,6 +28,7 @@ from src.api.app import create_app
 from src.api.data import ResultsStore
 from src.config import Settings
 from src.results import FIXTURE_DIR
+from src.results.site_fetch import NoData
 from src.results.static_site import export, shard_of
 
 ROOT = Path(__file__).resolve().parent
@@ -153,7 +154,7 @@ def test_fetch_downloads_what_the_index_lists(store, tmp_path, monkeypatch):
     import io
     import urllib.request
 
-    from src.results import static_site
+    from src.results import site_fetch
 
     site = tmp_path / "site"
     export(store, site / "data", 48.0)
@@ -165,6 +166,19 @@ def test_fetch_downloads_what_the_index_lists(store, tmp_path, monkeypatch):
     import urllib.parse
 
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-    index = static_site.fetch("https://example.test/", tmp_path / "copy")
+    index = site_fetch.fetch("https://example.test/", tmp_path / "copy")
     assert _tree(tmp_path / "copy") == _tree(site / "data")
     assert index["run_id"] == store.meta["run_id"]
+    # A site without data answers its app page instead: "no data", not a crash.
+    monkeypatch.setattr(urllib.request, "urlopen", lambda req, timeout=0: io.BytesIO(b"<!doctype html>"))
+    with pytest.raises(NoData):
+        site_fetch.fetch("https://example.test/", tmp_path / "none")
+
+
+def test_fetch_needs_only_the_standard_library():
+    """The deploy job installs no packages: importing the fetcher must not pull in numpy or the API."""
+    import subprocess
+    import sys
+
+    code = "import sys, src.results.site_fetch; bad = [m for m in ('numpy', 'pandas', 'src.api') if m in sys.modules]; sys.exit(bool(bad))"
+    assert subprocess.run([sys.executable, "-c", code], cwd=ROOT.parent).returncode == 0

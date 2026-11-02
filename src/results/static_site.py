@@ -16,8 +16,7 @@ API's own presorted orders, and assembles details from the parts below.
   sim-catalog.json           the catalog in the simulator's shape (Pyodide, src/sim/service.py)
 
 Usage: python -m src.main export-static --out <dir>
-       python -m src.results.static_site fetch <site url> <dir>   (the live site's data, for
-       a code deploy that rebuilds the site without recomputing anything)
+Reading them back from a deployed site: src/results/site_fetch.py.
 """
 
 from __future__ import annotations
@@ -25,9 +24,6 @@ from __future__ import annotations
 import gzip
 import json
 import shutil
-import sys
-import urllib.parse
-import urllib.request
 from pathlib import Path
 
 import numpy as np
@@ -36,8 +32,8 @@ import pandas as pd
 from src.api import schemas as s
 from src.api import views
 from src.api.data import ResultsStore
+from src.results.site_fetch import FORMAT
 
-FORMAT = 1
 SHARDS = 64
 
 # Detail-only object fields, beside the summary's.
@@ -169,33 +165,3 @@ def export(st: ResultsStore, out: Path, max_data_age_h: float = 48.0) -> dict:
     }
     _write(out / "index.json", index)
     return index
-
-
-def fetch(site: str, out: Path, timeout: float = 60.0) -> dict:
-    """Download the data a deployed site serves (its /data/index.json lists every file) into `out`."""
-    base = site.rstrip("/") + "/data/"
-
-    def get(path: str) -> bytes:
-        req = urllib.request.Request(base + urllib.parse.quote(path), headers={"User-Agent": "Perigee deploy"})
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return r.read()
-
-    index = json.loads(get("index.json"))
-    if index.get("format") != FORMAT:
-        raise ValueError(f"the site's data has format {index.get('format')}, this code reads {FORMAT}")
-    if out.exists():
-        shutil.rmtree(out)
-    for path in index["files"]:
-        if path.startswith(("/", ".")) or ".." in path.split("/"):
-            raise ValueError(f"bad path in the site's index: {path!r}")
-        target = out / path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(get(path))
-    (out / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
-    return index
-
-
-if __name__ == "__main__":
-    if len(sys.argv) != 4 or sys.argv[1] != "fetch":
-        raise SystemExit("Usage: python -m src.results.static_site fetch <site url> <dir>")
-    print(f"Fetched run {fetch(sys.argv[2], Path(sys.argv[3]))['run_id']} from {sys.argv[2]}")
