@@ -134,7 +134,19 @@ def test_api_simulations_for_the_parity_check(client):
     assert all("frames" in c["response"] for c in cases)
     if UPDATE:
         SIM_PARITY.write_text(json.dumps(cases, separators=(",", ":")) + "\n", encoding="utf-8")
-    assert json.loads(SIM_PARITY.read_text(encoding="utf-8")) == cases, "simulations changed: rerun with UPDATE_STATIC_FIXTURE=1"
+    # Floating-point maths (trigonometry in particular) can differ in the last bits
+    # between platforms' numpy builds: compare numbers to 1e-9, everything else exactly.
+    assert _close(cases, json.loads(SIM_PARITY.read_text(encoding="utf-8"))), "simulations changed: rerun with UPDATE_STATIC_FIXTURE=1"
+
+
+def _close(actual, expected, rel: float = 1e-9) -> bool:
+    if isinstance(expected, bool) or not isinstance(expected, (int, float, list, dict)):
+        return actual == expected
+    if isinstance(expected, (int, float)):
+        return isinstance(actual, (int, float)) and not isinstance(actual, bool) and abs(actual - expected) <= rel * max(1.0, abs(expected))
+    if isinstance(expected, list):
+        return isinstance(actual, list) and len(actual) == len(expected) and all(_close(a, e, rel) for a, e in zip(actual, expected, strict=True))
+    return isinstance(actual, dict) and actual.keys() == expected.keys() and all(_close(actual[k], expected[k], rel) for k in expected)
 
 
 def test_fetch_downloads_what_the_index_lists(store, tmp_path, monkeypatch):
