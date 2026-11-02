@@ -23,6 +23,7 @@ GitHub Actions). Data job details: docs/data-job.md.
 | `publish` fails at *Screen* or runs out of time | Job log: step durations | Rerun once (runners vary). |
 | `publish` or `deploy` fails at *Smoke test* | The step's error line | The deployment is live but incomplete: roll back, then fix and redeploy. |
 | `deploy` warns "the site has no data yet" | | The first run: run `publish`. |
+| `deploy` fails at *The data the live site serves now* | The step's error line | The live site's data could not be read (site down, or its format changed): nothing was deployed. Fix the cause, then re-run `deploy`. |
 | Simulator says it could not start | Browser console | Old browser without WebAssembly support, or `/pyodide/` files missing from the deployment (`scripts/check-build.mjs --static` should have caught it). |
 | Object count dropped sharply | `data-refresh` log: `rejected_by_reason` | The validator rejects a partial download and keeps the last good data; the next run retries. |
 | Globe janky on a phone | Object count, filters, quality | The legend's *Quality* switch (battery saver); phones default to a smaller object set. |

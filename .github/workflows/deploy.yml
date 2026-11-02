@@ -61,14 +61,23 @@ jobs:
           node-version: "24"
           cache: npm
           cache-dependency-path: web/package-lock.json
+      # Standard library only (no pip install here). Exit 3 = the site has no data yet;
+      # any other failure fails the deploy rather than skipping it.
       - name: The data the live site serves now
         id: data
         run: |
-          if python -m src.results.static_site fetch "$PERIGEE_WEB_URL" site-data; then
+          set +e
+          python -m src.results.site_fetch "$PERIGEE_WEB_URL" site-data
+          code=$?
+          set -e
+          if [ "$code" = 0 ]; then
             echo "found=true" >> "$GITHUB_OUTPUT"
-          else
+          elif [ "$code" = 3 ]; then
             echo "::warning::The site has no data yet. Run the publish workflow; it builds and deploys the whole site (docs/deployment.md, first run)."
             echo "found=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Could not read the live site's data (exit $code): nothing was deployed"
+            exit "$code"
           fi
       - name: Build the site with this commit's code
         if: steps.data.outputs.found == 'true'
