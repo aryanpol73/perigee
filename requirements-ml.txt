@@ -3,4 +3,4 @@
 -r requirements.txt
 scikit-learn==1.9.1
 lightgbm==4.7.0
-optuna==4.9.0
+optuna==5.0.0

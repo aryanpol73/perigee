@@ -7,4 +7,4 @@ numpy==2.5.4
 sgp4==2.27
 scipy==1.18.1
 duckdb==2.0.0
-sentry-sdk==2.70.0
+sentry-sdk==2.73.0
