@@ -2,7 +2,7 @@
 -r requirements-ml.txt
 -r requirements-jobs.txt
 astropy==8.0.2
-astropy-iers-data==0.2026.10.19.0.52.1
+astropy-iers-data==0.2026.11.2.0.34.55
 # Lint, types, coverage, dependency audit (CI runs all of them).
 ruff==0.17.3
 mypy==2.4.1
