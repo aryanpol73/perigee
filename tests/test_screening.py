@@ -203,6 +203,29 @@ def test_coarse_candidates_respect_usable_and_threshold():
     assert len(i) == 0  # 30 km apart and parallel; the third object did not propagate
 
 
+def test_an_impossible_speed_does_not_widen_the_search(monkeypatch):
+    # A bad element set moving at 300 km/s would set a ~6,000 km search radius for
+    # everyone (memory grows with its cube): it is left out instead, and the real
+    # close pair is still found.
+    p = np.array([[7000.0, 0.0, 0.0], [7000.0, 100.0, 2.0], [7000.0, 3000.0, 0.0], [-7000.0, 0.0, 0.0]])
+    v = np.array([[0.0, 7.0, 0.0], [0.0, -7.0, 0.0], [0.0, 0.0, 7.5], [0.0, 300.0, 0.0]])
+    from src.screening import screen as screen_module
+
+    radii = []
+    real_tree = screen_module.cKDTree
+
+    class Tree(real_tree):  # records the search radius
+        def query_pairs(self, r, *args, **kwargs):
+            radii.append(r)
+            return super().query_pairs(r, *args, **kwargs)
+
+    monkeypatch.setattr(screen_module, "cKDTree", Tree)
+    cfg = ScreenConfig(step_s=20.0)
+    i, j, _, _ = coarse_candidates(p, v, np.ones(4, bool), np.ones(4, bool), cfg)
+    assert (i.tolist(), j.tolist()) == ([0], [1])
+    assert radii[0] < 400  # set by the real objects (~7.5 km/s): ~160 km plus margin
+
+
 def test_encounter_minima_keeps_one_per_run():
     i = np.array([0, 0, 0, 0, 0, 1])
     j = np.array([1, 1, 1, 1, 1, 2])

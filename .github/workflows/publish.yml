@@ -54,8 +54,10 @@ jobs:
       - name: Rebuild tables from the raw archive
         run: python -m src.main rebuild
 
+      # Peak memory is printed: running out of it (16 GB runner) shows only as a
+      # cancelled step, with no Python error.
       - name: Screen 7 days ahead
-        run: python -m src.main screen --workers 4
+        run: /usr/bin/time -f "screen: peak memory %M KB of the largest process, %e s" python -m src.main screen --workers 4
 
       - name: Shell risk index
         run: python -m src.main shells

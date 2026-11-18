@@ -1,3 +1,5 @@
+import contextlib
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -85,7 +87,17 @@ def test_frames_agree_with_astropy():
         from astropy.utils import iers
     except ImportError as exc:  # dev dependency; also fails to load from very long paths on Windows
         pytest.skip(f"astropy unavailable: {exc}")
-    iers.conf.auto_download = False
+    # Offline and deterministic: the times below are fixed and inside the bundled
+    # Earth-rotation table (astropy-iers-data), so its age relative to today does not
+    # matter (astropy otherwise refuses once the table is 30 days older than the clock).
+    stack = contextlib.ExitStack()
+    stack.enter_context(iers.conf.set_temp("auto_download", False))
+    stack.enter_context(iers.conf.set_temp("auto_max_age", None))
+    with stack:
+        _compare_with_astropy(u, ITRS, TEME, CartesianRepresentation, Time)
+
+
+def _compare_with_astropy(u, ITRS, TEME, CartesianRepresentation, Time):
 
     times = pd.date_range("2026-10-30T12:00", periods=24, freq="h", tz="UTC")
     r = np.tile([6_800.0, 0.0, 0.0], (24, 1))

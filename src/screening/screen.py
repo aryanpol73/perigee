@@ -44,6 +44,12 @@ log = logging.getLogger("perigee.screening")
 MU_EARTH_KM3_S2 = 398_600.4418
 MIN_RADIUS_KM = 6_378.137 + 150.0  # nothing in the catalog orbits lower for long
 SECONDS_PER_DAY = 86_400.0
+# Nothing bound to the Earth moves faster than escape speed at the lowest perigee
+# (about 11 km/s). A faster object is a bad element set: it is left out like one
+# that failed to propagate. It must not set the search radius, which grows with
+# the fastest object and the pair count with its cube (one such object filled a
+# 16 GB CI runner).
+MAX_ORBITAL_SPEED_KM_S = 12.0
 
 # CelesTrak SATCAT operational status codes counted as active (operational,
 # partially operational, backup, spare, extended mission).
@@ -114,7 +120,7 @@ def coarse_candidates(
     propagated. Returns (i, j, linear_miss_km, tau_s) with i < j as catalog indices,
     where tau_s is the straight-line TCA offset from the sample, within +/- step/2.
     """
-    idx = np.flatnonzero(usable)
+    idx = np.flatnonzero(usable & (np.linalg.norm(velocity, axis=1) <= MAX_ORBITAL_SPEED_KM_S))
     empty = (np.zeros(0, np.int64), np.zeros(0, np.int64), np.zeros(0), np.zeros(0))
     if len(idx) < 2:
         return empty
@@ -233,7 +239,8 @@ def _screen_chunk(first_step: int, last_step: int) -> tuple[pd.DataFrame, set[in
     seconds = steps * cfg.step_s
     jd_whole, fr0 = w["jd0"]
     error, r, v = w["array"].sgp4(np.full(len(steps), jd_whole), fr0 + seconds / SECONDS_PER_DAY)
-    usable_all = (error == 0) & ~w["init_failed"][:, None]
+    plausible = np.linalg.norm(v, axis=2) <= MAX_ORBITAL_SPEED_KM_S
+    usable_all = (error == 0) & ~w["init_failed"][:, None] & plausible
     failing = set(np.flatnonzero(~usable_all.all(axis=1)).tolist())
 
     found: list[tuple[IntArray, IntArray, FloatArray, FloatArray, IntArray]] = []
