@@ -72,7 +72,7 @@ The website keeps the dashboard. Details: [docs/mobile-app.md](docs/mobile-app.m
 
 ```mermaid
 flowchart LR
-    CT[CelesTrak<br/>public orbit data] -->|hourly, polite| DR[data job<br/>owner's PC]
+    CT[CelesTrak<br/>public orbit data] -->|hourly, polite| DR[data-refresh<br/>GitHub Actions]
     DR --> HF[(private archive<br/>Hugging Face)]
     ST[Space-Track history<br/>downloaded by hand] -.->|training only| ML[LightGBM model]
     HF -->|daily| PUB[publish<br/>screen · score · shells · export]

@@ -8,7 +8,7 @@ GitHub Actions). Data job details: docs/data-job.md.
 | Objective | Target | Watched by |
 |---|---|---|
 | Site available | 99% | UptimeRobot (5 min) |
-| Orbit snapshots | the hourly data job on the PC (docs/data-job.md); stale snapshots make the site's results stale | `watchdog` (results under 36 h), a Windows notification on the PC |
+| Orbit snapshots | the hourly data job (`data-refresh`, or the PC fallback) succeeded in the last 12 h | `watchdog` |
 | Results the site serves | under 36 h old | `watchdog` |
 | Page load | under 5 s on a typical mobile connection | Lighthouse, before releases |
 | Simulator | first run of a visit within ~10 s on a laptop (Python loads), then about a second | `web/e2e` (static mode) |

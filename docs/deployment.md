@@ -8,7 +8,7 @@ There is no server to host, wake or scale. GitHub Actions does all the computing
 |---|---|---|
 | `ci.yml` | every push and pull request | lint, types, tests (coverage gate 80%), parity of the static site with the API, browser tests on the dev app **and on the production static build**, the API image built and started, dependency audits, secret scan |
 | `deploy.yml` | after `ci` passes on main (or by hand, for rollback) | rebuilds the site with the new code and the data the live site serves, publishes it, smoke test |
-| `data-refresh.yml` | by hand only (the data job runs hourly on the owner's PC, `scripts/local_fetch.ps1`) | CelesTrak snapshots into the private archive (docs/data-job.md) |
+| `data-refresh.yml` | hourly (GitHub runs it every 4-8 h); the PC job is the fallback | CelesTrak snapshots into the private archive (docs/data-job.md) |
 | `publish.yml` | daily 04:41 UTC | rebuild, screen, score, risk index, export the data, publish the site with it, smoke test |
 | `watchdog.yml` | every 3 h | site up, its results under 36 h old, scheduled jobs still succeeding |
 | `android.yml` | by hand | the Android app: build, sign, check against the site's asset links, GitHub release (docs/mobile-app.md) |

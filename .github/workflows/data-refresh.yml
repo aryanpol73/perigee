@@ -1,9 +1,9 @@
-# The CelesTrak snapshot job, by hand only. It normally runs on the owner's PC
-# (scripts/local_fetch.ps1, every hour): GitHub's runners share IP addresses with
-# other projects, so CelesTrak answered downloads from them with 403 ("not updated
-# since your last download", counted per IP) and firewalls IPs that collect them.
-# Run this only while the PC job is stopped, never alongside it: both write the
-# same fetch log and STOP file. docs/data-job.md.
+# The CelesTrak snapshot job, hourly. GitHub's runners share IP addresses with
+# other projects, so CelesTrak sometimes answers 403 "GP data has not updated since
+# your last successful download" (someone else on the IP took the update): the job
+# then skips GP until the next update, and stops for a human after 3 in a row. The
+# PC job (scripts/local_fetch.ps1) is the fallback: never run both, as they share
+# one fetch log and STOP file. docs/data-job.md.
 #
 # The pipeline's fetch log decides what is due (GP every 2 h, SATCAT every 12 h,
 # space weather every 24 h).
@@ -14,6 +14,8 @@
 name: data-refresh
 
 on:
+  schedule:
+    - cron: "17 * * * *"
   workflow_dispatch: {}
 
 permissions:

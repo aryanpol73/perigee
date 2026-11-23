@@ -4,20 +4,31 @@ The data job keeps a dated archive of CelesTrak snapshots in a **private** Huggi
 Face dataset. The ML stage needs weeks of history, and CelesTrak history cannot be
 downloaded later, so it should run continuously.
 
-**It runs on the owner's PC**, every hour (`scripts/local_fetch.ps1`, started by
-Windows Task Scheduler). Everything else (publish, deploy, watchdog) stays on GitHub.
+It runs **hourly on GitHub Actions** (`.github/workflows/data-refresh.yml`). The
+owner's PC job (`scripts/local_fetch.ps1`, below) is the fallback. **Never run both**:
+they share one fetch log and STOP file.
 
-Why not GitHub Actions: its runners share IP addresses with other projects.
+### Shared runner IPs and CelesTrak's "not updated" 403
+
 CelesTrak serves each GP update once per IP and answers a second download of the
-same data with **403** ("GP data has not updated since your last successful
-download"), and it firewalls an IP that collects about 50 such errors in 2 hours.
-In November 2026 other users on the shared runner IPs made our first download of
-the day look like a repeat, and the job stopped itself (as it must). A home
-connection's IP is ours alone. `.github/workflows/data-refresh.yml` still exists for
-a manual run while the PC job is stopped; never run both, as they share one fetch
-log and STOP file.
+same data with **403** "GP data has not updated since your last successful
+download"; the 403 clears when the data next updates (every 2 hours). GitHub's
+runners share IPs with other projects, so in November 2026 someone else's download
+made ours look like a repeat and the job stopped itself, twice.
 
-## On the PC
+That one 403 is now not a refusal: the job skips GP for that run (no snapshot, no
+STOP file, exit 0) and asks again only after GP's interval, the next update. After
+`PERIGEE_MAX_NOT_UPDATED` (3) in a row, about 6 hours without new GP data, it writes a
+STOP file saying so: then run the data job from another IP (the PC fallback). Every
+other non-200 answer still stops everything at once. The count is in
+`state/not_updated.json`; it is far below CelesTrak's firewall threshold (about 50
+errors per IP in 2 hours): at most one GP request per 2 hours.
+
+## The PC fallback
+
+Use it when GitHub's IPs keep getting the "not updated" 403 (a STOP file says so).
+First disable the schedule of `data-refresh.yml` (or the workflow: *Actions →
+data-refresh → ⋯ → Disable workflow*), then on the PC:
 
 Set up once (needs the project's `.venv`), in PowerShell from the project folder:
 

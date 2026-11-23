@@ -85,13 +85,13 @@ def test_urllib_fetcher_network_failure():
 
 
 def test_refusal_writes_stop_file_and_blocks_later_requests(settings):
-    fetcher = FakeFetcher({"u": HttpStatusError("u", 403, "GP data has not updated since your last successful download"), "v": b"data"})
+    fetcher = FakeFetcher({"u": HttpStatusError("u", 403, "Forbidden: see the usage policy"), "v": b"data"})
     client = PoliteClient(settings, fetcher=fetcher, sleep=lambda s: None)
     with pytest.raises(HttpStatusError):
         client.get("u")
     assert client.stop_file.exists()
     assert '"status": 403' in client.stop_file.read_text()
-    assert "has not updated since your last successful download" in client.stop_file.read_text()  # CelesTrak's reason
+    assert "see the usage policy" in client.stop_file.read_text()  # CelesTrak's reason
 
     with pytest.raises(StoppedError):
         client.get("v")
