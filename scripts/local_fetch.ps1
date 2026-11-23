@@ -18,7 +18,9 @@ New-Item -ItemType Directory -Force $work, $logs | Out-Null
 $log = Join-Path $logs ("fetch-{0:yyyy-MM-dd}.log" -f (Get-Date))
 Get-ChildItem $logs -Filter "fetch-*.log" | Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } | Remove-Item -Force
 
-function Write-Log([string]$text) { Add-Content -Path $log -Value ("{0:u} {1}" -f (Get-Date).ToUniversalTime(), $text) }
+function Write-Log([string]$text) { Add-Content -Path $log -Encoding UTF8 -Value ((Get-Date).ToUniversalTime().ToString("u") + " " + $text) }
+# Python's output (its JSON logs go to stderr), as UTF-8 text lines.
+function Out-Log { process { Add-Content -Path $log -Encoding UTF8 -Value "$_" } }
 
 # The previous run's result: alert once when something goes wrong, not every hour.
 $previous = try { (Get-Content (Join-Path $base "last-status.json") -Raw | ConvertFrom-Json).exit_code } catch { 0 }
@@ -48,7 +50,7 @@ if (-not $mutex.WaitOne(0)) { Write-Log "another run is in progress; skipped"; e
 
 try {
   $config = Get-Content (Join-Path $base "config.json") -Raw | ConvertFrom-Json
-  $secure = Get-Content (Join-Path $base "hf_token.dat") -Raw | ConvertTo-SecureString # readable only by this Windows user
+  $secure = (Get-Content (Join-Path $base "hf_token.dat") -Raw).Trim() | ConvertTo-SecureString # readable only by this Windows user
   $env:HF_TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
   $env:PERIGEE_HF_DATASET = $config.dataset
   # A fresh copy every run, like a CI runner: the dataset is the only state.
@@ -58,14 +60,14 @@ try {
   Set-Location $repo
 
   Write-Log "start"
-  & $python -m src.ops.archive_sync pull *>> $log
+  & $python -m src.ops.archive_sync pull 2>&1 | Out-Log
   if ($LASTEXITCODE -ne 0) { throw "pulling from the dataset failed (exit $LASTEXITCODE)" }
-  & $python -m src.main data --offline *>> $log
+  & $python -m src.main data --offline 2>&1 | Out-Log
   if ($LASTEXITCODE -ne 0) { throw "rebuilding the tables failed (exit $LASTEXITCODE)" }
-  & $python -m src.main data *>> $log
+  & $python -m src.main data 2>&1 | Out-Log
   $code = $LASTEXITCODE
   # Always push: the fetch log, any STOP file and quarantined downloads must reach the dataset.
-  & $python -m src.ops.archive_sync push *>> $log
+  & $python -m src.ops.archive_sync push 2>&1 | Out-Log
   if ($LASTEXITCODE -ne 0) { throw "pushing to the dataset failed (exit $LASTEXITCODE)" }
 
   if ($code -eq 0) {
