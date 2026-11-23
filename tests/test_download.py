@@ -29,6 +29,10 @@ class _Handler(BaseHTTPRequestHandler):
             self.send_response(301)
             self.send_header("Location", "/ok")
             self.end_headers()
+        elif self.path == "/forbidden":
+            self.send_response(403)
+            self.end_headers()
+            self.wfile.write(b"GP data has not updated since your last successful download of GROUP=active.")
         else:
             self.send_response(503)
             self.end_headers()
@@ -66,6 +70,14 @@ def test_urllib_fetcher_raises_on_server_error(server):
     assert exc.value.status == 503
 
 
+def test_urllib_fetcher_keeps_the_reason_for_a_refusal(server):
+    fetch = urllib_fetcher("Perigee-test/1.0", timeout_s=5)
+    with pytest.raises(HttpStatusError) as exc:
+        fetch(f"{server}/forbidden")
+    assert exc.value.status == 403
+    assert exc.value.message.startswith("GP data has not updated since your last successful download")
+
+
 def test_urllib_fetcher_network_failure():
     fetch = urllib_fetcher("Perigee-test/1.0", timeout_s=2)
     with pytest.raises(NetworkError):
@@ -73,12 +85,13 @@ def test_urllib_fetcher_network_failure():
 
 
 def test_refusal_writes_stop_file_and_blocks_later_requests(settings):
-    fetcher = FakeFetcher({"u": HttpStatusError("u", 403), "v": b"data"})
+    fetcher = FakeFetcher({"u": HttpStatusError("u", 403, "GP data has not updated since your last successful download"), "v": b"data"})
     client = PoliteClient(settings, fetcher=fetcher, sleep=lambda s: None)
     with pytest.raises(HttpStatusError):
         client.get("u")
     assert client.stop_file.exists()
     assert '"status": 403' in client.stop_file.read_text()
+    assert "has not updated since your last successful download" in client.stop_file.read_text()  # CelesTrak's reason
 
     with pytest.raises(StoppedError):
         client.get("v")
