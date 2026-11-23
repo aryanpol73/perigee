@@ -1,9 +1,43 @@
 # Scheduled data job
 
-`.github/workflows/data-refresh.yml` runs every hour on GitHub Actions and keeps a
-dated archive of CelesTrak snapshots in a **private** Hugging Face dataset. The ML
-stage needs weeks of history, and CelesTrak history cannot be downloaded later, so
-this should run continuously from as early as possible.
+The data job keeps a dated archive of CelesTrak snapshots in a **private** Hugging
+Face dataset. The ML stage needs weeks of history, and CelesTrak history cannot be
+downloaded later, so it should run continuously.
+
+**It runs on the owner's PC**, every hour (`scripts/local_fetch.ps1`, started by
+Windows Task Scheduler). Everything else (publish, deploy, watchdog) stays on GitHub.
+
+Why not GitHub Actions: its runners share IP addresses with other projects.
+CelesTrak serves each GP update once per IP and answers a second download of the
+same data with **403** ("GP data has not updated since your last successful
+download"), and it firewalls an IP that collects about 50 such errors in 2 hours.
+In November 2026 other users on the shared runner IPs made our first download of
+the day look like a repeat, and the job stopped itself (as it must). A home
+connection's IP is ours alone. `.github/workflows/data-refresh.yml` still exists for
+a manual run while the PC job is stopped; never run both, as they share one fetch
+log and STOP file.
+
+## On the PC
+
+Set up once (needs the project's `.venv`), in PowerShell from the project folder:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install_local_fetch.ps1
+```
+
+It asks for the dataset name and the Hugging Face token (typed hidden; stored
+encrypted with Windows DPAPI in `%LOCALAPPDATA%\Perigee\hf_token.dat`, readable only
+by your Windows account), then registers the task **Perigee data fetch**: hourly at
+:17 while you are signed in, and as soon as possible after a missed run. If the PC is
+off, nothing is lost but freshness: the next run fetches what is due.
+
+- Run now: `Start-ScheduledTask -TaskName "Perigee data fetch"`
+- Result of the last run: `%LOCALAPPDATA%\Perigee\last-status.json`; logs (30 days):
+  `%LOCALAPPDATA%\Perigee\logs`. A failure also shows a Windows notification, once.
+- New token: `... install_local_fetch.ps1 -NewToken`; remove everything: `-Uninstall`.
+
+Each run works in a fresh `%LOCALAPPDATA%\Perigeeetch` folder (outside OneDrive),
+so the dataset is the only state, exactly as on a CI runner.
 
 ## How a run works
 
@@ -15,8 +49,9 @@ this should run continuously from as early as possible.
    never poll more often than the policy allows, and cron drift never skips an update.
 4. Push new raw snapshots, quarantined (rejected) downloads and `state/`
    (`python -m src.ops.archive_sync push`). Raw snapshots are immutable; push only adds.
-5. The job fails (and GitHub emails you) if a download was rejected (exit 1) or
-   CelesTrak refused a request (exit 2).
+5. The run fails if a download was rejected (exit 1) or CelesTrak refused a request
+   (exit 2). On the PC it shows a notification; the watchdog workflow flags the site's
+   data going stale (over 36 h) by email.
 
 Processed Parquet tables are not stored; they are rebuilt from raw.
 
@@ -58,8 +93,10 @@ The job refuses to upload if the dataset is public.
 | "Set secret HF_TOKEN..." | Setup incomplete | Steps 2-3 above. |
 | "dataset ... is public" | The dataset's visibility is public | Make it private in the dataset settings. |
 
-While the STOP file exists, every hourly run fails without contacting CelesTrak,
-so you will get a failure email each hour until it is dealt with.
+While the STOP file exists, every hourly run fails without contacting CelesTrak.
+The STOP file records the URL, the status and the start of CelesTrak's message, which
+says why (for a 403, usually "GP data has not updated since your last successful
+download": someone on the same IP downloaded it first).
 
 ## Limits
 

@@ -33,10 +33,20 @@ Fetcher = Callable[[str], bytes]
 
 
 class HttpStatusError(RuntimeError):
-    def __init__(self, url: str, status: int) -> None:
+    def __init__(self, url: str, status: int, message: str = "") -> None:
         super().__init__(f"HTTP {status} from {url}")
         self.url = url
         self.status = status
+        # The start of the response body: CelesTrak explains a 403 in it (for
+        # example "GP data has not updated since your last successful download").
+        self.message = message
+
+
+def _error_text(exc: urllib.error.HTTPError) -> str:
+    try:
+        return exc.read(2000).decode("utf-8", "replace").strip()[:500]
+    except Exception:
+        return ""
 
 
 class NetworkError(RuntimeError):
@@ -64,7 +74,7 @@ def urllib_fetcher(user_agent: str, timeout_s: float) -> Fetcher:
                 body: bytes = response.read()
                 return body
         except urllib.error.HTTPError as exc:
-            raise HttpStatusError(url, exc.code) from exc
+            raise HttpStatusError(url, exc.code, _error_text(exc)) from exc
         except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
             raise NetworkError(f"{url}: {exc}") from exc
 
@@ -121,6 +131,7 @@ class PoliteClient:
                 {
                     "url": exc.url,
                     "status": exc.status,
+                    "message": exc.message,
                     "at": datetime.now(UTC).isoformat(timespec="seconds"),
                     "action": "Check the URL and CelesTrak's usage policy, then delete this file.",
                 },

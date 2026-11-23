@@ -8,7 +8,7 @@ GitHub Actions). Data job details: docs/data-job.md.
 | Objective | Target | Watched by |
 |---|---|---|
 | Site available | 99% | UptimeRobot (5 min) |
-| Orbit snapshots | the hourly job succeeded in the last 12 h (GitHub runs it every 4-8 h in practice) | `watchdog` |
+| Orbit snapshots | the hourly data job on the PC (docs/data-job.md); stale snapshots make the site's results stale | `watchdog` (results under 36 h), a Windows notification on the PC |
 | Results the site serves | under 36 h old | `watchdog` |
 | Page load | under 5 s on a typical mobile connection | Lighthouse, before releases |
 | Simulator | first run of a visit within ~10 s on a laptop (Python loads), then about a second | `web/e2e` (static mode) |
@@ -19,13 +19,13 @@ GitHub Actions). Data job details: docs/data-job.md.
 |---|---|---|
 | Site down | Cloudflare status page; *Workers & Pages* → the project → *Deployments* | Roll back to the previous deployment (below) if the newest is broken. |
 | Site loads but shows no data | Browser console, network tab: does `/data/index.json` load? | A deploy without data: run `publish`, or roll back. |
-| "Data too old" on the site; `watchdog` red | *Actions*: the last `publish` and `data-refresh` runs | Re-run the failed workflow. A `data-refresh` exit 2 means CelesTrak refused a request: follow docs/data-job.md, never delete the STOP file without reading why it is there. |
+| "Data too old" on the site; `watchdog` red | *Actions*: the last `publish` run; on the PC, `%LOCALAPPDATA%\Perigee\last-status.json` and its logs; `state/STOP_CELESTRAK` in the dataset | Publish failed: re-run it. No new snapshots: is the PC on and the task enabled? An exit 2 means CelesTrak refused a request: follow docs/data-job.md, never delete the STOP file without reading why it is there. |
 | `publish` fails at *Screen* or runs out of time | Job log: step durations | Rerun once (runners vary). |
 | `publish` or `deploy` fails at *Smoke test* | The step's error line | The deployment is live but incomplete: roll back, then fix and redeploy. |
 | `deploy` warns "the site has no data yet" | | The first run: run `publish`. |
 | `deploy` fails at *The data the live site serves now* | The step's error line | The live site's data could not be read (site down, or its format changed): nothing was deployed. Fix the cause, then re-run `deploy`. |
 | Simulator says it could not start | Browser console | Old browser without WebAssembly support, or `/pyodide/` files missing from the deployment (`scripts/check-build.mjs --static` should have caught it). |
-| Object count dropped sharply | `data-refresh` log: `rejected_by_reason` | The validator rejects a partial download and keeps the last good data; the next run retries. |
+| Object count dropped sharply | the data job's log: `rejected_by_reason` | The validator rejects a partial download and keeps the last good data; the next run retries. |
 | Globe janky on a phone | Object count, filters, quality | The legend's *Quality* switch (battery saver); phones default to a smaller object set. |
 | Scheduled workflows stopped running | *Actions*: a banner says the workflow is disabled | GitHub disables schedules in public repositories after 60 days without commits. Enable each workflow again (*Actions → workflow → Enable*) and push any commit. |
 

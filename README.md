@@ -19,7 +19,6 @@
 <p align="center">
   <a href="https://github.com/aryanpol73/perigee/actions/workflows/ci.yml"><img src="https://github.com/aryanpol73/perigee/actions/workflows/ci.yml/badge.svg" alt="ci"></a>
   <a href="https://github.com/aryanpol73/perigee/actions/workflows/publish.yml"><img src="https://github.com/aryanpol73/perigee/actions/workflows/publish.yml/badge.svg" alt="publish"></a>
-  <a href="https://github.com/aryanpol73/perigee/actions/workflows/data-refresh.yml"><img src="https://github.com/aryanpol73/perigee/actions/workflows/data-refresh.yml/badge.svg" alt="data-refresh"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue" alt="MIT licence"></a>
 </p>
 
@@ -73,7 +72,7 @@ The website keeps the dashboard. Details: [docs/mobile-app.md](docs/mobile-app.m
 
 ```mermaid
 flowchart LR
-    CT[CelesTrak<br/>public orbit data] -->|hourly, polite| DR[data-refresh<br/>GitHub Actions]
+    CT[CelesTrak<br/>public orbit data] -->|hourly, polite| DR[data job<br/>owner's PC]
     DR --> HF[(private archive<br/>Hugging Face)]
     ST[Space-Track history<br/>downloaded by hand] -.->|training only| ML[LightGBM model]
     HF -->|daily| PUB[publish<br/>screen · score · shells · export]

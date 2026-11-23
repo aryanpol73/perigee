@@ -1,9 +1,12 @@
-# Scheduled CelesTrak snapshot job. History cannot be downloaded after the fact,
-# so this keeps a dated archive accumulating for the ML stage.
+# The CelesTrak snapshot job, by hand only. It normally runs on the owner's PC
+# (scripts/local_fetch.ps1, every hour): GitHub's runners share IP addresses with
+# other projects, so CelesTrak answered downloads from them with 403 ("not updated
+# since your last download", counted per IP) and firewalls IPs that collect them.
+# Run this only while the PC job is stopped, never alongside it: both write the
+# same fetch log and STOP file. docs/data-job.md.
 #
-# Runs hourly; the pipeline's fetch log decides what is actually due (GP every
-# 2 h, SATCAT every 12 h, space weather every 24 h), so GitHub's cron drift never
-# causes a skipped update or an extra request.
+# The pipeline's fetch log decides what is due (GP every 2 h, SATCAT every 12 h,
+# space weather every 24 h).
 #
 # Setup (once): add repository secret HF_TOKEN (Hugging Face write token) and
 # repository variable PERIGEE_HF_DATASET (owner/name of a PRIVATE dataset).
@@ -11,8 +14,6 @@
 name: data-refresh
 
 on:
-  schedule:
-    - cron: "17 * * * *"
   workflow_dispatch: {}
 
 permissions:
