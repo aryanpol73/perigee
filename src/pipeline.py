@@ -19,6 +19,8 @@ from src.ingest.download import (
     FetchLog,
     HttpStatusError,
     NetworkError,
+    NotUpdatedError,
+    NotUpdatedLog,
     PoliteClient,
     StoppedError,
 )
@@ -42,12 +44,13 @@ from src.storage import parquet_store as store
 log = logging.getLogger("perigee.pipeline")
 
 FAILED_STATUSES = {"rejected", "refused", "stopped", "network_error"}
+NOT_UPDATED_TEXT = "not updated since your last successful download"
 
 
 @dataclass
 class SourceOutcome:
     source: str
-    status: str  # fetched | cached | skipped | rejected | refused | stopped | network_error
+    status: str  # fetched | cached | skipped | not_updated | rejected | refused | stopped | network_error
     snapshot_id: str | None = None
     detail: str = ""
 
@@ -197,6 +200,7 @@ def run_data(
     now = now or datetime.now(UTC)
     client = client or PoliteClient(settings)
     fetch_log = FetchLog(settings.state_dir)
+    not_updated = NotUpdatedLog(settings.state_dir)
     outcomes: list[SourceOutcome] = []
     halted = False
 
@@ -206,7 +210,27 @@ def run_data(
             outcomes.append(SourceOutcome(source.name, "skipped", latest))
             continue
         try:
-            outcomes.append(fetch_source(source, settings, client, fetch_log, now))
+            outcome = fetch_source(source, settings, client, fetch_log, now)
+            outcomes.append(outcome)
+            if outcome.status == "fetched":
+                not_updated.clear(source.name)
+        except NotUpdatedError as exc:
+            # Already served to this IP since CelesTrak's last update: no new data
+            # now, nothing wrong. Asked again after the source's interval.
+            latest = archive.latest_snapshot(settings.raw_dir, source.name)
+            streak = not_updated.add(source.name)
+            if streak >= settings.max_not_updated:
+                client.stop(
+                    exc.url,
+                    exc.status,
+                    f"{streak} downloads in a row answered '{NOT_UPDATED_TEXT}' (someone else on this IP takes "
+                    f"each update first): no new {source.name} data. Run the data job from another IP "
+                    f"(docs/data-job.md). CelesTrak said: {exc.message}",
+                )
+                halted = True
+                outcomes.append(SourceOutcome(source.name, "refused", latest, f"{streak} not-updated answers in a row"))
+            else:
+                outcomes.append(SourceOutcome(source.name, "not_updated", latest, f"{streak} in a row"))
         except HttpStatusError as exc:
             # Policy: stop every CelesTrak request on any non-200 response.
             halted = True

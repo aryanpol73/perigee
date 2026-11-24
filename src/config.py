@@ -41,6 +41,9 @@ class Settings:
     space_weather_min_interval_h: float = 24.0
     http_timeout_s: float = 60.0
     http_max_attempts: int = 3
+    # CelesTrak's "not updated since your last successful download" 403s in a row
+    # (someone else on a shared IP took the update) before the job stops for a human.
+    max_not_updated: int = 3
     # Data quality thresholds (see docs/data-sources.md).
     gp_min_objects: int = 10_000
     satcat_min_objects: int = 50_000
@@ -90,6 +93,7 @@ class Settings:
             space_weather_min_interval_h=_env_float("PERIGEE_SW_MIN_INTERVAL_H", 24.0),
             http_timeout_s=_env_float("PERIGEE_HTTP_TIMEOUT_S", 60.0),
             http_max_attempts=_env_int("PERIGEE_HTTP_MAX_ATTEMPTS", 3),
+            max_not_updated=_env_int("PERIGEE_MAX_NOT_UPDATED", 3),
             gp_min_objects=_env_int("PERIGEE_GP_MIN_OBJECTS", 10_000),
             satcat_min_objects=_env_int("PERIGEE_SATCAT_MIN_OBJECTS", 50_000),
             space_weather_min_days=_env_int("PERIGEE_SW_MIN_DAYS", 1_000),

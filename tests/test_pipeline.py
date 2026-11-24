@@ -167,3 +167,43 @@ def test_cli_summary_with_no_data(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("PERIGEE_DATA_DIR", str(tmp_path / "empty"))
     assert main(["summary"]) == 0
     assert "No catalog snapshot stored yet" in capsys.readouterr().out
+
+
+NOT_UPDATED = "GP data has not updated since your last successful download of GROUP=active at 2026-11-23 14:00:00 UTC."
+
+
+def test_not_updated_403_skips_gp_without_stopping(settings, good_responses):
+    # On a shared IP someone else took this GP update first: no data now, nothing wrong.
+    fetcher = FakeFetcher(good_responses)
+    fetcher.responses[STATIONS_URL] = HttpStatusError(STATIONS_URL, 403, NOT_UPDATED)
+    outcomes = _run(settings, fetcher)
+    assert _status(outcomes) == {"satcat": "fetched", "space_weather": "fetched", "gp": "not_updated"}
+    assert not (settings.state_dir / "STOP_CELESTRAK").exists()
+    assert main(["data", "--offline"]) == 0  # and the job does not fail
+
+    # Asked again only after GP's interval; a success resets the count.
+    fetcher.responses[STATIONS_URL] = good_responses[STATIONS_URL]
+    fetcher.calls.clear()
+    assert _run(settings, fetcher, now=NOW + timedelta(minutes=30))["gp"].status == "cached"
+    assert fetcher.calls == []
+    assert _run(settings, fetcher, now=NOW + timedelta(hours=2))["gp"].status == "fetched"
+    assert "gp" not in (settings.state_dir / "not_updated.json").read_text()
+
+
+def test_not_updated_three_times_in_a_row_stops_for_a_human(settings, good_responses):
+    fetcher = FakeFetcher(good_responses)
+    fetcher.responses[STATIONS_URL] = HttpStatusError(STATIONS_URL, 403, NOT_UPDATED)
+    for k, expected in enumerate(["not_updated", "not_updated", "refused"]):
+        assert _run(settings, fetcher, now=NOW + timedelta(hours=2 * k))["gp"].status == expected
+    stop = (settings.state_dir / "STOP_CELESTRAK").read_text()
+    assert "3 downloads in a row" in stop and "another IP" in stop
+    calls = len(fetcher.calls)
+    assert _run(settings, fetcher, now=NOW + timedelta(hours=8))["gp"].status in {"stopped", "skipped"}
+    assert len(fetcher.calls) == calls  # nothing more is requested
+
+
+def test_any_other_403_still_stops_at_once(settings, good_responses):
+    fetcher = FakeFetcher(good_responses)
+    fetcher.responses[STATIONS_URL] = HttpStatusError(STATIONS_URL, 403, "Access denied: abusive behaviour")
+    assert _run(settings, fetcher)["gp"].status == "refused"
+    assert (settings.state_dir / "STOP_CELESTRAK").exists()

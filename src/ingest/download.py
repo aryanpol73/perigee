@@ -4,7 +4,12 @@ CelesTrak's usage policy says machine clients must stop querying immediately on
 any non-200 response and report it to a human, or the IP gets firewalled. So:
 
 * any HTTP status other than 200 (redirects included) raises and writes a STOP
-  file; no further requests are made until a human deletes it;
+  file; no further requests are made until a human deletes it. One exception:
+  CelesTrak's own 403 "GP data has not updated since your last successful
+  download" means the current update was already served to this IP (on a shared
+  CI runner, to someone else) and clears when the data next updates. It raises
+  NotUpdatedError instead, writes no STOP file, and the source is asked again
+  only after its interval; NotUpdatedLog stops the job after a few in a row;
 * only network-level failures (timeouts, dropped connections) are retried, with
   exponential backoff;
 * every request is recorded in a fetch log so a source is never downloaded more
@@ -47,6 +52,13 @@ def _error_text(exc: urllib.error.HTTPError) -> str:
         return exc.read(2000).decode("utf-8", "replace").strip()[:500]
     except Exception:
         return ""
+
+
+class NotUpdatedError(HttpStatusError):
+    """CelesTrak's 403 for data already downloaded from this IP since its last update."""
+
+
+NOT_UPDATED_MARK = "has not updated since your last successful download"
 
 
 class NetworkError(RuntimeError):
@@ -106,6 +118,12 @@ class PoliteClient:
                 log.info("downloaded", extra={"url": url, "bytes": len(body)})
                 return body
             except HttpStatusError as exc:
+                if exc.status == 403 and NOT_UPDATED_MARK in exc.message:
+                    log.warning(
+                        "celestrak: not updated since the last download from this IP; skipped until its next update",
+                        extra={"url": url, "celestrak_message": exc.message},
+                    )
+                    raise NotUpdatedError(exc.url, exc.status, exc.message) from exc
                 self._write_stop_file(exc)
                 log.error(
                     "celestrak refused request; all downloads stopped",
@@ -124,6 +142,10 @@ class PoliteClient:
                 self.sleep(delay)
         raise AssertionError("unreachable")
 
+    def stop(self, url: str, status: int, message: str) -> None:
+        """Stop all downloads for a human, as a refusal does."""
+        self._write_stop_file(HttpStatusError(url, status, message))
+
     def _write_stop_file(self, exc: HttpStatusError) -> None:
         self.stop_file.parent.mkdir(parents=True, exist_ok=True)
         self.stop_file.write_text(
@@ -138,6 +160,34 @@ class PoliteClient:
                 indent=2,
             )
         )
+
+
+class NotUpdatedLog:
+    """How many "not updated" 403s in a row each source has had (state/not_updated.json)."""
+
+    def __init__(self, state_dir: Path) -> None:
+        self.path = state_dir / "not_updated.json"
+
+    def _load(self) -> dict[str, int]:
+        if not self.path.exists():
+            return {}
+        data: dict[str, int] = json.loads(self.path.read_text())
+        return data
+
+    def _save(self, data: dict[str, int]) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps(data, indent=2, sort_keys=True))
+
+    def add(self, source: str) -> int:
+        data = self._load()
+        data[source] = data.get(source, 0) + 1
+        self._save(data)
+        return data[source]
+
+    def clear(self, source: str) -> None:
+        data = self._load()
+        if data.pop(source, None) is not None:
+            self._save(data)
 
 
 class FetchLog:
