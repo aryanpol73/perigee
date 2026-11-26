@@ -24,6 +24,20 @@ other non-200 answer still stops everything at once. The count is in
 `state/not_updated.json`; it is far below CelesTrak's firewall threshold (about 50
 errors per IP in 2 hours): at most one GP request per 2 hours.
 
+### CelesTrak outages (502/503/504)
+
+On 25 November 2026 CelesTrak's server was down for a while and answered a plain
+**503 Service Unavailable**. The job used to treat that as a refusal: a STOP file,
+and every run failed for days until a human deleted it. A server outage is now
+handled on its own: that run makes no further request (status `unavailable`,
+exit 0), and no request at all is made for `PERIGEE_OUTAGE_COOLDOWN_MIN` (60)
+minutes (the policy asks for at least 15 after a 503). The source that got the 503
+still counts against its interval. Only after `PERIGEE_MAX_OUTAGES` (6) outages in a
+row does the job write a STOP file ("6 outages in a row"); then check that
+celestrak.org is up and delete it. The count is in `state/outage.json`; any
+successful download clears it. A STOP file or cool-down no longer uses up a source's
+interval in the fetch log.
+
 ## The PC fallback
 
 Use it when GitHub's IPs keep getting the "not updated" 403 (a STOP file says so).
@@ -100,7 +114,8 @@ The job refuses to upload if the dataset is public.
 | Job error | Meaning | What to do |
 |---|---|---|
 | exit 1, "download was rejected" | A file failed validation; it is in `quarantine/` in the dataset and the last good data is kept | Look at the log's `rejected_by_reason`. Usually transient; the next due run retries. |
-| exit 2, "CelesTrak refused" | CelesTrak returned a non-200 (or an earlier refusal's STOP file exists). **No further requests are made.** | Read `state/STOP_CELESTRAK` in the dataset, check CelesTrak's [usage policy](https://celestrak.org/usage-policy.php) and the URL, then delete that file in the dataset to resume. |
+| `unavailable` / `skipped` (exit 0) | CelesTrak was down (502/503/504), or a cool-down after that is running | Nothing: the job resumes by itself. |
+| exit 2, "CelesTrak refused" | CelesTrak returned a non-200 other than an outage, or 6 outages in a row (or an earlier refusal's STOP file exists). **No further requests are made.** | Read `state/STOP_CELESTRAK` in the dataset, check CelesTrak's [usage policy](https://celestrak.org/usage-policy.php) and the URL, then delete that file in the dataset to resume. |
 | "Set secret HF_TOKEN..." | Setup incomplete | Steps 2-3 above. |
 | "dataset ... is public" | The dataset's visibility is public | Make it private in the dataset settings. |
 
