@@ -16,6 +16,7 @@ import pandas as pd
 from src.config import Settings
 from src.ingest import archive
 from src.ingest.download import (
+    CoolingDownError,
     FetchLog,
     HttpStatusError,
     NetworkError,
@@ -23,6 +24,7 @@ from src.ingest.download import (
     NotUpdatedLog,
     PoliteClient,
     StoppedError,
+    UnavailableError,
 )
 from src.ingest.parse import SchemaError, parse_gp, parse_satcat, parse_space_weather
 from src.ingest.sources import GP, SATCAT, SPACE_WEATHER, Source, all_sources
@@ -50,7 +52,7 @@ NOT_UPDATED_TEXT = "not updated since your last successful download"
 @dataclass
 class SourceOutcome:
     source: str
-    status: str  # fetched | cached | skipped | not_updated | rejected | refused | stopped | network_error
+    status: str  # fetched | cached | skipped | not_updated | unavailable | rejected | refused | stopped | network_error
     snapshot_id: str | None = None
     detail: str = ""
 
@@ -112,6 +114,9 @@ def fetch_source(
         log.info("not due, using cached raw data", extra={"source": source.name, "snapshot": latest})
         return SourceOutcome(source.name, "cached", latest)
 
+    # No request possible (a STOP file, an outage cool-down): leave the fetch log
+    # alone, so the source is asked as soon as requests resume.
+    client.check()
     # Record the attempt first: a failed or rejected download still counts
     # against the polling interval.
     fetch_log.record(source.name, now)
@@ -231,6 +236,15 @@ def run_data(
                 outcomes.append(SourceOutcome(source.name, "refused", latest, f"{streak} not-updated answers in a row"))
             else:
                 outcomes.append(SourceOutcome(source.name, "not_updated", latest, f"{streak} in a row"))
+        except UnavailableError as exc:
+            # A server outage: no more requests this run, then a cool-down (client).
+            halted = True
+            latest = archive.latest_snapshot(settings.raw_dir, source.name)
+            outcomes.append(SourceOutcome(source.name, "unavailable", latest, str(exc)))
+        except CoolingDownError as exc:
+            halted = True
+            latest = archive.latest_snapshot(settings.raw_dir, source.name)
+            outcomes.append(SourceOutcome(source.name, "skipped", latest, str(exc)))
         except HttpStatusError as exc:
             # Policy: stop every CelesTrak request on any non-200 response.
             halted = True

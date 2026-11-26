@@ -207,3 +207,58 @@ def test_any_other_403_still_stops_at_once(settings, good_responses):
     fetcher.responses[STATIONS_URL] = HttpStatusError(STATIONS_URL, 403, "Access denied: abusive behaviour")
     assert _run(settings, fetcher)["gp"].status == "refused"
     assert (settings.state_dir / "STOP_CELESTRAK").exists()
+
+
+OUTAGE = "<HTML><HEAD><TITLE>Service Unavailable</TITLE></HEAD><BODY><h2>Service Unavailable</h2></BODY></HTML>"
+
+
+def _run_at(settings, fetcher, now):
+    client = PoliteClient(settings, fetcher=fetcher, sleep=lambda s: None, clock=lambda: now)
+    return {o.source: o for o in run_data(settings, client=client, now=now)}
+
+
+def test_outage_503_cools_down_and_resumes_without_a_human(settings, good_responses):
+    # 25 Nov 2026: CelesTrak's server was down for a while (plain IIS 503).
+    fetcher = FakeFetcher(good_responses)
+    fetcher.responses[SATCAT_URL] = HttpStatusError(SATCAT_URL, 503, OUTAGE)
+    outcomes = _run_at(settings, fetcher, NOW)
+    assert _status(outcomes) == {"satcat": "unavailable", "space_weather": "skipped", "gp": "skipped"}
+    assert fetcher.calls == [SATCAT_URL]  # nothing more after a 503
+    assert not (settings.state_dir / "STOP_CELESTRAK").exists()
+
+    # Inside the cool-down: no request at all, and the fetch log is not touched.
+    fetcher.calls.clear()
+    outcomes = _run_at(settings, fetcher, NOW + timedelta(minutes=30))
+    assert fetcher.calls == []
+    assert _status(outcomes) == {"satcat": "cached", "space_weather": "skipped", "gp": "skipped"}
+
+    # After it: the server is back. SATCAT's failed attempt still counts against its
+    # interval (polite); the sources never asked are fetched now.
+    fetcher.responses[SATCAT_URL] = good_responses[SATCAT_URL]
+    outcomes = _run_at(settings, fetcher, NOW + timedelta(hours=1, minutes=5))
+    assert _status(outcomes) == {"satcat": "cached", "space_weather": "fetched", "gp": "fetched"}
+    assert not (settings.state_dir / "outage.json").exists()
+
+
+def test_outage_exit_code_is_zero(settings, good_responses, monkeypatch):
+    fetcher = FakeFetcher(good_responses)
+    fetcher.responses[SATCAT_URL] = HttpStatusError(SATCAT_URL, 503, OUTAGE)
+    _run_at(settings, fetcher, NOW)
+    # A later run in the cool-down makes no request and does not fail the job.
+    import src.main as cli
+
+    monkeypatch.setattr(
+        cli,
+        "run_data",
+        lambda s, fetch: run_data(s, client=PoliteClient(s, fetcher=fetcher, sleep=lambda x: None, clock=lambda: NOW), now=NOW),
+    )
+    assert main(["data"]) == 0
+
+
+def test_many_outages_in_a_row_stop_for_a_human(settings, good_responses):
+    fetcher = FakeFetcher(good_responses)
+    fetcher.responses[STATIONS_URL] = HttpStatusError(STATIONS_URL, 503, OUTAGE)
+    statuses = [_run_at(settings, fetcher, NOW + timedelta(hours=2 * k))["gp"].status for k in range(settings.max_outages)]
+    assert statuses == ["unavailable"] * (settings.max_outages - 1) + ["refused"]
+    stop = (settings.state_dir / "STOP_CELESTRAK").read_text()
+    assert f"{settings.max_outages} outages in a row" in stop

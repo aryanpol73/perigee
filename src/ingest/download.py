@@ -9,7 +9,11 @@ any non-200 response and report it to a human, or the IP gets firewalled. So:
   download" means the current update was already served to this IP (on a shared
   CI runner, to someone else) and clears when the data next updates. It raises
   NotUpdatedError instead, writes no STOP file, and the source is asked again
-  only after its interval; NotUpdatedLog stops the job after a few in a row;
+  only after its interval; NotUpdatedLog stops the job after a few in a row.
+  Another: a server outage (502/503/504: CelesTrak's server or its front end is
+  down) raises UnavailableError, and no request is made for a cool-down (the
+  policy asks for at least 15 minutes after a 503); OutageLog writes the STOP
+  file only after several outages in a row;
 * only network-level failures (timeouts, dropped connections) are retried, with
   exponential backoff;
 * every request is recorded in a fetch log so a source is never downloaded more
@@ -61,6 +65,17 @@ class NotUpdatedError(HttpStatusError):
 NOT_UPDATED_MARK = "has not updated since your last successful download"
 
 
+class UnavailableError(HttpStatusError):
+    """A server outage (502/503/504): try again after a cool-down; no STOP file."""
+
+
+OUTAGE_STATUSES = {502, 503, 504}
+
+
+class CoolingDownError(RuntimeError):
+    """No request made: the cool-down after a recent outage has not passed yet."""
+
+
 class NetworkError(RuntimeError):
     pass
 
@@ -99,23 +114,34 @@ class PoliteClient:
         settings: Settings,
         fetcher: Fetcher | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        clock: Callable[[], datetime] = lambda: datetime.now(UTC),
     ) -> None:
         self.settings = settings
         self.fetcher = fetcher or urllib_fetcher(settings.user_agent, settings.http_timeout_s)
         self.sleep = sleep
+        self.clock = clock
         self.stop_file = settings.state_dir / STOP_FILE_NAME
+        self.outages = OutageLog(settings.state_dir)
 
-    def get(self, url: str) -> bytes:
+    def check(self) -> None:
+        """Raise if no request may be made now (a STOP file, or an outage cool-down)."""
         if self.stop_file.exists():
             raise StoppedError(
                 f"{self.stop_file} exists from an earlier refused request. "
                 "Investigate it, then delete the file to resume downloads."
             )
+        until = self.outages.until()
+        if until is not None and self.clock() < until:
+            raise CoolingDownError(f"CelesTrak was unavailable; no requests until {until.isoformat(timespec='minutes')}")
+
+    def get(self, url: str) -> bytes:
+        self.check()
         attempts = max(1, self.settings.http_max_attempts)
         for attempt in range(1, attempts + 1):
             try:
                 body = self.fetcher(url)
                 log.info("downloaded", extra={"url": url, "bytes": len(body)})
+                self.outages.clear()
                 return body
             except HttpStatusError as exc:
                 if exc.status == 403 and NOT_UPDATED_MARK in exc.message:
@@ -124,6 +150,20 @@ class PoliteClient:
                         extra={"url": url, "celestrak_message": exc.message},
                     )
                     raise NotUpdatedError(exc.url, exc.status, exc.message) from exc
+                if exc.status in OUTAGE_STATUSES:
+                    count = self.outages.add(self.clock() + timedelta(minutes=self.settings.outage_cooldown_min))
+                    if count < self.settings.max_outages:
+                        log.warning(
+                            "celestrak unavailable; no requests until the cool-down passes",
+                            extra={"url": url, "status": exc.status, "outages_in_a_row": count},
+                        )
+                        raise UnavailableError(exc.url, exc.status, exc.message) from exc
+                    exc = HttpStatusError(
+                        exc.url,
+                        exc.status,
+                        f"{count} outages in a row (HTTP {exc.status}): check that celestrak.org is up. "
+                        f"Last answer: {exc.message}",
+                    )
                 self._write_stop_file(exc)
                 log.error(
                     "celestrak refused request; all downloads stopped",
@@ -188,6 +228,32 @@ class NotUpdatedLog:
         data = self._load()
         if data.pop(source, None) is not None:
             self._save(data)
+
+
+class OutageLog:
+    """Server outages in a row and the end of the cool-down after the last (state/outage.json)."""
+
+    def __init__(self, state_dir: Path) -> None:
+        self.path = state_dir / "outage.json"
+
+    def _load(self) -> dict[str, str | int]:
+        if not self.path.exists():
+            return {}
+        data: dict[str, str | int] = json.loads(self.path.read_text())
+        return data
+
+    def until(self) -> datetime | None:
+        raw = self._load().get("until")
+        return datetime.fromisoformat(str(raw)) if raw else None
+
+    def add(self, until: datetime) -> int:
+        count = int(self._load().get("count", 0)) + 1
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.path.write_text(json.dumps({"count": count, "until": until.isoformat()}, indent=2))
+        return count
+
+    def clear(self) -> None:
+        self.path.unlink(missing_ok=True)
 
 
 class FetchLog:
